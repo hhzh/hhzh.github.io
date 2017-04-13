@@ -9,6 +9,8 @@
     
     <meta name="author" content="HHZH">
     
+    <meta name="description" content="1. 解释IOCIOC是Spring框架的核心，使用工厂模式，利用反射，即可由IoC容器来管理对象的生命周期、依赖关系等，从而使得应用程序的配置和依赖性规范与实际的应用程序代码分开。其中一个特点就是通过文本的配置文件进行应用程序组件间相互关系的配置，而不用重新修改并编译具体的代码。可以把IoC模式看">
+    
     
     
     
@@ -71,7 +73,7 @@
     </p>
   <p class="article-time">
     <time datetime="2017-04-13T09:31:45.000Z" itemprop="datePublished">2017-04-13</time>
-    Updated:<time datetime="2017-04-13T09:31:45.913Z" itemprop="dateModified">2017-04-13</time>
+    Updated:<time datetime="2017-04-13T14:32:24.412Z" itemprop="dateModified">2017-04-13</time>
     
   </p>
 </header>
@@ -80,12 +82,41 @@
 		
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">Contents</strong>
-		
+		<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-解释IOC"><span class="toc-number">1.</span> <span class="toc-text">1. 解释IOC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-解释AOP"><span class="toc-number">2.</span> <span class="toc-text">2. 解释AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Spring事务的传播特性和隔离级别有哪些"><span class="toc-number">3.</span> <span class="toc-text">3. Spring事务的传播特性和隔离级别有哪些</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Spring容器的加载顺序"><span class="toc-number">4.</span> <span class="toc-text">4. Spring容器的加载顺序</span></a></li></ol>
 		</div>
 		
-		  
+		<h3 id="1-解释IOC"><a href="#1-解释IOC" class="headerlink" title="1. 解释IOC"></a>1. 解释IOC</h3><p>IOC是Spring框架的核心，使用工厂模式，利用反射，即可由IoC容器来管理对象的生命周期、依赖关系等，从而使得应用程序的配置和依赖性规范与实际的应用程序代码分开。其中一个特点就是通过文本的配置文件进行应用程序组件间相互关系的配置，而不用重新修改并编译具体的代码。<br>可以把IoC模式看做是工厂模式的升华，可以把IoC看作是一个大工厂，只不过这个大工厂里要生成的对象都是在XML文件中给出定义的，然后利用Java 的“反射”编程，根据XML中给出的类名生成相应的对象。从实现来看，IoC是把以前在工厂方法里写死的对象生成代码，改变为由XML文件来定义，也就是把工厂和对象生成这两者独立分隔开来，目的就是提高灵活性和可维护性。<br>获得依赖对象的方式反转了。<br>ioc的思想最核心的地方在于，资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。</p>
+<h3 id="2-解释AOP"><a href="#2-解释AOP" class="headerlink" title="2. 解释AOP"></a>2. 解释AOP</h3><p>面向切面编程（AOP是Aspect Oriented Program的首字母缩写） ，我们知道，面向对象的特点是继承、多态和封装。而封装就要求将功能分散到不同的对象中去，这在软件设计中往往称为职责分配。实际上也就是说，让不同的类设计不同的方法。这样代码就分散到一个个的类中去了。这样做的好处是降低了代码的复杂程度，使类可重用。      但是人们也发现，在分散代码的同时，也增加了代码的重复性。什么意思呢？比如说，我们在两个类中，可能都需要在每个方法中做日志。按面向对象的设计方法，我们就必须在两个类的方法中都加入日志的内容。也许他们是完全相同的，但就是因为面向对象的设计让类与类之间无法联系，而不能将这些重复的代码统一起来。    也许有人会说，那好办啊，我们可以将这段代码写在一个独立的类独立的方法里，然后再在这两个类中调用。但是，这样一来，这两个类跟我们上面提到的独立的类就有耦合了，它的改变会影响这两个类。那么，有没有什么办法，能让我们在需要的时候，随意地加入代码呢？这种在运行时，动态地将代码切入到类的指定方法、指定位置上的编程思想就是面向切面的编程。       一般而言，我们管切入到指定类指定方法的代码片段称为切面，而切入到哪些类、哪些方法则叫切入点。有了AOP，我们就可以把几个类共有的代码，抽取到一个切片中，等到需要时再切入对象中去，从而改变其原有的行为。这样看来，AOP其实只是OOP的补充而已。OOP从横向上区分出一个个的类来，而AOP则从纵向上向对象中加入特定的代码。有了AOP，OOP变得立体了。如果加上时间维度，AOP使OOP由原来的二维变为三维了，由平面变成立体了。从技术上来说，AOP基本上是通过代理机制实现的。<br>实现AOP的技术，主要分为两大类：一是采用动态代理技术，利用截取消息的方式，对该消息进行装饰，以取代原有对象行为的执行；二是采用静态织入的方式，引入特定的语法创建“方面”，从而使得编译器可以在编译期间织入有关“方面”的代码.</p>
+<h3 id="3-Spring事务的传播特性和隔离级别有哪些"><a href="#3-Spring事务的传播特性和隔离级别有哪些" class="headerlink" title="3. Spring事务的传播特性和隔离级别有哪些"></a>3. Spring事务的传播特性和隔离级别有哪些</h3><p>事务的几种传播特性 </p>
+<ol>
+<li>PROPAGATION_REQUIRED: 如果存在一个事务，则支持当前事务。如果没有事务则开启 </li>
+<li>PROPAGATION_SUPPORTS: 如果存在一个事务，支持当前事务。如果没有事务，则非事务的执行 </li>
+<li>PROPAGATION_MANDATORY: 如果已经存在一个事务，支持当前事务。如果没有一个活动的事务，则抛出异常。 </li>
+<li>PROPAGATION_REQUIRES_NEW: 总是开启一个新的事务。如果一个事务已经存在，则将这个存在的事务挂起。 </li>
+<li>PROPAGATION_NOT_SUPPORTED: 总是非事务地执行，并挂起任何存在的事务。 </li>
+<li>PROPAGATION_NEVER: 总是非事务地执行，如果存在一个活动事务，则抛出异常 </li>
+<li>PROPAGATION_NESTED：如果一个活动的事务存在，则运行在一个嵌套的事务中. 如果没有活动事务,<br>则按TransactionDefinition.PROPAGATION_REQUIRED 属性执行</li>
+</ol>
+<p>Spring事务的隔离级别 </p>
+<ol>
+<li>ISOLATION_DEFAULT： 这是一个PlatfromTransactionManager默认的隔离级别，使用数据库默认的事务隔离级别.<br>另外四个与JDBC的隔离级别相对应 </li>
+<li>ISOLATION_READ_UNCOMMITTED： 这是事务最低的隔离级别，它充许令外一个事务可以看到这个事务未提交的数据。<br>这种隔离级别会产生脏读，不可重复读和幻像读。 </li>
+<li>ISOLATION_READ_COMMITTED： 保证一个事务修改的数据提交后才能被另外一个事务读取。另外一个事务不能读取该事务未提交的数据 </li>
+<li>ISOLATION_REPEATABLE_READ： 这种事务隔离级别可以防止脏读，不可重复读。但是可能出现幻像读。<br>它除了保证一个事务不能读取另一个事务未提交的数据外，还保证了避免下面的情况产生(不可重复读)。 </li>
+<li>ISOLATION_SERIALIZABLE 这是花费最高代价但是最可靠的事务隔离级别。事务被处理为顺序执行。<br>除了防止脏读，不可重复读外，还避免了幻像读。</li>
+</ol>
+<p>其中的一些概念的说明：</p>
+<p>脏读: 指当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，这时，另外一个事务也访问这个数据，然后使用了这个数据。因为这个数据是还没有提交的数据， 那么另外一 个事务读到的这个数据是脏数据，依据脏数据所做的操作可能是不正确的。</p>
+<p>不可重复读: 指在一个事务内，多次读同一数据。在这个事务还没有结束时，另外一个事务也访问该同一数据。 那么，在第一个事务中的两次读数据之间，由于第二个事务的修改，那么第一个事务两次读到的数据可能是不一样的。这样就发生了在一个事务内两次读到的数据是不一样的，因此称为是不可重复读。</p>
+<p>幻觉读: 指当事务不是独立执行时发生的一种现象，例如第一个事务对一个表中的数据进行了修改，这种修改涉及 到表中的全部数据行。同时，第二个事务也修改这个表中的数据，这种修改是向表中插入一行新数据。那么，以后就会发生操作第一个事务的用户发现表中还有没有修改的数据行，就好象发生了幻觉一样。</p>
+<h3 id="4-Spring容器的加载顺序"><a href="#4-Spring容器的加载顺序" class="headerlink" title="4. Spring容器的加载顺序"></a>4. Spring容器的加载顺序</h3>  
 	</div>
 		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Java面试/">Java面试</a>
+  </div>
 
 
 
@@ -118,7 +149,7 @@
 
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
-  
+  <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-解释IOC"><span class="toc-number">1.</span> <span class="toc-text">1. 解释IOC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-解释AOP"><span class="toc-number">2.</span> <span class="toc-text">2. 解释AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Spring事务的传播特性和隔离级别有哪些"><span class="toc-number">3.</span> <span class="toc-text">3. Spring事务的传播特性和隔离级别有哪些</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Spring容器的加载顺序"><span class="toc-number">4.</span> <span class="toc-text">4. Spring容器的加载顺序</span></a></li></ol>
   </div>
 
 <div id="asidepart">
@@ -135,6 +166,8 @@
 			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Java-书籍/" title="Java 书籍">Java 书籍<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Java面试/" title="Java面试">Java面试<sup>1</sup></a></li>
 		
 		</ul>
 </div>
