@@ -1,0 +1,344 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Linux下安装Java、maven | HHZH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="HHZH">
+    
+    <meta name="description" content="maven依赖Java，所以安装maven需要先安装Java。
+1. 安装Java首先去Oracle官网去下载Java的压缩包，找到Linux x64那一行点击jdk-8u131-linux-x64.tar.gz会从该下载链接（类似http://download.oracle.com/otn-pub">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="HHZH" title="HHZH"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="HHZH">HHZH</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/07/17/Linux下安装Java、maven/" title="Linux下安装Java、maven" itemprop="url">Linux下安装Java、maven</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://yoursite.com" title="HHZH">HHZH</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-07-17T13:51:45.000Z" itemprop="datePublished">2017-07-17</time>
+    更新日期:<time datetime="2017-07-17T13:52:30.896Z" itemprop="dateModified">2017-07-17</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-安装Java"><span class="toc-number">1.</span> <span class="toc-text">1. 安装Java</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-下载Java压缩包"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 下载Java压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-解压压缩包"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 解压压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-设置Java环境变量："><span class="toc-number">1.3.</span> <span class="toc-text">1.3 设置Java环境变量：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-使配置文件生效"><span class="toc-number">1.4.</span> <span class="toc-text">1.4 使配置文件生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-查看是否安装成功："><span class="toc-number">1.5.</span> <span class="toc-text">1.5 查看是否安装成功：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-安装maven"><span class="toc-number">2.</span> <span class="toc-text">2. 安装maven</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-下载maven压缩包"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 下载maven压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-解压"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 解压</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-配置maven环境变量："><span class="toc-number">2.3.</span> <span class="toc-text">2.3 配置maven环境变量：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-使配置文件生效"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 使配置文件生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-查看是否安装成功：-1"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 查看是否安装成功：</span></a></li></ol></li></ol>
+		</div>
+		
+		<p>maven依赖Java，所以安装maven需要先安装Java。</p>
+<h1 id="1-安装Java"><a href="#1-安装Java" class="headerlink" title="1. 安装Java"></a>1. 安装Java</h1><p>首先去Oracle官网去下载Java的压缩包，找到Linux x64那一行点击jdk-8u131-linux-x64.tar.gz会从该下载链接（类似<a href="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz?AuthParam=1500262277_e257bad3c9bf43d1c34178b3630a8fe1" target="_blank" rel="external">http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz?AuthParam=1500262277_e257bad3c9bf43d1c34178b3630a8fe1</a> ）进行下载，拷贝该链接，用命令行进行下载。</p>
+<h2 id="1-1-下载Java压缩包"><a href="#1-1-下载Java压缩包" class="headerlink" title="1.1 下载Java压缩包"></a>1.1 下载Java压缩包</h2><p>在linux命令行下，执行下载命令：</p>
+<blockquote>
+<p>wget <a href="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz?AuthParam=1500262277_e257bad3c9bf43d1c34178b3630a8fe1" target="_blank" rel="external">http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz?AuthParam=1500262277_e257bad3c9bf43d1c34178b3630a8fe1</a></p>
+</blockquote>
+<h2 id="1-2-解压压缩包"><a href="#1-2-解压压缩包" class="headerlink" title="1.2 解压压缩包"></a>1.2 解压压缩包</h2><p>等一会就下载好了Java压缩包 jdk-8u131-linux-x64.tar.gz<br>然后解压：</p>
+<blockquote>
+<p>tar -zxvf jdk-8u131-linux-x64.tar.gz</p>
+</blockquote>
+<h2 id="1-3-设置Java环境变量："><a href="#1-3-设置Java环境变量：" class="headerlink" title="1.3 设置Java环境变量："></a>1.3 设置Java环境变量：</h2><blockquote>
+<p>vim /etc/profile</p>
+</blockquote>
+<p>在该文件末尾加上（我的压缩包是解压在/usr/local/目录下）：</p>
+<blockquote>
+<p>export JAVA_HOME=/usr/local/jdk1.8.0_131<br>export CLASSPATH=.:$JAVA_HOME/lib<br>export PATH=$JAVA_HOME/bin:$PATH</p>
+</blockquote>
+<h2 id="1-4-使配置文件生效"><a href="#1-4-使配置文件生效" class="headerlink" title="1.4 使配置文件生效"></a>1.4 使配置文件生效</h2><blockquote>
+<p>source /etc/profile </p>
+</blockquote>
+<h2 id="1-5-查看是否安装成功："><a href="#1-5-查看是否安装成功：" class="headerlink" title="1.5 查看是否安装成功："></a>1.5 查看是否安装成功：</h2><blockquote>
+<p>java -version</p>
+</blockquote>
+<h1 id="2-安装maven"><a href="#2-安装maven" class="headerlink" title="2. 安装maven"></a>2. 安装maven</h1><p>首先去maven官网（<a href="http://maven.apache.org/download.cgi" target="_blank" rel="external">http://maven.apache.org/download.cgi</a> ），找到apache-maven-3.5.0-bin.tar.gz 的下载链接（类似<a href="http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.tar.gz" target="_blank" rel="external">http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.tar.gz</a> ）。</p>
+<h2 id="2-1-下载maven压缩包"><a href="#2-1-下载maven压缩包" class="headerlink" title="2.1 下载maven压缩包"></a>2.1 下载maven压缩包</h2><blockquote>
+<p>wget <a href="http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.tar.gz" target="_blank" rel="external">http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.tar.gz</a></p>
+</blockquote>
+<h2 id="2-2-解压"><a href="#2-2-解压" class="headerlink" title="2.2 解压"></a>2.2 解压</h2><blockquote>
+<p>tar apache-maven-3.5.0-bin.tar.gz</p>
+</blockquote>
+<h2 id="2-3-配置maven环境变量："><a href="#2-3-配置maven环境变量：" class="headerlink" title="2.3 配置maven环境变量："></a>2.3 配置maven环境变量：</h2><blockquote>
+<p>vim /etc/profile</p>
+</blockquote>
+<p>在该文件末尾加上（我的压缩包是解压在/usr/local/目录下）：</p>
+<blockquote>
+<p>export MAVEN_HOME=/usr/local/apache-maven-3.5.0<br>export PATH=:$MAVEN_HOME/bin:$PATH</p>
+</blockquote>
+<h2 id="2-4-使配置文件生效"><a href="#2-4-使配置文件生效" class="headerlink" title="2.4 使配置文件生效"></a>2.4 使配置文件生效</h2><blockquote>
+<p>source /etc/profile </p>
+</blockquote>
+<h2 id="1-5-查看是否安装成功：-1"><a href="#1-5-查看是否安装成功：-1" class="headerlink" title="1.5 查看是否安装成功："></a>1.5 查看是否安装成功：</h2><blockquote>
+<p>mvn -v</p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2017/07/17/Linux下安装Java、maven/" data-title="Linux下安装Java、maven | HHZH" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/07/12/快速了解Java8/" title="快速了解Java8">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  快速了解Java8</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-安装Java"><span class="toc-number">1.</span> <span class="toc-text">1. 安装Java</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-下载Java压缩包"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 下载Java压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-解压压缩包"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 解压压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-设置Java环境变量："><span class="toc-number">1.3.</span> <span class="toc-text">1.3 设置Java环境变量：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-使配置文件生效"><span class="toc-number">1.4.</span> <span class="toc-text">1.4 使配置文件生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-查看是否安装成功："><span class="toc-number">1.5.</span> <span class="toc-text">1.5 查看是否安装成功：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-安装maven"><span class="toc-number">2.</span> <span class="toc-text">2. 安装maven</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-下载maven压缩包"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 下载maven压缩包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-解压"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 解压</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-配置maven环境变量："><span class="toc-number">2.3.</span> <span class="toc-text">2.3 配置maven环境变量：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-使配置文件生效"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 使配置文件生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-查看是否安装成功：-1"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 查看是否安装成功：</span></a></li></ol></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java-书籍/" title="Java 书籍">Java 书籍<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Java面试/" title="Java面试">Java面试<sup>3</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="null" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2017 
+		
+		<a href="http://yoursite.com" target="_blank" title="HHZH">HHZH</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
