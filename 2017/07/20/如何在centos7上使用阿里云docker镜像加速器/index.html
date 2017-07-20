@@ -9,6 +9,8 @@
     
     <meta name="author" content="HHZH">
     
+    <meta name="description" content="由于国内访问docker hub的网速太慢，以至于连docker镜像都pull不下来。所以国内的大公司建了一些自己的docker hub和镜像加速器来帮助大家更好的使用docker。建议：如果你的服务器的网速能够从docker hub上pull下来镜像，就不要用阿里云的镜像加速器。因为他们那随心所欲">
+    
     
     
     
@@ -71,7 +73,7 @@
     </p>
   <p class="article-time">
     <time datetime="2017-07-20T14:07:34.000Z" itemprop="datePublished">2017-07-20</time>
-    Updated:<time datetime="2017-07-20T14:07:34.151Z" itemprop="dateModified">2017-07-20</time>
+    Updated:<time datetime="2017-07-20T14:09:27.625Z" itemprop="dateModified">2017-07-20</time>
     
   </p>
 </header>
@@ -83,9 +85,31 @@
 		
 		</div>
 		
-		  
+		<p>由于国内访问docker hub的网速太慢，以至于连docker镜像都pull不下来。所以国内的大公司建了一些自己的docker hub和镜像加速器来帮助大家更好的使用docker。<br>建议：如果你的服务器的网速能够从docker hub上pull下来镜像，就不要用阿里云的镜像加速器。因为他们那随心所欲的文档，完全是在浪费用户的时间和消磨用户的耐心，如果你按照官方文档来做，肯定搞不成。</p>
+<p>官方文档这样说：<br>如何使用Docker加速器<br>针对Docker客户端版本大于1.10的用户<br>您可以通过修改daemon配置文件/etc/docker/daemon.json来使用加速器：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">sudo mkdir -p /etc/docker</div><div class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-&apos;EOF&apos;</div><div class="line">&#123;</div><div class="line">  &quot;registry-mirrors&quot;: [&quot;https://ed3ztp0d.mirror.aliyuncs.com&quot;]</div><div class="line">&#125;</div><div class="line">EOF</div><div class="line">sudo systemctl daemon-reload</div><div class="line">sudo systemctl restart docker</div></pre></td></tr></table></figure></p>
+<p>按照官方文档来做，修改好配置文件后，重启docker，结果报错，提示查看状态：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">[root@bogon docker]# systemctl restart docker</div><div class="line">Job for docker.service failed because the control process exited with error code. See &quot;systemctl status docker.service&quot; and &quot;journalctl -xe&quot; for details.</div><div class="line">[root@bogon docker]# systemctl status docker.service</div><div class="line">● docker.service - Docker Application Container Engine</div><div class="line">   Loaded: loaded (/etc/systemd/system/docker.service; disabled; vendor preset: disabled)</div><div class="line">   Active: failed (Result: exit-code) since 四 2017-07-20 16:10:04 CST; 12s ago</div><div class="line">     Docs: http://docs.docker.com</div><div class="line">  Process: 42330 ExecStart=/usr/bin/dockerd --add-runtime docker-runc=/usr/libexec/docker/docker-runc-current --default-runtime=docker-runc --exec-opt native.cgroupdriver=systemd --userland-proxy-path=/usr/libexec/docker/docker-proxy-current $OPTIONS $DOCKER_STORAGE_OPTIONS $DOCKER_NETWORK_OPTIONS $ADD_REGISTRY $BLOCK_REGISTRY $INSECURE_REGISTRY (code=exited, status=1/FAILURE)</div><div class="line"> Main PID: 42330 (code=exited, status=1/FAILURE)</div><div class="line"></div><div class="line">7月 20 16:10:04 bogon systemd[1]: Starting Docker Application Container Engine...</div><div class="line">7月 20 16:10:04 bogon dockerd[42330]: time=&quot;2017-07-20T16:10:04+08:00&quot; level=fatal msg=&quot;unable to configure the Docker daemon with file /etc/docker/daemon.json: the following directives are specifi...</div><div class="line">7月 20 16:10:04 bogon systemd[1]: docker.service: main process exited, code=exited, status=1/FAILURE</div><div class="line">7月 20 16:10:04 bogon systemd[1]: Failed to start Docker Application Container Engine.</div><div class="line">7月 20 16:10:04 bogon systemd[1]: Unit docker.service entered failed state.</div><div class="line">7月 20 16:10:04 bogon systemd[1]: docker.service failed.</div><div class="line">Hint: Some lines were ellipsized, use -l to show in full.</div></pre></td></tr></table></figure></p>
+<p>错误中提示，“unable to configure the Docker daemon with file /etc/docker/daemon.json: the following directives are specifi…”，就是刚才修改配置文件导致的问题。<br>只能去网上搜一下这是啥问题，有人提出了一个办法，编辑 </p>
+<blockquote>
+<p>vim /etc/sysconfig/docker </p>
+</blockquote>
+<p>然后OPTIONS=’–selinux-enabled –log-driver=journald –registry-mirror=<a href="https://xxxx.mirror.aliyuncs.com" target="_blank" rel="external">https://xxxx.mirror.aliyuncs.com</a>‘ ，registry-mirror就是你的镜像加速器地址。<br>如果这时你再重启docker，还会报那个错误。<br>但是如果删除了刚配置的daemon.json，就成功了。查看启动参数也带了加速镜像地址：</p>
+<blockquote>
+<p>ps aux | grep docker</p>
+</blockquote>
+<p>然后，还有人提出了一种解决办法，编辑：</p>
+<blockquote>
+<p>vim /etc/systemd/system/docker.service</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">ExecStart=/usr/bin/dockerd \</div><div class="line">          --registry-mirror=https://ed3ztp0d.mirror.aliyuncs.com \</div><div class="line">          --add-runtime docker-runc=/usr/libexec/docker/docker-runc-current \</div><div class="line">          --default-runtime=docker-runc \</div><div class="line">          --exec-opt native.cgroupdriver=systemd \</div><div class="line">          --userland-proxy-path=/usr/libexec/docker/docker-proxy-current \</div><div class="line">          $OPTIONS \</div><div class="line">          $DOCKER_STORAGE_OPTIONS \</div><div class="line">          $DOCKER_NETWORK_OPTIONS \</div><div class="line">          $ADD_REGISTRY \</div><div class="line">          $BLOCK_REGISTRY \</div><div class="line">          $INSECURE_REGISTRY</div></pre></td></tr></table></figure>
+<p>ExecStart=/usr/bin/dockerd 的下面一行增加了你的registry-mirror，再重启docker，也成功了，反正就是只有按照阿里云的官方文档操作不成功。</p>
+  
 	</div>
 		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/docker/">docker</a>
+  </div>
 
 
 
@@ -140,7 +164,7 @@
 		
 			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
 		
-			<li><a href="/tags/docker/" title="docker">docker<sup>1</sup></a></li>
+			<li><a href="/tags/docker/" title="docker">docker<sup>2</sup></a></li>
 		
 			<li><a href="/tags/maven/" title="maven">maven<sup>1</sup></a></li>
 		
