@@ -1,0 +1,325 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Linux 安装 MySQL | HHZH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="HHZH">
+    
+    <meta name="description" content="1. 去MySQL官网上下载安装包，选择社区版MySQL Community Server，Linux-Generic，(mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz)[https://cdn.mysql.com//Downloads/MySQL-5.7/my">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="HHZH" title="HHZH"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="HHZH">HHZH</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/10/09/Linux-安装-MySQL/" title="Linux 安装 MySQL" itemprop="url">Linux 安装 MySQL</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://yoursite.com" title="HHZH">HHZH</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-10-09T11:34:11.000Z" itemprop="datePublished">2017-10-09</time>
+    Updated:<time datetime="2017-10-09T11:34:46.512Z" itemprop="dateModified">2017-10-09</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-去MySQL官网上下载安装包，选择社区版MySQL-Community-Server，Linux-Generic，-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz-https-cdn-mysql-com-Downloads-MySQL-5-7-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz"><span class="toc-number">1.</span> <span class="toc-text">1. 去MySQL官网上下载安装包，选择社区版MySQL Community Server，Linux-Generic，(mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz)[https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz]</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-解压"><span class="toc-number">2.</span> <span class="toc-text">2. 解压</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-复制解压后的文件到本地软件目录"><span class="toc-number">3.</span> <span class="toc-text">3. 复制解压后的文件到本地软件目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-添加系统mysql组和mysql用户"><span class="toc-number">4.</span> <span class="toc-text">4. 添加系统mysql组和mysql用户</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-创建数据存储目录"><span class="toc-number">5.</span> <span class="toc-text">5. 创建数据存储目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-安装MySQL"><span class="toc-number">6.</span> <span class="toc-text">6. 安装MySQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-添加到开机启动"><span class="toc-number">7.</span> <span class="toc-text">7. 添加到开机启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-启动MySQL"><span class="toc-number">8.</span> <span class="toc-text">8. 启动MySQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-启动错误列表"><span class="toc-number">9.</span> <span class="toc-text">9. 启动错误列表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-关闭MySQL服务，跳过权限认证启动"><span class="toc-number">10.</span> <span class="toc-text">1. 关闭MySQL服务，跳过权限认证启动</span></a></li></ol>
+		</div>
+		
+		<h1 id="1-去MySQL官网上下载安装包，选择社区版MySQL-Community-Server，Linux-Generic，-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz-https-cdn-mysql-com-Downloads-MySQL-5-7-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz"><a href="#1-去MySQL官网上下载安装包，选择社区版MySQL-Community-Server，Linux-Generic，-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz-https-cdn-mysql-com-Downloads-MySQL-5-7-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz" class="headerlink" title="1. 去MySQL官网上下载安装包，选择社区版MySQL Community Server，Linux-Generic，(mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz)[https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz]"></a>1. 去MySQL官网上下载安装包，选择社区版MySQL Community Server，Linux-Generic，(mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz)[<a href="https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz" target="_blank" rel="external">https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz</a>]</h1><h1 id="2-解压"><a href="#2-解压" class="headerlink" title="2. 解压"></a>2. 解压</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; tar -zxvf mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz</div></pre></td></tr></table></figure>
+<h1 id="3-复制解压后的文件到本地软件目录"><a href="#3-复制解压后的文件到本地软件目录" class="headerlink" title="3. 复制解压后的文件到本地软件目录"></a>3. 复制解压后的文件到本地软件目录</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cp mysql-5.7.19-linux-glibc2.12-x86_64 /usr/local/mysql -r</div></pre></td></tr></table></figure>
+<h1 id="4-添加系统mysql组和mysql用户"><a href="#4-添加系统mysql组和mysql用户" class="headerlink" title="4. 添加系统mysql组和mysql用户"></a>4. 添加系统mysql组和mysql用户</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">groupadd mysql</div><div class="line">useradd -r -g mysql mysql</div></pre></td></tr></table></figure>
+<h1 id="5-创建数据存储目录"><a href="#5-创建数据存储目录" class="headerlink" title="5. 创建数据存储目录"></a>5. 创建数据存储目录</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">cd /usr/local/mysql</div><div class="line">mkdir data</div><div class="line">chown -R root:root ./</div><div class="line">chwon -R mysql:mysql data</div></pre></td></tr></table></figure>
+<h1 id="6-安装MySQL"><a href="#6-安装MySQL" class="headerlink" title="6. 安装MySQL"></a>6. 安装MySQL</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/mysql_install_db --user=mysql --datadir=/usr/loacl/mysql/data</div></pre></td></tr></table></figure>
+<h1 id="7-添加到开机启动"><a href="#7-添加到开机启动" class="headerlink" title="7. 添加到开机启动"></a>7. 添加到开机启动</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cp /usr/local/mysql/support-files/mysql.service /etc/init.d/mysql</div></pre></td></tr></table></figure>
+<h1 id="8-启动MySQL"><a href="#8-启动MySQL" class="headerlink" title="8. 启动MySQL"></a>8. 启动MySQL</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql start</div></pre></td></tr></table></figure>
+<h1 id="9-启动错误列表"><a href="#9-启动错误列表" class="headerlink" title="9. 启动错误列表"></a>9. 启动错误列表</h1><p>Starting MySQL.2017-09-28T02:25:22.928763Z mysqld_safe Directory ‘/var/lib/mysql’ for UNIX socket file don’t exists.<br> ERROR! The server quit without updating PID file (/var/lib/mysql/bogon.pid).</p>
+<p>MySQL启动的时候，会先去找 /etc/my.cnf 中的配置，然后去找 /etc/init.d/mysql 中的配置。<br>修改my.cnf<br>vim /etc/my.cnf<br>把 datadir=/var/lib/mysql 改为 datadir=/usr/local/mysql/data<br>注释掉 #socket=/var/lib/mysql/mysql.sock<br>再次启动就OK了。</p>
+<p>如果要修改日志的目录，<br>[mysqld_safe]<br>log-error=/var/log/mysql/mysql.log<br>同时还需要授予MySQL权限。 chown -R mysql:mysql /var/log/mysql</p>
+<p>针对出现的ERROR! The server quit without updating PID file (/var/lib/mysql/bogon.pid).错误。<br>谷歌给出的答案可以用：<br>1、可能是/usr/local/mysql/data/mysql.pid文件没有写的权限<br>解决方法 ：给予权限，执行 “chown -R mysql:mysql /var/data” “chmod -R 755 /usr/local/mysql/data”  然后重新启动mysqld！</p>
+<p>2、可能进程里已经存在mysql进程<br>解决方法：用命令“ps -ef|grep mysqld”查看是否有mysqld进程，如果有使用“kill -9  进程号”杀死，然后重新启动mysqld！</p>
+<p>3、可能是第二次在机器上安装mysql，有残余数据影响了服务的启动。<br>解决方法：去mysql的数据目录/data看看，如果存在mysql-bin.index，就赶快把它删除掉吧，它就是罪魁祸首了。本人就是使用第三条方法解决的 ！</p>
+<p>4、mysql在启动时没有指定配置文件时会使用/etc/my.cnf配置文件，请打开这个文件查看在[mysqld]节下有没有指定数据目录(datadir)。<br>解决方法：请在[mysqld]下设置这一行：datadir = /usr/local/mysql/data</p>
+<p>5、skip-federated字段问题<br>解决方法：检查一下/etc/my.cnf文件中有没有没被注释掉的skip-federated字段，如果有就立即注释掉吧。</p>
+<p>6、错误日志目录不存在<br>解决方法：使用“chown” “chmod”命令赋予mysql所有者及权限</p>
+<p>7、selinux惹的祸，如果是centos系统，默认会开启selinux<br>解决方法：关闭它，打开/etc/selinux/config，把SELINUX=enforcing改为SELINUX=disabled后存盘退出重启机器试试。</p>
+<p>但是启动成功后，不知道MySQL的root用户密码，无法登录。</p>
+<h1 id="1-关闭MySQL服务，跳过权限认证启动"><a href="#1-关闭MySQL服务，跳过权限认证启动" class="headerlink" title="1. 关闭MySQL服务，跳过权限认证启动"></a>1. 关闭MySQL服务，跳过权限认证启动</h1><p>cd /usr/local/mysql/bin<br>./mysqld_safe –skip-grant-tables<br>另开一个shell窗口。<br>切换到bin目录下，直接输入mysql ，就可以出现 &gt; 登陆成功<br>连接权限数据库： use mysql;<br>改密码：update user set authentication_string=password(‘root’) where user=’root’ ;<br>刷新权限（必须步骤）：flush privileges;　<br>退出 quit;<br>修改密码成功。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MySQL/">MySQL</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2017/10/09/Linux-安装-MySQL/" data-title="Linux 安装 MySQL | HHZH" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/07/20/如何在centos7上使用阿里云docker镜像加速器/" title="如何在centos7上使用阿里云docker镜像加速器">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  如何在centos7上使用阿里云docker镜像加速器</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-去MySQL官网上下载安装包，选择社区版MySQL-Community-Server，Linux-Generic，-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz-https-cdn-mysql-com-Downloads-MySQL-5-7-mysql-5-7-19-linux-glibc2-12-x86-64-tar-gz"><span class="toc-number">1.</span> <span class="toc-text">1. 去MySQL官网上下载安装包，选择社区版MySQL Community Server，Linux-Generic，(mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz)[https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.19-linux-glibc2.12-x86_64.tar.gz]</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-解压"><span class="toc-number">2.</span> <span class="toc-text">2. 解压</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-复制解压后的文件到本地软件目录"><span class="toc-number">3.</span> <span class="toc-text">3. 复制解压后的文件到本地软件目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-添加系统mysql组和mysql用户"><span class="toc-number">4.</span> <span class="toc-text">4. 添加系统mysql组和mysql用户</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-创建数据存储目录"><span class="toc-number">5.</span> <span class="toc-text">5. 创建数据存储目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-安装MySQL"><span class="toc-number">6.</span> <span class="toc-text">6. 安装MySQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-添加到开机启动"><span class="toc-number">7.</span> <span class="toc-text">7. 添加到开机启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-启动MySQL"><span class="toc-number">8.</span> <span class="toc-text">8. 启动MySQL</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-启动错误列表"><span class="toc-number">9.</span> <span class="toc-text">9. 启动错误列表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-关闭MySQL服务，跳过权限认证启动"><span class="toc-number">10.</span> <span class="toc-text">1. 关闭MySQL服务，跳过权限认证启动</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java-书籍/" title="Java 书籍">Java 书籍<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Java面试/" title="Java面试">Java面试<sup>3</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MySQL/" title="MySQL">MySQL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/docker/" title="docker">docker<sup>2</sup></a></li>
+		
+			<li><a href="/tags/maven/" title="maven">maven<sup>1</sup></a></li>
+		
+			<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="null" target="_blank" title="rss">RSS</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2017 
+		
+		<a href="http://yoursite.com" target="_blank" title="HHZH">HHZH</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
