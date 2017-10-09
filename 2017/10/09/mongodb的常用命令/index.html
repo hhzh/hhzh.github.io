@@ -4,14 +4,19 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>Java面试常问问题总结 | HHZH</title>
+    <title>mongodb的常用命令 | HHZH</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
     
     <meta name="author" content="HHZH">
     
-    <meta name="description" content="概要：本篇文章是介绍Java面试常问到的知识点，不能概括面试所有的知识点，只是写了个大概。如果想了解这些知识点的答案或者更多、更深的内容，还是需要认真看Java相关技术书籍。参见我的另一篇文章 Java开发必看书籍 。以下的这些问题都可以在推荐的书籍中找到或总结出答案。
+    <meta name="description" content="1. 查找mongdb的安装位置
+find / -name mongod
 
-Java基础1.1 访问权">
+/usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin/mongod
+2. 看一下mongodb是否已经启动
+netstat -nltp|grep mongod
+
+tcp      ">
     
     
     
@@ -67,15 +72,15 @@ Java基础1.1 访问权">
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2017/04/13/Java面试常问问题总结/" title="Java面试常问问题总结" itemprop="url">Java面试常问问题总结</a>
+      <a href="/2017/10/09/mongodb的常用命令/" title="mongodb的常用命令" itemprop="url">mongodb的常用命令</a>
   </h1>
   <p class="article-author">By
     
       <a href="http://yoursite.com" title="HHZH">HHZH</a>
     </p>
   <p class="article-time">
-    <time datetime="2017-04-13T03:21:02.000Z" itemprop="datePublished">2017-04-13</time>
-    Updated:<time datetime="2017-06-03T15:37:04.207Z" itemprop="dateModified">2017-06-03</time>
+    <time datetime="2017-10-09T11:35:54.000Z" itemprop="datePublished">2017-10-09</time>
+    Updated:<time datetime="2017-10-09T11:36:17.281Z" itemprop="dateModified">2017-10-09</time>
     
   </p>
 </header>
@@ -84,59 +89,39 @@ Java基础1.1 访问权">
 		
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">Contents</strong>
-		
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li></ol>
 		</div>
 		
-		<p>概要：本篇文章是介绍Java面试常问到的知识点，不能概括面试所有的知识点，只是写了个大概。如果想了解这些知识点的答案或者更多、更深的内容，还是需要认真看Java相关技术书籍。参见我的另一篇文章 <a href="http://hhzh.github.io/2017/04/12/Java%E5%BC%80%E5%8F%91%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/" target="_blank" rel="external">Java开发必看书籍</a> 。以下的这些问题都可以在推荐的书籍中找到或总结出答案。</p>
-<ol>
-<li><p>Java基础<br>1.1 访问权限修饰词的含义<br>1.2 Object类有哪些方法<br>1.3 clone方法是浅拷贝还是深拷贝<br>1.4 static关键字的含义<br>1.5 值传递和引用传递的区别<br>1.6 反射的用法<br>1.7 NIO相比与IO的优点<br>1.8 Java异常</p>
-</li>
-<li><p>集合<br>2.1  hashmap的实现原理<br>2.2  hashset的实现原理<br>2.3  hashmap与hashtable的区别<br>2.4  怎样可以让hashmap变成线程安全<br>2.5  数组和List集合排序算法的底层实现原理<br>2.6  迭代器的使用</p>
-</li>
-<li><p>MySQL<br>3.1 MySQL常见的存储引擎及其优缺点<br>3.2 分组函数的使用<br>3.3 索引<br>3.4 查询语句的优化方法<br>3.5 如何分库分表</p>
-</li>
-<li><p>Spring<br>4.1 解释IOC、AOP<br>4.2 Spring事务的传播特性和隔离级别有哪些<br>4.3 Spring容器的加载顺序<br>4.4 你看过哪些Spring源码</p>
-</li>
-<li><p>设计模式<br>5.1 常见的设计模式有哪些（必须背诵23种设计模式及其应用场景）<br>5.2 除了3种不常用到的设计模式，必须能手写出20种设计模式</p>
-</li>
-<li><p>并发多线程<br>6.1 ThreadLocal的含义<br>6.2 ConcurrentHashMap的实现原理<br>6.3 ThreadPoolExecutor的参数列表及其含义和用法<br>6.4 线程池设置成多大合适，怎样获得CPU的数目<br>6.5 Synchronized、volatile、CountDownLatch、Semaphore、CyclicBarrier的用法<br>6.6 Atomic类、FutureTask、ReentrantReadWriteLock的用法<br>6.7 写出生产者、消费者模式</p>
-</li>
-<li><p>JVM与GC<br>7.1 Java内存模型及每个区域的作用和存储的东西<br>7.2 常见的垃圾收集算法有哪些<br>7.3 常见的垃圾收集器及其作用<br>7.4 Java是怎么进行垃圾回收的<br>7.5 类加载过程<br>7.6 常见JVM调优参数有哪些<br>7.7 常见的JVM监控的命令工具有哪些<br>7.8 你遇到过哪些JVM调优案例，是怎么解决的</p>
-</li>
-<li><p>SpringMVC<br>8.1 SpringMVC的优点及其作用<br>8.2 前端请求到SpringMVC的处理过程<br>8.3 SpringMVC如何实现检测用户是否登录</p>
-</li>
-<li><p>Git<br>9.1 Git的常用命令<br>9.2 怎样保存工作进度<br>9.3 怎样回滚到上一次提交<br>9.4 从创建分支到结束分支的过程</p>
-</li>
-<li><p>Maven<br>10.1 一个jar包的唯一标识是什么<br>10.2 maven常用的命令有哪些<br>10.3 查看maven依赖的命令是什么<br>10.4 如何解决依赖冲突</p>
-</li>
-<li><p>Mybatis<br>11.1 Mybatis的用法<br>11.2 Mybatis常用标签的用法</p>
-</li>
-<li><p>Linux<br>12.1 Linux的常用命令<br>12.2 awk、sed命令的用法<br>12.3 你写过哪些Linux脚本</p>
-</li>
-<li><p>Redis<br>13.1 Redis的数据结构及对象有哪些<br>13.2 过期键的处理方法<br>13.3 怎么实现数据持久化<br>13.4 你在哪些地方用到Redis，用到Redis的哪些功能，怎么使用的</p>
-</li>
-<li><p>MQ消息队列<br>14.1 MQ的作用和优点<br>14.2 mq如何保证消息不丢失<br>14.3 出现异常后，消息怎么处理<br>14.4 集群和负载均衡的使用</p>
-</li>
-<li><p>Dubbo<br>15.1 Dubbo的作用及优点<br>15.2 dubbo的工作流程<br>15.3 dubbo的常用配置</p>
-</li>
-<li><p>SpringBoot<br>16.1 SpringBoot的优点<br>16.2 SpringBoot和SpringMVC相比优缺点</p>
-</li>
-<li><p>Netty<br>17.1 Netty的作用和优点</p>
-</li>
-<li><p>Restful架构<br>18.1 Restful架构风格的作用及优点</p>
-</li>
-<li><p>Nginx<br>19.1 Nginx的作用及优点<br>19.2 Nginx的常用配置</p>
-</li>
-<li><p>计算机网络<br>20.1 三次握手与四次挥手</p>
-</li>
-</ol>
+		<h1 id="1-查找mongdb的安装位置"><a href="#1-查找mongdb的安装位置" class="headerlink" title="1. 查找mongdb的安装位置"></a>1. 查找mongdb的安装位置</h1><blockquote>
+<p>find / -name mongod</p>
+</blockquote>
+<p>/usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin/mongod</p>
+<h1 id="2-看一下mongodb是否已经启动"><a href="#2-看一下mongodb是否已经启动" class="headerlink" title="2. 看一下mongodb是否已经启动"></a>2. 看一下mongodb是否已经启动</h1><blockquote>
+<p>netstat -nltp|grep mongod</p>
+</blockquote>
+<p>tcp        0      0 0.0.0.0:27017               0.0.0.0:*                   LISTEN      5062/mongod </p>
+<h1 id="3-切换到bin目录下"><a href="#3-切换到bin目录下" class="headerlink" title="3. 切换到bin目录下"></a>3. 切换到bin目录下</h1><blockquote>
+<p>cd /usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin<br>./ mongod –dbpath=/data/mongodata/rs3 –logpath=/data/mongodata/rs1/rs3.log –fork –port 27017</p>
+</blockquote>
+<p>dbpath是数据库路径<br>logpath是日志路径<br>fork 是后台启动<br>port 是指定端口</p>
+<h1 id="4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><a href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务" class="headerlink" title="4. 关闭mongodb，可以直接杀进程号，也可以关闭服务"></a>4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</h1><blockquote>
+<p>ps -ef|grep mongod<br>kill -4 5465<br>service mongod stop</p>
+</blockquote>
+<h1 id="5-备份mongodb"><a href="#5-备份mongodb" class="headerlink" title="5. 备份mongodb"></a>5. 备份mongodb</h1><blockquote>
+<p>./mongodump </p>
+</blockquote>
+<p>会整库备份到当前目录下的dump下。</p>
+<h1 id="6-恢复mongodb"><a href="#6-恢复mongodb" class="headerlink" title="6. 恢复mongodb"></a>6. 恢复mongodb</h1><blockquote>
+<p>./mongorestore </p>
+</blockquote>
+<p>同样会从dump目录下整库恢复</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/Java/">Java</a>
+  <span></span> <a href="/tags/mongo/">mongo</a>
   </div>
 
 
@@ -144,7 +129,7 @@ Java基础1.1 访问权">
 
 <div class="article-share" id="share">
 
-  <div data-url="http://yoursite.com/2017/04/13/Java面试常问问题总结/" data-title="Java面试常问问题总结 | HHZH" data-tsina="null" class="share clearfix">
+  <div data-url="http://yoursite.com/2017/10/09/mongodb的常用命令/" data-title="mongodb的常用命令 | HHZH" data-tsina="null" class="share clearfix">
   </div>
 
 </div>
@@ -154,21 +139,13 @@ Java基础1.1 访问权">
 <nav class="article-nav clearfix">
  
  <div class="prev" >
- <a href="/2017/04/12/Java开发书籍推荐/" title="Java开发书籍推荐">
+ <a href="/2017/10/09/Linux-安装-MySQL/" title="Linux 安装 MySQL">
   <strong>PREVIOUS:</strong><br/>
   <span>
-  Java开发书籍推荐</span>
+  Linux 安装 MySQL</span>
 </a>
 </div>
 
-
-<div class="next">
-<a href="/2017/04/13/Java面试知识点答案之四-Spring/"  title="Java面试知识点答案之四-Spring">
- <strong>NEXT:</strong><br/> 
- <span>Java面试知识点答案之四-Spring
-</span>
-</a>
-</div>
 
 </nav>
 
@@ -178,7 +155,7 @@ Java基础1.1 访问权">
 
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
-  
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li></ol>
   </div>
 
 <div id="asidepart">
