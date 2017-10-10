@@ -1,0 +1,324 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>如何用Nginx代理https | HHZH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="HHZH">
+    
+    <meta name="description" content="用Nginx代理https，跟代理http的方式差不多，只是多了个SSL证书。SSL证书可以自己生成，也可以从第三方机构购买，自己生成的证书是不受浏览器信任的。自己生成不受浏览器信任的SSL证书
+1、首先，进入你想创建证书和私钥的目录，例如：cd /etc/nginx/
+2、创建服务器私钥，命令会让">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="HHZH" title="HHZH"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="HHZH">HHZH</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/10/10/如何用Nginx代理https/" title="如何用Nginx代理https" itemprop="url">如何用Nginx代理https</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://yoursite.com" title="HHZH">HHZH</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-10-10T12:00:35.000Z" itemprop="datePublished">2017-10-10</time>
+    Updated:<time datetime="2017-10-10T12:01:19.096Z" itemprop="dateModified">2017-10-10</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1、首先，进入你想创建证书和私钥的目录，例如："><span class="toc-number">1.</span> <span class="toc-text">1、首先，进入你想创建证书和私钥的目录，例如：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码："><span class="toc-number">2.</span> <span class="toc-text">2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车："><span class="toc-number">3.</span> <span class="toc-text">3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令："><span class="toc-number">4.</span> <span class="toc-text">4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-编辑nginx-conf-或者是-default-conf-，增加https代理"><span class="toc-number">5.</span> <span class="toc-text">5. 编辑nginx.conf 或者是 default.conf ，增加https代理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-错误列表"><span class="toc-number">6.</span> <span class="toc-text">6. 错误列表</span></a></li></ol>
+		</div>
+		
+		<p>用Nginx代理https，跟代理http的方式差不多，只是多了个SSL证书。<br>SSL证书可以自己生成，也可以从第三方机构购买，自己生成的证书是不受浏览器信任的。<br>自己生成不受浏览器信任的SSL证书</p>
+<h1 id="1、首先，进入你想创建证书和私钥的目录，例如："><a href="#1、首先，进入你想创建证书和私钥的目录，例如：" class="headerlink" title="1、首先，进入你想创建证书和私钥的目录，例如："></a>1、首先，进入你想创建证书和私钥的目录，例如：</h1><p>cd /etc/nginx/</p>
+<h1 id="2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码："><a href="#2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码：" class="headerlink" title="2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码："></a>2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码：</h1><p>openssl genrsa -des3 -out server.key 1024</p>
+<h1 id="3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车："><a href="#3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车：" class="headerlink" title="3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车："></a>3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车：</h1><p>openssl req -new -key server.key -out server.csr</p>
+<h1 id="4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令："><a href="#4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令：" class="headerlink" title="4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令："></a>4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令：</h1><p>cp server.key server.key.com<br>openssl rsa -in server.key.com -out server.key</p>
+<h1 id="5-编辑nginx-conf-或者是-default-conf-，增加https代理"><a href="#5-编辑nginx-conf-或者是-default-conf-，增加https代理" class="headerlink" title="5. 编辑nginx.conf 或者是 default.conf ，增加https代理"></a>5. 编辑nginx.conf 或者是 default.conf ，增加https代理</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"> # HTTPS server</div><div class="line">server &#123;</div><div class="line">        listen 443;</div><div class="line">        server_name  www.mydomain.com;</div><div class="line">        ssl                  on;</div><div class="line">        ssl_certificate      /etc/nginx/server.crt;</div><div class="line">        ssl_certificate_key  /etc/nginx/server.key;</div><div class="line">        ssl_session_cache    shared:SSL:10m;</div><div class="line">        ssl_session_timeout  5m;</div><div class="line">        ssl_protocols  SSLv3 TLSv1 TLSv1.1;</div><div class="line">        ssl_ciphers  HIGH:!ADH:!EXPORT56:RC4+RSA:+MEDIUM;</div><div class="line">        ssl_prefer_server_ciphers   on;</div><div class="line"></div><div class="line">        location ~ /*login.htm &#123;</div><div class="line">                proxy_pass http://192.168.1.126:20030;</div><div class="line">                proxy_redirect off;</div><div class="line">                proxy_set_header Host $host;</div><div class="line">                proxy_set_header X-Real-Ip $remote_addr;</div><div class="line">                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</div><div class="line">                proxy_set_header X-Forwarded-Proto $scheme;</div><div class="line">        &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样就OK了，当访问login.htm的时候就可以用https访问了，但是在浏览器里面会出现证书不受信任的问题，可以去第三方机构去购买CA证书。<br>阿里云上有免费的证书，登录阿里云控制台，点击左侧菜单中的 安全 -&gt; 证书服务，这个页面中右上角有 购买证书 按钮，点击进入购买页，选择免费型DV SSL，购买。然后需要补全域名和个人信息，最后下载证书。<br>这是阿里云的配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">server &#123;</div><div class="line">    listen 443;</div><div class="line">    server_name localhost;</div><div class="line">    ssl on;</div><div class="line">    root html;</div><div class="line">    index index.html index.htm;</div><div class="line">    ssl_certificate   cert/214217202600830.pem;</div><div class="line">    ssl_certificate_key  cert/214217202600830.key;</div><div class="line">    ssl_session_timeout 5m;</div><div class="line">    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</div><div class="line">    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</div><div class="line">    ssl_prefer_server_ciphers on;</div><div class="line">    location / &#123;</div><div class="line">        root html;</div><div class="line">        index index.html index.htm;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="6-错误列表"><a href="#6-错误列表" class="headerlink" title="6. 错误列表"></a>6. 错误列表</h1><p>我在配置好Nginx之后，访问地址出现了502错误，查看Nginx错误日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">2017/08/08 22:50:54 [crit] 21604#21604: *413 connect() to 192.168.0.106:20050 failed (13: Permission denied) while connecting to upstream, client: 1.202.64.124, server: www.mydomain.com, request: &quot;GET /cd/employee/detail/1 HTTP/1.1&quot;, upstream: &quot;http://192.168.0.106:20050/cd/employee/detail/1&quot;, host: &quot;www.mydomain.com&quot;</div><div class="line">2017/08/08 22:50:55 [error] 21604#21604: *413 open() &quot;/etc/nginx/html/favicon.ico&quot; failed (2: No such file or directory), client: 1.202.64.124, server: www.mydomain.com, request: &quot;GET /favicon.ico HTTP/1.1&quot;, host: &quot;www.mydomain.com&quot;, referrer: &quot;https://www.mydomain.com/cd/employee/detail/1&quot;</div></pre></td></tr></table></figure></p>
+<p>好像是权限问题，试了很多方法，最后执行了一条命令解决了。</p>
+<blockquote>
+<p>setsebool -P httpd_can_network_connect 1   #httpd可以连接到网络</p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Nginx/">Nginx</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2017/10/10/如何用Nginx代理https/" data-title="如何用Nginx代理https | HHZH" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/10/09/mongodb的常用命令/" title="mongodb的常用命令">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  mongodb的常用命令</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1、首先，进入你想创建证书和私钥的目录，例如："><span class="toc-number">1.</span> <span class="toc-text">1、首先，进入你想创建证书和私钥的目录，例如：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码："><span class="toc-number">2.</span> <span class="toc-text">2、创建服务器私钥，命令会让你输入一个密码，然后重复验证密码：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车："><span class="toc-number">3.</span> <span class="toc-text">3、创建签名请求的证书（CSR），命令依次会你让输入密码、国家、省份、城市、组织名字、主机地址、邮箱，然后是挑战密码和公司名称，这两个不用输入，直接回车：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令："><span class="toc-number">4.</span> <span class="toc-text">4、在加载SSL支持的Nginx并使用上述私钥时除去必须的口令：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-编辑nginx-conf-或者是-default-conf-，增加https代理"><span class="toc-number">5.</span> <span class="toc-text">5. 编辑nginx.conf 或者是 default.conf ，增加https代理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-错误列表"><span class="toc-number">6.</span> <span class="toc-text">6. 错误列表</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java-书籍/" title="Java 书籍">Java 书籍<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Java面试/" title="Java面试">Java面试<sup>3</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MySQL/" title="MySQL">MySQL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Nginx/" title="Nginx">Nginx<sup>1</sup></a></li>
+		
+			<li><a href="/tags/docker/" title="docker">docker<sup>2</sup></a></li>
+		
+			<li><a href="/tags/maven/" title="maven">maven<sup>1</sup></a></li>
+		
+			<li><a href="/tags/mongo/" title="mongo">mongo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="null" target="_blank" title="rss">RSS</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2017 
+		
+		<a href="http://yoursite.com" target="_blank" title="HHZH">HHZH</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
