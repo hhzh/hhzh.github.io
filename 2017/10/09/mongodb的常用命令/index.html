@@ -10,13 +10,11 @@
     <meta name="author" content="HHZH">
     
     <meta name="description" content="1. 查找mongdb的安装位置
-find / -name mongod
+find / -name mongo
 
 /usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin/mongod
 2. 看一下mongodb是否已经启动
-netstat -nltp|grep mongod
-
-tcp      ">
+netstat -nltp|grep mongodps -ef | gre">
     
     
     
@@ -43,7 +41,7 @@ tcp      ">
 				<h1 class="site-name"><a href="/" title="HHZH">HHZH</a></h1>
 				<h2 class="blog-motto"></h2>
 			</div>
-			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜單">
 			</a></div>
 			<nav class="animated">
 				<ul>
@@ -56,7 +54,7 @@ tcp      ">
 					
 					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
 						<label>Search</label>
-						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
 						<input type="hidden" name="q" value="site:yoursite.com">
 					</form>
 					
@@ -80,7 +78,7 @@ tcp      ">
     </p>
   <p class="article-time">
     <time datetime="2017-10-09T11:35:54.000Z" itemprop="datePublished">2017-10-09</time>
-    Updated:<time datetime="2017-10-09T11:36:17.281Z" itemprop="dateModified">2017-10-09</time>
+    更新日期:<time datetime="2017-11-27T11:44:56.761Z" itemprop="dateModified">2017-11-27</time>
     
   </p>
 </header>
@@ -88,21 +86,22 @@ tcp      ">
 		
 		
 		<div id="toc" class="toc-article">
-			<strong class="toc-title">Contents</strong>
-		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li></ol>
+			<strong class="toc-title">文章目錄</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-创建用户"><span class="toc-number">7.</span> <span class="toc-text">7. 创建用户</span></a></li></ol>
 		</div>
 		
 		<h1 id="1-查找mongdb的安装位置"><a href="#1-查找mongdb的安装位置" class="headerlink" title="1. 查找mongdb的安装位置"></a>1. 查找mongdb的安装位置</h1><blockquote>
-<p>find / -name mongod</p>
+<p>find / -name mongo</p>
 </blockquote>
 <p>/usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin/mongod</p>
 <h1 id="2-看一下mongodb是否已经启动"><a href="#2-看一下mongodb是否已经启动" class="headerlink" title="2. 看一下mongodb是否已经启动"></a>2. 看一下mongodb是否已经启动</h1><blockquote>
-<p>netstat -nltp|grep mongod</p>
+<p>netstat -nltp|grep mongod<br>ps -ef | grep mongo</p>
 </blockquote>
 <p>tcp        0      0 0.0.0.0:27017               0.0.0.0:*                   LISTEN      5062/mongod </p>
 <h1 id="3-切换到bin目录下"><a href="#3-切换到bin目录下" class="headerlink" title="3. 切换到bin目录下"></a>3. 切换到bin目录下</h1><blockquote>
-<p>cd /usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin<br>./ mongod –dbpath=/data/mongodata/rs3 –logpath=/data/mongodata/rs1/rs3.log –fork –port 27017</p>
+<p>cd /usr/local/mongodb-linux-x86_64-rhel62-3.4.1/bin<br>./ mongod –dbpath=/data/mongodata/rs3 –logpath=/data/mongodata/rs1/rs3.log –fork –port 27017<br>./mongod –auth –dbpath=/xxx/data/mongo –logpath=/xxx/data/mongo/mongo.log –fork<br>./bin/mongod -f config.conf –logappend<br>./bin/mongod –auth -f config.conf –logappend</p>
 </blockquote>
+<p>–auth 是授权登录启动<br>配置文件：<br>dbpath=/data/mongodb/master<br>dbpath=/xxx/data/mongo<br>logpath=/xxx/log/mongo.log<br>fork=true<br>auth=true</p>
 <p>dbpath是数据库路径<br>logpath是日志路径<br>fork 是后台启动<br>port 是指定端口</p>
 <h1 id="4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><a href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务" class="headerlink" title="4. 关闭mongodb，可以直接杀进程号，也可以关闭服务"></a>4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</h1><blockquote>
 <p>ps -ef|grep mongod<br>kill -4 5465<br>service mongod stop</p>
@@ -115,6 +114,45 @@ tcp      ">
 <p>./mongorestore </p>
 </blockquote>
 <p>同样会从dump目录下整库恢复</p>
+<h1 id="7-创建用户"><a href="#7-创建用户" class="headerlink" title="7. 创建用户"></a>7. 创建用户</h1><p>创建管理员</p>
+<blockquote>
+<p>use admin<br>db.createUser({user:”root”,pwd:”mypassword”,roles:[{role:”root”,db:”admin”}]})<br>Successfully added user: {<br>    “user” : “root”,<br>    “roles” : [<br>        {<br>            “role” : “root”,<br>            “db” : “admin”<br>        }<br>    ]<br>}</p>
+</blockquote>
+<p>创建某个数据库管理员</p>
+<blockquote>
+<p>use xxx<br>db.createUser({user:”myusername”,pwd:”mypassword”,roles:[{role:”dbOwner”,db:”xxx”}]})</p>
+</blockquote>
+<p>显示数据库列表</p>
+<blockquote>
+<p>show dbs</p>
+</blockquote>
+<p>显示用户列表</p>
+<blockquote>
+<p>show users</p>
+</blockquote>
+<p>删除用户</p>
+<blockquote>
+<p>db.system.users.remove({user:”root”})</p>
+</blockquote>
+<p>用户列表：</p>
+<ol>
+<li>数据库用户角色：read、readWrite;</li>
+<li>数据库管理角色：dbAdmin、dbOwner、userAdmin；</li>
+<li>集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager；</li>
+<li>备份恢复角色：backup、restore；</li>
+<li>所有数据库角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase</li>
+<li>超级用户角色：root<br>// 这里还有几个角色间接或直接提供了系统超级用户的访问（dbOwner 、userAdmin、userAdminAnyDatabase）</li>
+<li>内部角色：__system</li>
+</ol>
+<p>具体角色：<br>Read：允许用户读取指定数据库<br>readWrite：允许用户读写指定数据库<br>dbAdmin：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问system.profile<br>userAdmin：允许用户向system.users集合写入，可以找指定数据库里创建、删除和管理用户<br>clusterAdmin：只在admin数据库中可用，赋予用户所有分片和复制集相关函数的管理权限。<br>readAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的读权限<br>readWriteAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的读写权限<br>userAdminAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的userAdmin权限<br>dbAdminAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的dbAdmin权限。<br>root：只在admin数据库中可用。超级账号，超级权限</p>
+<p>执行命令出错：<br>2017-11-25T23:54:48.862+0800 E QUERY    [main] Error: listDatabases failed:{<br>    “ok” : 0,<br>    “errmsg” : “not authorized on admin to execute command { listDatabases: 1.0 }”,<br>    “code” : 13,<br>    “codeName” : “Unauthorized”<br>} :<br>必须先执行</p>
+<blockquote>
+<p>db.auth(“root”,”mypassword”)</p>
+</blockquote>
+<p>关闭数据库</p>
+<blockquote>
+<p>db.shutdownServer()</p>
+</blockquote>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -159,22 +197,22 @@ tcp      ">
 
 	
 </div>  
-      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+      <div class="openaside"><a class="navbutton" href="#" title="顯示側邊欄"></a></div>
 
   <div id="toc" class="toc-aside">
-  <strong class="toc-title">Contents</strong>
-  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li></ol>
+  <strong class="toc-title">文章目錄</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查找mongdb的安装位置"><span class="toc-number">1.</span> <span class="toc-text">1. 查找mongdb的安装位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-看一下mongodb是否已经启动"><span class="toc-number">2.</span> <span class="toc-text">2. 看一下mongodb是否已经启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-切换到bin目录下"><span class="toc-number">3.</span> <span class="toc-text">3. 切换到bin目录下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-关闭mongodb，可以直接杀进程号，也可以关闭服务"><span class="toc-number">4.</span> <span class="toc-text">4. 关闭mongodb，可以直接杀进程号，也可以关闭服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-备份mongodb"><span class="toc-number">5.</span> <span class="toc-text">5. 备份mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-恢复mongodb"><span class="toc-number">6.</span> <span class="toc-text">6. 恢复mongodb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-创建用户"><span class="toc-number">7.</span> <span class="toc-text">7. 创建用户</span></a></li></ol>
   </div>
 
 <div id="asidepart">
-<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<div class="closeaside"><a class="closebutton" href="#" title="隱藏側邊欄"></a></div>
 <aside class="clearfix">
 
   
 
   
 <div class="tagslist">
-	<p class="asidetitle">Tags</p>
+	<p class="asidetitle">標簽</p>
 		<ul class="clearfix">
 		
 			<li><a href="/tags/Java/" title="Java">Java<sup>2</sup></a></li>
@@ -202,7 +240,7 @@ tcp      ">
 
 
   <div class="rsspart">
-	<a href="null" target="_blank" title="rss">RSS</a>
+	<a href="null" target="_blank" title="rss">RSS 訂閱</a>
 </div>
 
 </aside>
