@@ -519,7 +519,7 @@ export default sidebar({
                 }, {
                     text: "ShardingSphere",
                     collapsible: true,
-                    prefix: "ShardingSphere/",
+                    prefix: "shardingsphere/",
                     children: [
                         {
                             text: "ShardingSphere架构设计",
