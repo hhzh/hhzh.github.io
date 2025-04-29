@@ -53,18 +53,39 @@ export default sidebar({
         {
             text: "二、Java基础",
             collapsible: true,
+            prefix: "basic/",
             children: [
                 {
-                    prefix: "basic/",
-                    text: "2.1 Java基础题",
-                    collapsible: true,
-                    children: [
-                        "readme.md",
-                        "what-is-java",
-                        "jdk-install-config",
-                        "IDEA-install-config",
-                        "hello-world",
-                    ],
+                    text: "2.1 Java泛型",
+                    link: "generic",
+                },
+                {
+                    text: "2.2 Java反射",
+                    link: "reflect",
+                },
+                {
+                    text: "2.3 Java8新特性",
+                    link: "java8",
+                },
+                {
+                    text: "2.4 Java8注解",
+                    link: "annotation",
+                },
+                {
+                    text: "2.5 值传递与引用传递",
+                    link: "delivery",
+                },
+                {
+                    text: "2.6 静态代理与动态代理",
+                    link: "proxy",
+                },
+                {
+                    text: "2.7 深拷贝与浅拷贝",
+                    link: "copy",
+                },
+                {
+                    text: "2.8 Java异常体系",
+                    link: "exception",
                 },
             ]
         },
@@ -189,106 +210,166 @@ export default sidebar({
             ]
         },
         {
-            text: "四、MySQL",
+            text: "四、数据库",
             collapsible: true,
-            prefix: "mysql/",
             children: [
                 {
-                    text: "4.1 MySQL架构",
-                    link: "framework",
-                },
-                {
-                    text: "4.2 MySQL存储引擎",
-                    link: "engine",
-                },
-                {
-                    text: "4.3 索引",
-                    link: "index",
-                },
-                {
-                    text: "4.4 Explain执行计划",
-                    link: "explain",
-                },
-                {
-                    text: "4.6 日志",
-                    link: "log",
-                },
-                {
-                    text: "4.7 慢查询日志",
-                    link: "slow",
-                },
-                {
-                    text: "4.8 锁",
-                    link: "lock",
-                },
-                {
-                    text: "4.9 MySQL加锁范围",
-                    link: "range",
-                },
-                {
-                    text: "4.10 死锁",
-                    link: "dead",
-                },
-                {
-                    text: "4.11 事务",
-                    link: "transaction",
-                },
-                {
-                    text: "4.12 主从同步",
-                    link: "sync",
-                },
-                {
-                    text: "4.13 深分页问题",
-                    link: "page",
-                },
-                {
-                    text: "4.15 MySQL使用规范",
-                    link: "standard",
-                },
-                {
-                    text: "4.16 索引下推",
-                    link: "push",
-                },
-                {
-                    text: "4.17 备份数据",
-                    link: "backup",
-                },
-                {
-                    text: "4.18 幻读问题",
-                    link: "phantom",
-                },
-                {
-                    text: "4.19 索引跳跃",
-                    link: "skip",
-                },
-                {
-                    text: "4.20 锁超时",
-                    link: "timeout",
-                },
-                {
-                    text: "4.21 分析MySQL性能",
-                    link: "performance",
-                },
-                {
-                    text: "4.22 在线加字段",
-                    link: "online",
-                },
-                {
-                    text: "4.23 二阶段提交",
-                    link: "second",
-                },
-                {
-                    text: "4.24 优化SQL查询流程",
-                    link: "optimize",
-                },
-                {
-                    text: "4.25 数据库三范式",
-                    link: "three",
-                },
-                {
-                    text: "4.26 MVCC",
-                    link: "mvcc",
-                },
+                    text: "MySQL",
+                    collapsible: true,
+                    prefix: "mysql/",
+                    children: [
+                        {
+                            text: "4.1 MySQL架构",
+                            link: "framework",
+                        },
+                        {
+                            text: "4.2 MySQL存储引擎",
+                            link: "engine",
+                        },
+                        {
+                            text: "4.3 索引",
+                            link: "index",
+                        },
+                        {
+                            text: "4.4 Explain执行计划",
+                            link: "explain",
+                        },
+                        {
+                            text: "4.6 日志",
+                            link: "log",
+                        },
+                        {
+                            text: "4.7 慢查询日志",
+                            link: "slow",
+                        },
+                        {
+                            text: "4.8 锁",
+                            link: "lock",
+                        },
+                        {
+                            text: "4.9 MySQL加锁范围",
+                            link: "range",
+                        },
+                        {
+                            text: "4.10 死锁",
+                            link: "dead",
+                        },
+                        {
+                            text: "4.11 事务",
+                            link: "transaction",
+                        },
+                        {
+                            text: "4.12 主从同步",
+                            link: "sync",
+                        },
+                        {
+                            text: "4.13 深分页问题",
+                            link: "page",
+                        },
+                        {
+                            text: "4.15 MySQL使用规范",
+                            link: "standard",
+                        },
+                        {
+                            text: "4.16 索引下推",
+                            link: "push",
+                        },
+                        {
+                            text: "4.17 备份数据",
+                            link: "backup",
+                        },
+                        {
+                            text: "4.18 幻读问题",
+                            link: "phantom",
+                        },
+                        {
+                            text: "4.19 索引跳跃",
+                            link: "skip",
+                        },
+                        {
+                            text: "4.20 锁超时",
+                            link: "timeout",
+                        },
+                        {
+                            text: "4.21 分析MySQL性能",
+                            link: "performance",
+                        },
+                        {
+                            text: "4.22 在线加字段",
+                            link: "online",
+                        },
+                        {
+                            text: "4.23 二阶段提交",
+                            link: "second",
+                        },
+                        {
+                            text: "4.24 优化SQL查询流程",
+                            link: "optimize",
+                        },
+                        {
+                            text: "4.25 数据库三范式",
+                            link: "three",
+                        },
+                        {
+                            text: "4.26 MVCC",
+                            link: "mvcc",
+                        },
+                    ]
+                }, {
+                    text: "Redis",
+                    collapsible: true,
+                    prefix: "redis/",
+                    children: [
+                        {
+                            text: "4.1 Redis数据结构",
+                            link: "redis-data",
+                        },
+                        {
+                            text: "4.2 Redis批量命令",
+                            link: "redis-batch",
+                        },
+                        {
+                            text: "4.3 Redis缓存问题",
+                            link: "redis-cache",
+                        },
+                        {
+                            text: "4.4 Redis快的原因",
+                            link: "redis-fast",
+                        },
+                        {
+                            text: "4.6 Redis线程模型",
+                            link: "redis-thread",
+                        },
+                        {
+                            text: "4.7 Redis大key问题",
+                            link: "redis-bigkey",
+                        },
+                        {
+                            text: "4.8 热点key问题",
+                            link: "redis-hotkey",
+                        },
+                        {
+                            text: "4.9 Redis持久化",
+                            link: "redis-persistent",
+                        },
+                        {
+                            text: "4.10 Redis事务",
+                            link: "redis-transaction",
+                        },
+                        {
+                            text: "4.11 Redis集群",
+                            link: "redis-cluster",
+                        },
+                        {
+                            text: "4.12 Redis消息队列",
+                            link: "redis-mq",
+                        },
+                        {
+                            text: "4.13 Redis分布式锁",
+                            link: "redis-lock",
+                        }
+                    ]
+                }
             ]
         },
         {
@@ -297,48 +378,230 @@ export default sidebar({
             prefix: "mysql/",
             children: [
                 {
-                    text: "4.1 Java基础题",
-                    link: "",
+                    text: "紧张写作中",
+                    link: "updating",
                 },
             ]
         },
         {
-            text: "四、MySQL",
+            text: "六、框架",
             collapsible: true,
-            prefix: "mysql/",
             children: [
                 {
-                    text: "4.1 Java基础题",
-                    link: "",
+                    text: "Spring",
+                    collapsible: true,
+                    prefix: "spring/",
+                    children: [
+                        {
+                            text: "架构设计",
+                            link: "spring-framework",
+                        },
+                        {
+                            text: "Bean生命周期",
+                            link: "spring-bean",
+                        },
+                        {
+                            text: "Spring用到哪些设计模式",
+                            link: "spring-design",
+                        },
+                        {
+                            text: "Spring常用注解",
+                            link: "spring-annotation",
+                        },
+                        {
+                            text: "Spring事务",
+                            link: "spring-transaction",
+                        },
+                        {
+                            text: "IOC与AOP区别",
+                            link: "spring-ioc-aop",
+                        },
+                        {
+                            text: "Spring循环依赖",
+                            link: "spring-depend",
+                        }
+                    ]
                 },
+                {
+                    text: "SpringBoot",
+                    collapsible: true,
+                    prefix: "springboot/",
+                    children: [
+                        {
+                            text: "SpringBoot是什么",
+                            link: "springboot-what",
+                        },
+                        {
+                            text: "SpringBoot启动流程",
+                            link: "springboot-start",
+                        },
+                        {
+                            text: "SpringBoot starter是什么",
+                            link: "springboot-starter",
+                        },
+                        {
+                            text: "SpringBoot常用注解",
+                            link: "springboot-annotation",
+                        }
+                    ]
+                }, {
+                    text: "SpringMVC",
+                    collapsible: true,
+                    prefix: "SpringMVC/",
+                    children: [
+                        {
+                            text: "SpringMVC架构设计",
+                            link: "springmvc-framework",
+                        },
+                        {
+                            text: "SpringMVC工作原理",
+                            link: "springmvc-work",
+                        },
+                        {
+                            text: "SpringMVC常用注解",
+                            link: "springmvc-annotation",
+                        },
+                    ]
+                }, {
+                    text: "SpringCloud",
+                    collapsible: true,
+                    prefix: "springcloud/",
+                    children: [
+                        {
+                            text: "SpringCloud架构设计",
+                            link: "springcloud-framework",
+                        },
+                        {
+                            text: "Eureka架构设计",
+                            link: "springcloud-eureka",
+                        },
+                        {
+                            text: "open feign架构设计",
+                            link: "springcloud-feign",
+                        },
+                        {
+                            text: "SpringCloud Gateway架构设计",
+                            link: "springcloud-gateway",
+                        },
+                        {
+                            text: "Hystrix架构设计",
+                            link: "springcloud-hystrix",
+                        },
+                        {
+                            text: "Ribbon架构设计",
+                            link: "springcloud-ribbon",
+                        },
+                        {
+                            text: "Zuul架构设计",
+                            link: "springcloud-zuul",
+                        },
+                    ]
+                }, {
+                    text: "Dubbo",
+                    collapsible: true,
+                    prefix: "dubbo/",
+                    children: [
+                        {
+                            text: "Dubbo架构设计",
+                            link: "dubbo-framework",
+                        },
+                    ]
+                }, {
+                    text: "Netty",
+                    collapsible: true,
+                    prefix: "netty/",
+                    children: [
+                        {
+                            text: "Netty架构设计",
+                            link: "netty-framework",
+                        },
+                    ]
+                }, {
+                    text: "ShardingSphere",
+                    collapsible: true,
+                    prefix: "ShardingSphere/",
+                    children: [
+                        {
+                            text: "ShardingSphere架构设计",
+                            link: "ShardingSphere-framework",
+                        },
+                    ]
+                }, {
+                    text: "zookeeper",
+                    collapsible: true,
+                    prefix: "zookeeper/",
+                    children: [
+                        {
+                            text: "zookeeper架构设计",
+                            link: "zookeeper-framework",
+                        },
+                    ]
+                }, {
+                    text: "mybatis",
+                    collapsible: true,
+                    prefix: "mybatis/",
+                    children: [
+                        {
+                            text: "mybatis架构设计",
+                            link: "mybatis-framework",
+                        },
+                    ]
+                }
             ]
         },
         {
-            text: "四、MySQL",
+            text: "七、消息队列",
             collapsible: true,
-            prefix: "mysql/",
+            prefix: "mq/",
             children: [
                 {
-                    text: "4.1 Java基础题",
-                    link: "",
-                },
+                    text: "Kafka",
+                    collapsible: true,
+                    prefix: "kafka/",
+                    children: [
+                        {
+                            text: "Kafka架构设计",
+                            link: "kafka-framework",
+                        },
+                        {
+                            text: "Kafka Controller选举流程",
+                            link: "kafka-controller",
+                        },
+                        {
+                            text: "Kafka Leader Replica选举流程",
+                            link: "kafka-leader",
+                        },
+                        {
+                            text: "Kafka 消息相关问题",
+                            link: "kafka-message",
+                        },
+                    ]
+                }, {
+                    text: "RocketMQ",
+                    collapsible: true,
+                    prefix: "RocketMQ/",
+                    children: [
+                        {
+                            text: "RocketMQ架构设计",
+                            link: "RocketMQ-framework",
+                        },
+                        {
+                            text: "RocketMQ事务消息",
+                            link: "RocketMQ-transaction",
+                        },
+                    ]
+                }, {
+                    text: "RabbitMQ",
+                    collapsible: true,
+                    prefix: "RabbitMQ/",
+                    children: [
+                        {
+                            text: "紧张写作中",
+                            link: "updating",
+                        },
+                    ]
+                }
             ]
-        },
-        {
-            text: "四、MySQL",
-            collapsible: true,
-            prefix: "mysql/",
-            children: [
-                {
-                    text: "4.1 Java基础题",
-                    link: "",
-                },
-            ]
-        },
-        {
-            text: "幻灯片",
-            icon: "person-chalkboard",
-            link: "https://plugin-md-enhance.vuejs.press/zh/guide/content/revealjs/demo.html",
-        },
+        }
     ],
 });

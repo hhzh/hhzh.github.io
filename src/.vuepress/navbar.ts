@@ -2,7 +2,6 @@ import {navbar} from "vuepress-theme-hope";
 
 export default navbar([
     "/",
-    "demo/",
     {
         text: "Java八股文",
         icon: "eight",
