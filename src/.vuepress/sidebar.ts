@@ -6,8 +6,36 @@ export default sidebar({
         "map",
     ],
     "/algo/": [
-        "README.md",
-        "map",
+        {
+            text: "算法",
+            collapsible: true,
+            children: [
+                {
+                    text: "数字与字符串",
+                    link: "algo-string",
+                },
+                {
+                    text: "数组",
+                    link: "algo-array",
+                },
+                {
+                    text: "链表",
+                    link: "algo-listnode",
+                },
+                {
+                    text: "二叉树",
+                    link: "algo-tree",
+                },
+                {
+                    text: "排序算法",
+                    link: "algo-sort",
+                },
+                {
+                    text: "其他",
+                    link: "algo-other",
+                },
+            ]
+        },
     ],
     "/tool/": [
         {
