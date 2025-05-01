@@ -1,517 +1,598 @@
+以下是优化后的盛水最多容器问题的解法，包含多种实现方式和详细分析：
+
+---
 ## 盛水最多的容器
-## 题目描述
 
-给定一个数组height，长度为n，每个数代表坐标轴中的一个点的高度，height[i] 是在第 i 点的高度，请问，从中选2个高度与x轴组成的容器最多能容纳多少水?
-
-1. 你不能倾斜容器
-2. 当n小于2时，视为不能形成容器，请返回0
-3. 数据保证能容纳最多的水不会超过整形范围，即不会超过2^31-1
-
-![](https://cdn.nlark.com/yuque/0/2024/png/12651402/1717769101069-921abe9a-398f-42dc-be24-2388a85a84ff.png)
-
+**题目描述**
+```markdown
+给定表示高度的数组，找出两条线使其与x轴构成的容器能装最多水
 示例：
+[1,8,6,2,5,4,8,3,7] → 49
+```
 
-输入：[1,7,3,2,4,5,8,2,7]
+### 解法1：双指针法（最优解）
+**核心思路**
+```markdown
+1. 初始化左右指针在数组两端
+2. 计算当前容量并更新最大值
+3. 移动较短边的指针向内收缩
+```
 
-输出：49
-
-## 解法
-
-解题思路：
-
-1. 使用双指针法，从左右两侧同时遍历数组。
-2. 计算当前指针指向的两个高度能组成的容器的容量 currentArea。
-3. 更新最大容器的容量 maxArea。
-4. 移动较短高度的一侧指针，以尝试找到更大的容器。
-
+**实现代码**
 ```java
-public class MaxWaterContainer {
-
-    public static int maxArea(int[] height) {
-        if (height == null || height.length < 2) {
-            return 0;
-        }
-
-        // maxArea用于存储最大容量
-        int maxArea = 0;
-        // left与right表示左右指针
-        int left = 0;
-        int right = height.length - 1;
-
+class Solution {
+    public int maxArea(int[] height) {
+        int max = 0;
+        int left = 0, right = height.length - 1;
+        
         while (left < right) {
-            int width = right - left;
-            // 高度取左右轴最小的高度
-            int currentHeight = Math.min(height[left], height[right]);
-            // 计算当前面积
-            int currentArea = width * currentHeight;
-            // 更新最大面积
-            maxArea = Math.max(maxArea, currentArea);
-
-            // 移动高度较小的指针
+            int area = Math.min(height[left], height[right]) * (right - left);
+            max = Math.max(max, area);
+            
             if (height[left] < height[right]) {
                 left++;
             } else {
                 right--;
             }
         }
-
-        return maxArea;
-    }
-
-    public static void main(String[] args) {
-        int[] height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
-        System.out.println("Maximum water that can be contained: " + maxArea(height)); // 输出结果是 49
+        return max;
     }
 }
-
 ```
 
-## 两数相加
-#### <font style="color:rgb(28, 31, 33);">内容描述</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(1) - 常量空间
+```
 
+### 解法2：暴力枚举（不推荐）
+**核心思路**
+```markdown
+枚举所有可能的容器组合
+```
 
-```plain
-给出两个 非空 的链表用来表示两个非负的整数。其中，它们各自的位数是按照 逆序 的方式存储的，并且它们的每个节点只能存储一位数字。
+**实现代码**
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int max = 0;
+        for (int i = 0; i < height.length; i++) {
+            for (int j = i + 1; j < height.length; j++) {
+                int area = Math.min(height[i], height[j]) * (j - i);
+                max = Math.max(max, area);
+            }
+        }
+        return max;
+    }
+}
+```
 
-如果，我们将这两个数相加起来，则会返回一个新的链表来表示它们的和。
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 双重循环
+空间复杂度: O(1)
+```
 
-您可以假设除了数字 0 之外，这两个数都不会以 0 开头。
+### 解法3：动态规划（教学用）
+**核心思路**
+```markdown
+1. dp[i][j]表示i到j的最大容量
+2. 状态转移：max(当前容量，子问题解)
+```
 
+**实现代码**
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int n = height.length;
+        int[][] dp = new int[n][n];
+        
+        for (int i = n-1; i >= 0; i--) {
+            for (int j = i+1; j < n; j++) {
+                int curr = Math.min(height[i], height[j]) * (j-i);
+                dp[i][j] = Math.max(curr, Math.max(dp[i+1][j], dp[i][j-1]));
+            }
+        }
+        return dp[0][n-1];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 填表
+空间复杂度: O(n^2) - DP表
+```
+
+### 解法对比
+| 维度       | 双指针法 | 暴力枚举 | 动态规划 |
+|------------|---------|----------|----------|
+| 时间复杂度 | O(n)    | O(n^2)   | O(n^2)   |
+| 空间复杂度 | O(1)    | O(1)     | O(n^2)   |
+| 适用场景   | 最优解  | 教学演示 | 理解DP   |
+| 推荐指数   | ★★★★★  | ★        | ★★       |
+
+**补充说明**
+1. 双指针法是该问题的最优解
+2. 暴力法仅用于理解问题本质
+3. 动态规划展示问题分解思路
+
+以下是优化后的两数相加问题的多解法版本：
+
+---
+## 两数相加（链表逆序存储）
+
+**题目描述**
+```markdown
+给定两个非空链表，表示两个非负整数（逆序存储）
+返回表示两数之和的新链表
 示例：
-
 输入：(2 -> 4 -> 3) + (5 -> 6 -> 4)
 输出：7 -> 0 -> 8
-原因：342 + 465 = 807
+解释：342 + 465 = 807
 ```
 
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
+### 解法1：模拟加法（迭代）
+**核心思路**
+```markdown
+1. 同时遍历两个链表
+2. 逐位相加并处理进位
+3. 创建新节点存储当前位结果
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">从题目中可以得知：</font>
-
-+ <font style="color:rgb(28, 31, 33);">两个链表都是非空的，也就是至少拥有一个节点；</font>
-+ <font style="color:rgb(28, 31, 33);">链表存储的是非负整数，且其位数是按照逆序的方式存储的</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">例如：342 存为 2 -> 4 -> 3</font><font style="color:rgb(28, 31, 33);">；</font>
-+ <font style="color:rgb(28, 31, 33);">非负整数不会以 0 开头，因此我们不需要考虑链表末尾有无数个 0 的情况；</font>
-+ <font style="color:rgb(28, 31, 33);">最后两数相加的结果也要存为链表返回，并且是逆序表示的。</font>
-
-<font style="color:rgb(0, 0, 0);">别笑，你第一想法是不是将</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">和</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l2</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">全部变成数字做加法再换回去？这是我们最直接的想法了，那好，我们就来实现一下。</font>
-
-<font style="color:rgb(0, 0, 0);">下面来看具体代码：</font>
-
-_**<font style="color:rgb(0, 0, 0);">Java beats 52.43%</font>**_
-
-
-
+**实现代码**
 ```java
-import java.math.BigInteger;
 class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        String numStr1 = String.valueOf(l1.val);
-        String numStr2 = String.valueOf(l2.val);
-
-        // 拼接 l1 的值
-        while (l1.next != null){
-            numStr1 += String.valueOf(l1.next.val);
-            l1 = l1.next;
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        int carry = 0;
+        
+        while (l1 != null || l2 != null || carry != 0) {
+            int sum = carry;
+            if (l1 != null) {
+                sum += l1.val;
+                l1 = l1.next;
+            }
+            if (l2 != null) {
+                sum += l2.val;
+                l2 = l2.next;
+            }
+            
+            carry = sum / 10;
+            curr.next = new ListNode(sum % 10);
+            curr = curr.next;
         }
-
-        // 拼接 l2 的值
-        while (l2.next != null) {
-            numStr2 += String.valueOf(l2.next.val);
-            l2 = l2.next;
-        }
-
-        // 使用 BigInteger 是为了防止大数的溢出
-        BigInteger num1 = new BigInteger(new StringBuffer(numStr1).reverse().toString());
-        BigInteger num2 = new BigInteger(new StringBuffer(numStr2).reverse().toString());
-
-        BigInteger sum = num1.add(num2);
-
-        String sumStr = new StringBuffer(String.valueOf(sum)).reverse().toString();
-
-        ListNode head = new ListNode(0);
-        ListNode dummy = head;
-        // 将字符串 sum 转化为链表形式的 sum
-        for (int i = 0; i < sumStr.length(); i++) {
-            head.next = new ListNode(Integer.parseInt(String.valueOf(sumStr.charAt(i))));
-            head = head.next;
-        }
+        
         return dummy.next;
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(max(m,n)) - 较长链表的长度
+空间复杂度: O(max(m,n)) - 结果链表长度
+```
 
+### 解法2：递归实现
+**核心思路**
+```markdown
+1. 递归处理每位相加
+2. 将进位传递到下一层递归
+3. 合并子问题结果
+```
 
-<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">注意：本思路只适用于大数基础数据结构的语言，例如 java 的 BigInteger 和 go 的 bigint，c++需要自己实现大数加法，详见思路2。</font>
-
-<font style="color:rgb(0, 0, 0);">思路1的话，我们先把相关信息全部存成我们适应处理的结构，然后才去处理，这样的话会浪费一定的空间，我们能做一些优化吗？不存下来可以吗？</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 2：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">因为我们一定得遍历完</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">和</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l2</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">的每一位才能得到最终结果，所以时间复杂度为</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">O(N)</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">没得商量。</font>
-
-<font style="color:rgb(0, 0, 0);">虽然时间复杂度无法减小，但是我们可以考虑减小我们的空间复杂度啊，刚才我们是将</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">和</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l2</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">全部转回数字，然后用两个列表将它们的数字形式存了下来，这消耗了</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">O(N)</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">的空间。</font>
-
-<font style="color:rgb(0, 0, 0);">实际上我们完全可以模拟真正的加法操作，即从个位数开始相加，如果有进位就记录一下，等到十位数相加的时候记得加上那个进位</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">就可以了，这是我们小学就学过的知识。</font>
-
-<font style="color:rgb(0, 0, 0);">那么我们就先处理个位数的相加。然后我们发现处理十位数、百位数和后面的位数都和个位数相加的操作是一个样子的，只不过后面计算的结果乘上</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">10</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">再加上个位数相加的结果，这才是最终的结果。</font>
-
-<font style="color:rgb(0, 0, 0);">于是我们就想到了用递归的方法，即一步一步将大问题转化为更小的问题，直到遇到基础情况（这里指的是个位数相加）返回即可。</font>
-
-<font style="color:rgb(0, 0, 0);">下面我们来看代码：</font>
-
-_**<font style="color:rgb(0, 0, 0);">Java beats 94.96%</font>**_
-
-
-
+**实现代码**
 ```java
 class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        ListNode l3 = null;
-        if (l1 == null && l2 == null) {
-            // l1 与 l2 都为 null 的情况
+        return helper(l1, l2, 0);
+    }
+    
+    private ListNode helper(ListNode l1, ListNode l2, int carry) {
+        if (l1 == null && l2 == null && carry == 0) {
             return null;
-        } else if (l1 == null && l2 != null) {
-            // l1 为 null 但是 l2 不为 null 的情况
-            return l2;
-        } else if (l1 != null && l2 == null) {
-            // l1 不为 null 但是 l2 为 null 的情况
-            return l1;
-        } else {
-            // l1 l2 都不为 null 的情况
-            if (l1.val + l2.val < 10) {
-                // 不需要进位的情况
-                l3 = new ListNode(l1.val + l2.val);
-                l3.next = addTwoNumbers(l1.next, l2.next);
-            }else {
-                // 需要进位的情况
-                l3 = new ListNode(l1.val + l2.val - 10);
-                l3.next = addTwoNumbers(l1.next, addTwoNumbers(l2.next, new ListNode(1)));
-            }
         }
-        return l3;
+        
+        int sum = carry;
+        if (l1 != null) {
+            sum += l1.val;
+            l1 = l1.next;
+        }
+        if (l2 != null) {
+            sum += l2.val;
+            l2 = l2.next;
+        }
+        
+        ListNode node = new ListNode(sum % 10);
+        node.next = helper(l1, l2, sum / 10);
+        return node;
     }
 }
 ```
 
-<font style="color:rgb(0, 0, 0);">尽管这次我们没有先存储再处理，为什么递归还是是O(N)的空间复杂度呢？因为我们虽然没有手动存储，但是计算机内部还是帮我们存储了一个函数调用栈的。又因为每调一次我们栈的高度都会增加1，而这里显然我们需要调用N次，N指的是较长的那个链表的长度。</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(max(m,n))
+空间复杂度: O(max(m,n)) - 递归栈深度
+```
 
-<font style="color:rgb(0, 0, 0);">现在我们既不想手动存储，也不想计算机帮我们存储，我们就不想用额外空间，可以吗？</font>
+### 解法3：原地修改（空间优化）
+**核心思路**
+```markdown
+1. 复用较长的链表存储结果
+2. 减少新节点创建
+3. 注意最后可能的进位
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 3 时间复杂度: O(N) 空间复杂度: O(1)</font>
-
-<font style="color:rgb(0, 0, 0);">好的，我们不用递归了，但是我们可以用迭代的方式来模拟这个过程，这样我们的空间可算是节省下来了。</font>
-
-_**<font style="color:rgb(0, 0, 0);">Java beats 87.41%</font>**_
-
-
-
+**实现代码**
 ```java
 class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        ListNode head = null;
-        ListNode tail = null;
-        // one 用来判断是否应该进位
-        boolean one = false;
-        while (l1 != null || l2 != null) {
-            int val = 0;
-            if (l1 != null) {
-                val += l1.val;
-                l1 = l1.next;
+        ListNode p1 = l1, p2 = l2;
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        int carry = 0;
+        
+        while (p1 != null || p2 != null) {
+            if (p1 != null && p2 != null) {
+                int sum = p1.val + p2.val + carry;
+                p1.val = sum % 10;
+                carry = sum / 10;
+                curr.next = p1;
+                p1 = p1.next;
+                p2 = p2.next;
+            } else if (p1 != null) {
+                int sum = p1.val + carry;
+                p1.val = sum % 10;
+                carry = sum / 10;
+                curr.next = p1;
+                p1 = p1.next;
+            } else {
+                int sum = p2.val + carry;
+                p2.val = sum % 10;
+                carry = sum / 10;
+                curr.next = p2;
+                p2 = p2.next;
             }
-            if (l2 != null) {
-                val += l2.val;
-                l2 = l2.next;
-            }
-            if (one) {
-                val += 1;
-            }
-            // 判断是否进位
-            if (val >= 10) {
-                val -= 10;
-                one = true;
-            }else {
-                one = false;
-            }
-            if (head == null) {
-                head = tail = new ListNode(val);
-            }else {
-                tail.next = new ListNode(val);
-                tail = tail.next;
-            }
+            curr = curr.next;
         }
-        if (one) {
-            tail.next = new ListNode(1);
+        
+        if (carry > 0) {
+            curr.next = new ListNode(carry);
         }
-        return head;
+        
+        return dummy.next;
     }
 }
 ```
 
-_**<font style="color:rgb(0, 0, 0);"></font>**_
+**复杂度分析**
+```markdown
+时间复杂度: O(max(m,n))
+空间复杂度: O(1) - 原地修改
+```
 
-<font style="color:rgb(0, 0, 0);">好的，我们现在没用额外空间来存储了，而是直接在链表上面操作，这样更节省时间。</font>
+### 解法对比
+| 维度       | 迭代法 | 递归法 | 原地修改法 |
+|------------|--------|--------|------------|
+| 时间复杂度 | O(n)   | O(n)   | O(n)       |
+| 空间复杂度 | O(n)   | O(n)   | O(1)       |
+| 代码简洁性 | 优秀   | 优秀   | 中等       |
+| 推荐指数   | ★★★★★ | ★★★★   | ★★★★       |
 
-## <font style="color:rgb(28, 31, 33);">总结</font>
+**补充说明**
+1. 迭代法是面试最佳选择，清晰高效
+2. 递归法展示分治思想
+3. 原地修改法适合内存敏感场景
 
-+ <font style="color:rgb(28, 31, 33);">看题目的时候要注意非空、逆序、整数这样的敏感字眼；</font>
-+ <font style="color:rgb(28, 31, 33);">要注意有的时候大数溢出是很容易被忽略的点；</font>
-+ <font style="color:rgb(28, 31, 33);">我们知道了递归会涉及到电脑里的调用栈，所以递归还是会消耗额外空间的；</font>
-+ <font style="color:rgb(28, 31, 33);">有的时候用迭代模拟递归的过程可以节省空间。</font>
+以下是优化后的旋转数组找最小值问题的多解法版本：
 
-## <font style="color:rgb(28, 31, 33);">学习更多</font>
-
-+ <font style="color:rgb(28, 31, 33);">链表的应用场景</font>
-+ <font style="color:rgb(28, 31, 33);">大整数类的实现</font>
-
+---
 ## 旋转数组的最小数字
-# 题目描述
 
-有一个非降序数组，比如[1,2,3,4,5]，将它进行旋转，即把一个数组最开始的若干个元素搬到数组的末尾，变成一个旋转数组，比如变成了[3,4,5,1,2]，或者[4,5,1,2,3]这样的。请问，给定这样一个旋转数组，求数组中的最小值。
+**题目描述**
+```markdown
+在旋转有序数组（如[3,4,5,1,2]）中找出最小元素
+要求时间复杂度优于O(n)
+示例：
+[3,4,5,1,2] → 1
+[2,2,2,0,1] → 0
+```
 
-示例1
+### 解法1：二分查找（标准版）
+**核心思路**
+```markdown
+1. 通过比较中间元素与右边界元素
+2. 分三种情况调整搜索区间
+3. 处理重复元素特殊情况
+```
 
-> 输入：[3,4,5,1,2]
->
-> 返回值：1
-
-示例2
-
-> 输入：[3,100,200,3]
->
-> 返回值：3
-
-# 解法
-
-旋转数组的特点是：前半段是有序的，后半段也是有序的，但是整体是无序的。怎么利用这个特点，找出数组的最小值？
-
-这道题相当于二分查找的变体，也可以使用二分查找来求解。
-
-实现思路：
-
-循环比较中间值与末尾值大小，比较结果分为三种情况：
-
-1. array[mid] > array[high]
-
-出现这种情况的array类似[3,4,5,6,1,2]，此时最小数字一定在 mid 的右边。则 low = mid + 1
-
-2. array[mid] = array[high]
-
-出现这种情况的array类似 [1,0,1,1,1] 或者[1,1,1,0,1]，此时最小数字不好判断在 mid 左边还是右边，这时只好一个一个试，末尾位置左移一位，则 high = high - 1
-
-3. array[mid] < array[high]
-
-出现这种情况的array类似[1,0,1,1,1]，此时最小数字一定就是array[mid]或者在mid的左
-
-边。因为右边必然都是递增的。则 high = mid
-
+**实现代码**
 ```java
-public int minNumberInRotateArray(int[] array) {
-    int low = 0;
-    int high = array.length - 1;
-    while (low < high) {
-        // 没有使用 (high + low)/2，防止溢出
-        int mid = low + (high - low) / 2;
-        if (array[mid] > array[high]) {
-            low = mid + 1;
-        } else if (array[mid] == array[high]) {
-            high = high - 1;
-        } else {
-            high = mid;
+class Solution {
+    public int minNumberInRotateArray(int[] nums) {
+        int left = 0, right = nums.length - 1;
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else if (nums[mid] < nums[right]) {
+                right = mid;
+            } else {
+                right--;  // 处理重复元素
+            }
         }
+        return nums[left];
     }
-    return array[low];
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: 平均O(logn)，最坏O(n)（全重复元素）
+空间复杂度: O(1)
+```
+
+### 解法2：二分查找（提前终止）
+**核心思路**
+```markdown
+1. 增加有序数组提前判断
+2. 减少不必要的二分过程
+```
+
+**实现代码**
+```java
+class Solution {
+    public int minNumberInRotateArray(int[] nums) {
+        int left = 0, right = nums.length - 1;
+        while (left < right) {
+            if (nums[left] < nums[right]) {
+                return nums[left];  // 提前终止
+            }
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else if (nums[mid] < nums[right]) {
+                right = mid;
+            } else {
+                right--;
+            }
+        }
+        return nums[left];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: 最优O(1)，平均O(logn)
+空间复杂度: O(1)
+```
+
+### 解法3：遍历法（基准解法）
+**核心思路**
+```markdown
+1. 顺序查找第一个下降点
+2. 无下降点则返回首元素
+```
+
+**实现代码**
+```java
+class Solution {
+    public int minNumberInRotateArray(int[] nums) {
+        for (int i = 0; i < nums.length - 1; i++) {
+            if (nums[i] > nums[i+1]) {
+                return nums[i+1];
+            }
+        }
+        return nums[0];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 标准二分法 | 优化二分法 | 遍历法 |
+|------------|-----------|------------|--------|
+| 时间复杂度 | O(logn)   | O(1)-O(logn)| O(n)   |
+| 空间复杂度 | O(1)      | O(1)       | O(1)   |
+| 适用场景   | 通用      | 部分有序   | 小数据 |
+| 推荐指数   | ★★★★★    | ★★★★      | ★★     |
+
+**补充说明**
+1. 二分法是最优解法，推荐面试使用
+2. 优化版在部分有序时效率更高
+3. 遍历法适合数据量小的场景
+
+以下是优化后的摆动排序问题的多解法版本：
+
+---
 ## 摆动排序
-#### <font style="color:rgb(28, 31, 33);">题目描述</font>
 
-
-```plain
-给定一个无序数组，在原数组中按照 
-1、nums[0] <= nums[1] >= nums[2] <= nums[3]....
-2、nums[0] < nums[1] > nums[2] < nums[3]....
-这种次序进行排序，有无限多种排序方式，输出一种即可
-
-例子:
-
-输入: nums = [3,5,2,1,6,4]
-输出: 其中一种输出 [3,5,1,6,2,4]
+**题目描述**
+```markdown
+将无序数组重新排列成摆动序列：
+形式1：nums[0] <= nums[1] >= nums[2] <= nums[3]...
+形式2：nums[0] < nums[1] > nums[2] < nums[3]...
 ```
 
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
+### 解法1：排序+穿插（形式2）
+**核心思路**
+```markdown
+1. 先排序数组
+2. 将数组分为前后两半
+3. 从后半和前半交替取元素
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路1 时间复杂度: O(NlgN) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">以下的次序1和次序2分别指代我们wiggle sort和wiggle sort 2需要我们返回的次序种类</font>
-
-<font style="color:rgb(0, 0, 0);">观察排序的次序，我们可得次序1是次序2的特例。只要我们构造出数组2，肯定也能满足数组1，我们尝试通过构造数组来达到次序2。</font>
-
-<font style="color:rgb(0, 0, 0);">假设nums有序，将nums拆成两个数组：(设n为数组nums的大小)</font>
-
-<font style="color:rgb(0, 0, 0);">1：[nums[n-1],nums[n-2],…,nums[n/2+1]]</font>
-
-<font style="color:rgb(0, 0, 0);">2：[nums[n/2],nums[n/2-1],…,nums[0]]</font>
-
-<font style="color:rgb(0, 0, 0);">将第一个数组插空到第二个数组中</font>
-
-<font style="color:rgb(0, 0, 0);">形成数组：nums[n/2],nums[n-1],nums[n/2-1],nums[n-2],…</font>
-
-<font style="color:rgb(0, 0, 0);">则该数组位满足条件的数组</font>
-
-<font style="color:rgb(0, 0, 0);">证明这个结论，只需要证明：</font>
-
-<font style="color:rgb(0, 0, 0);">1、如果x是nums中的最小值，那么x的个数不会超过n/2+1(n为奇数)，n/2(n为偶数)</font>
-
-<font style="color:rgb(0, 0, 0);">2、如果x不是nums中的最小值，那么x的个数不会超过n/2</font>
-
-<font style="color:rgb(0, 0, 0);">上面两点的证明很简单，如果个数超过，那么至少会有两个相邻数相等</font>
-
-<font style="color:rgb(0, 0, 0);">所以，nums[n/2]<nums[n-1]，nums[n-1]>nums[n/2-1]，。。。</font>
-
-<font style="color:rgb(0, 0, 0);">次序2构造完毕，相同的代码，次序1肯定能满足</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public void wiggleSort(int[] nums) {
-        int[] temp = Arrays.copyOf(nums, nums.length);
+        int[] temp = nums.clone();
         Arrays.sort(temp);
-        int k = temp.length - 1;
-        for (int i = 1;i < nums.length;i += 2) {
-            nums[i] = temp[k--];
-        }
-        for (int i = 0;i < nums.length;i += 2) {
-            nums[i] = temp[k--];
+        int n = nums.length;
+        int left = (n - 1) / 2, right = n - 1;
+        
+        for (int i = 0; i < n; i++) {
+            nums[i] = (i % 2 == 0) ? temp[left--] : temp[right--];
         }
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(nlogn) - 排序
+空间复杂度: O(n) - 临时数组
+```
 
+### 解法2：一次遍历交换（形式1）
+**核心思路**
+```markdown
+1. 遍历数组
+2. 根据奇偶位置调整相邻元素
+3. 不满足条件时交换
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路2 时间复杂度: O(N) 空间复杂度: O(1)</font>
-
-<font style="color:rgb(0, 0, 0);">次序1有一种特殊的解法：观察到</font>
-
-1. <font style="color:rgb(28, 31, 33);">如果i是奇数，nums[i] >= nums[i - 1]</font>
-2. <font style="color:rgb(28, 31, 33);">如果i是偶数，nums[i] <= nums[i - 1]</font>
-
-<font style="color:rgb(0, 0, 0);">所以我们只要遍历一遍数组，把不符合的情况交换一下就行了。</font>
-
-<font style="color:rgb(0, 0, 0);">具体来说，</font>
-
-<font style="color:rgb(0, 0, 0);">如果nums[i] > nums[i - 1]， 则交换以后肯定有nums[i] <= nums[i - 1]</font>
-
-<font style="color:rgb(0, 0, 0);">假设nums[i]>=nums[i-1]，那么nums[i+1]如果大于nums[i]，这两个数需要交换，交换后仍然有nums[i+1]>nums[i-1]</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public void wiggleSort(int[] nums) {
-        for (int i = 0;i < nums.length - 1;i++) {
-            if (((i & 1) == 0 && nums[i] > nums[i + 1]) 
-                || ((i & 1) == 1 && nums[i] < nums[i + 1])) {
-                int temp = nums[i];
-                nums[i] = nums[i + 1];
-                nums[i + 1] = temp;
+        for (int i = 0; i < nums.length - 1; i++) {
+            if ((i % 2 == 0 && nums[i] > nums[i + 1]) ||
+                (i % 2 == 1 && nums[i] < nums[i + 1])) {
+                swap(nums, i, i + 1);
             }
         }
     }
+    
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(1) - 原地交换
+```
+
+### 解法3：快速选择+虚拟索引（形式2优化）
+**核心思路**
+```markdown
+1. 使用快速选择找到中位数
+2. 三路分区重新排列
+3. 虚拟索引实现穿插
+```
+
+**实现代码**
+```java
+class Solution {
+    public void wiggleSort(int[] nums) {
+        int n = nums.length;
+        int median = findKthLargest(nums, (n + 1) / 2);
+        
+        int left = 0, i = 0, right = n - 1;
+        while (i <= right) {
+            int mappedIdx = getMappedIndex(i, n);
+            if (nums[mappedIdx] > median) {
+                swap(nums, getMappedIndex(left++, n), mappedIdx);
+                i++;
+            } else if (nums[mappedIdx] < median) {
+                swap(nums, mappedIdx, getMappedIndex(right--, n));
+            } else {
+                i++;
+            }
+        }
+    }
+    
+    private int getMappedIndex(int idx, int n) {
+        return (1 + 2 * idx) % (n | 1);
+    }
+    
+    private int findKthLargest(int[] nums, int k) {
+        // 实现快速选择算法
+        // ...
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: 平均O(n)，最坏O(n^2)
+空间复杂度: O(1) - 原地操作
+```
+
+### 解法对比
+| 维度       | 排序+穿插 | 遍历交换 | 快速选择 |
+|------------|----------|----------|----------|
+| 时间复杂度 | O(nlogn) | O(n)     | O(n)     |
+| 空间复杂度 | O(n)     | O(1)     | O(1)     |
+| 适用形式   | 形式2    | 形式1    | 形式2    |
+| 推荐指数   | ★★★★     | ★★★★★   | ★★★★     |
+
+**补充说明**
+1. 遍历交换法是最简单高效的解法，推荐面试使用
+2. 排序法思路直观，适合教学演示
+3. 快速选择法适合对空间有严格要求的场景
+
+以下是优化后的搜索旋转排序数组问题的多解法版本：
+
+---
 ## 搜索旋转排序数组
-#### <font style="color:rgb(28, 31, 33);">题目描述</font>
 
-
-```plain
-假设按照升序排序的数组在预先未知的某个点上进行了旋转。
-
-( 例如，数组 [0,1,2,4,5,6,7] 可能变为 [4,5,6,7,0,1,2] )。
-
-搜索一个给定的目标值，如果数组中存在这个目标值，则返回它的索引，否则返回 -1 。
-
-你可以假设数组中不存在重复的元素。
-
-你的算法时间复杂度必须是 O(log n) 级别。
-
-示例 1:
-
+**题目描述**
+```markdown
+在旋转后的有序数组中搜索目标值，返回其索引
+要求时间复杂度O(logn)
+示例：
 输入: nums = [4,5,6,7,0,1,2], target = 0
 输出: 4
-示例 2:
-
-输入: nums = [4,5,6,7,0,1,2], target = 3
-输出: -1
 ```
 
-#### <font style="color:rgb(28, 31, 33);">题目详解</font>
+### 解法1：标准二分查找
+**核心思路**
+```markdown
+1. 通过比较中点与右端点判断有序区间
+2. 根据目标值与有序区间的关系调整搜索范围
+3. 处理边界条件
+```
 
-<font style="color:rgb(0, 0, 0);">题目中要求我们必须使用 O(log n) 级别的算法，所以我们的时间复杂度就有了限制。想一下，什么有什么方法可以让算法的时间复杂度为 O(log n) 呢？</font>
-
-<font style="color:rgb(0, 0, 0);">还记得之前的题目中我们用过的</font><font style="color:rgb(0, 0, 0);"> </font>**<font style="color:rgb(0, 0, 0);">二分算法</font>**<font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">吗？二分算法其复杂度通常都是 O(log n) 的，二分算法同样适用于这道题，下面我们一起来看一下。</font>
-
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 1 时间复杂度: O (lgN) 空间复杂度: O (1)</font>
-
-<font style="color:rgb(0, 0, 0);">我们可以想一下，题目给的数组可以分成两部分了吧，前面一部分中的最小值都要比后面一部分的最大值还要大</font>
-
-<font style="color:rgb(0, 0, 0);">下面是 rotated-array 图解:</font>
-
-![](https://cdn.nlark.com/yuque/0/2023/png/12651402/1686494169871-aaa3df39-ed16-4cfc-8221-1282343bca9e.png)
-
-<font style="color:rgb(0, 0, 0);">所以这里引入一个二分法，那就是我们先搞两个指针，一个叫 l，指向数组第一个元素，一个叫 r，指向数组最后一个元素，然后我们用两个指针中间的那个元素 mid 来进行比较</font>
-
-+ <font style="color:rgb(28, 31, 33);">如果 mid 指向的元素就是 target，return mid</font>
-+ <font style="color:rgb(28, 31, 33);">如果 mid 和 r 同时落在绿线或者红线上</font>
-    - <font style="color:rgb(28, 31, 33);">如果 target 在 mid 右边， l 指针右移一位</font>
-    - <font style="color:rgb(28, 31, 33);">如果 target 在 mid 左边， r 指针左移一位</font>
-+ <font style="color:rgb(28, 31, 33);">如果 r 在绿线上，mid 在红线上时</font>
-    - <font style="color:rgb(28, 31, 33);">如果 target 在 mid 右边， l 指针右移一位</font>
-    - <font style="color:rgb(28, 31, 33);">如果 target 在 mid 左边， r 指针左移一位</font>
-+ <font style="color:rgb(28, 31, 33);">都没找到，return -1</font>
-
-<font style="color:rgb(0, 0, 0);">下面来看具体的代码实现：</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public int search(int[] nums, int target) {
-        int l = 0;
-        int r = nums.length - 1;
-        //搜索区间[l,r]
-
-        while (l <= r) {
-            //获得区间[l,r]的中点
-            int mid = (l + r) / 2;
+        int left = 0, right = nums.length - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
             if (nums[mid] == target) {
                 return mid;
             }
-            if (nums[mid] <= nums[r]) {
-                //mid和r同时落在绿线或者红线上
-                if (nums[mid] < target && nums[r] >= target) {
-                    //target在mid的右边
-                    l = mid + 1;
+            
+            // 判断哪半边是有序的
+            if (nums[mid] <= nums[right]) { // 右半有序
+                if (target > nums[mid] && target <= nums[right]) {
+                    left = mid + 1;
                 } else {
-                    //target在mid的左边
-                    r = mid - 1;
+                    right = mid - 1;
                 }
-            } else {
-                //mid在红线，r在绿线的情况
-                if (nums[l] <= target && target < nums[mid]) {
-                    //target在mid的左边
-                    r = mid - 1;
+            } else { // 左半有序
+                if (target >= nums[left] && target < nums[mid]) {
+                    right = mid - 1;
                 } else {
-                    //target在mid的右边
-                    l = mid + 1;
+                    left = mid + 1;
                 }
             }
         }
@@ -520,115 +601,127 @@ class Solution {
 }
 ```
 
-## 下一个排列
-#### <font style="color:rgb(28, 31, 33);">题目描述</font>
-
-
-```plain
-实现获取下一个排列的函数，算法需要将给定数字序列重新排列成字典序中下一个更大的排列。
-
-如果不存在下一个更大的排列，则将数字重新排列成最小的排列（即升序排列）。
-
-必须原地修改，只允许使用额外常数空间。
-
-以下是一些例子，输入位于左侧列，其相应输出位于右侧列。
-1,2,3 → 1,3,2
-3,2,1 → 1,2,3
-1,1,5 → 1,5,1
+**复杂度分析**
+```markdown
+时间复杂度: O(logn)
+空间复杂度: O(1)
 ```
 
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
+### 解法2：两次二分查找
+**核心思路**
+```markdown
+1. 先找到旋转点（最小值位置）
+2. 根据目标值确定搜索区间
+3. 在选定区间进行标准二分查找
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路：时间复杂度: O (N) 空间复杂度: O (1)</font>
-
-_**<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">引子</font>**_<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">：十进制数怎么求下一个数？</font>
-
-<font style="color:rgb(0, 0, 0);">比如 1099，从最后一位 9 开始寻找，发现 9 不存在下一个数字，于是看倒数第二位，倒数第二位同样是 9 也不存在下一个数字。看倒数第 3 位，是 0，下一个数字是 1，于是把倒数第三位变成下一个数字 1，再把后面两位变成最小的两个数字，也就是 00，于是 1099 的下一个数就是 1100。</font>
-
-<font style="color:rgb(0, 0, 0);">最后我们总结出来的步骤：</font>
-
-+ <font style="color:rgb(28, 31, 33);">从后面开始，寻找第一个有下一个数字的数字，假设该位置为倒数第 i 位。我们把倒数第 i 位变成它的下一个数字</font>
-+ <font style="color:rgb(28, 31, 33);">将</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">倒数第 1 位 - 第 i-1 位变成最小的数字</font><font style="color:rgb(28, 31, 33);">，也就是 0</font>
-
-<font style="color:rgb(0, 0, 0);">首先，什么是全排列呢？上过高中的同学肯定都知道，回顾一下：</font>[全排列](https://baike.baidu.com/item/%E5%85%A8%E6%8E%92%E5%88%97)
-
-<font style="color:rgb(0, 0, 0);">这里题目需要我们获得下一个更大的排列，那么我们想一下，在所有位元素固定的情况下，如何让这个排列数字更大呢？自然是把大一点的数字放在前面比较好啦。但由于我们只是去找下一个更大的排列，而不仅仅是找到一个更大的就行，所以我们要将最合适的一个较大的数字和前面一个较小的数字换一下位置。</font>
-
-+ <font style="color:rgb(28, 31, 33);">如果一个序列是递减的，那么它不具有下一个排列。因为他就是最大的排列</font>
-+ <font style="color:rgb(28, 31, 33);">如果一个序列是递增的，那么它是最小的排列</font>
-
-<font style="color:rgb(0, 0, 0);">算法具体流程：</font>
-
-+ <font style="color:rgb(28, 31, 33);">从后面开始，寻找第一个有下一个数字的数字，假设该位置为倒数第 i 位。这里要注意，由于从开头到倒数第 i+1 位，数字不变，因此倒数第 i 位能选的数字只能是倒数第 i 位后面的数字</font>
-+ <font style="color:rgb(28, 31, 33);">将倒数第 i 位变成它的取值范围内的下一个数字</font>
-+ <font style="color:rgb(28, 31, 33);">将倒数第 1 位 - 第 i-1 位变成最小的排列，也就是，数字升序（由于倒数第 i 位后面的数字是降序的，所以可以利用这个性质来实现 o (n) 的算法来实现升序）</font>
-
-<font style="color:rgb(0, 0, 0);">我们来看一个具体的例子，一个排列为 124653</font>
-
-<font style="color:rgb(0, 0, 0);">我们倒着往前找，遇到 4 小于 6 的情况停止，因为 4 后面有比它大的数。</font>
-
-<font style="color:rgb(0, 0, 0);">并且我们可以知道：</font>
-
-1. <font style="color:rgb(28, 31, 33);">124653 和它的下一个排列的公共前缀为 12 (因为 4653 存在下一个排列，所以前面的数字 12 保持不变)</font>
-2. <font style="color:rgb(28, 31, 33);">4 后面的元素是递减的 (上面介绍的终止条件是前一个元素小于后一个元素，这里是 4<6)</font>
-
-<font style="color:rgb(0, 0, 0);">现在，我们开始考虑如何找到 4653 的下个排列，首先明确 4 后面的几个数字中至少有一个大于 4.</font>
-
-<font style="color:rgb(0, 0, 0);">4 肯定要和 653 这 3 个数字中大于 4 的数字中 (6，5) 的某一个进行交换。这里就是 4 要和 6，5 中的某一个交换，很明显要和 5 交换，如果找到这样的元素呢，因为我们知道 4 后面的元素是递减的，所以在 653 中从后面往前查找，找到第一个大于 4 的数字，这就是需要和 4 进行交换的数字。这里我们找到了 5，交换之后得到的临时序列为 5643.，交换后得到的 643 也是一个递减序列。</font>
-
-<font style="color:rgb(0, 0, 0);">所以得到的 4653 的下一个临时序列为 5643，但是既然前面数字变大了 (4653—>5643)，后面的自然要变为升序才行，变换 5643 得到 5346.</font>
-
-<font style="color:rgb(0, 0, 0);">所以 124653 的下一个序列为 125346.</font>
-
-<font style="color:rgb(0, 0, 0);">再来一个例子，比如 125430</font>
-
-+ <font style="color:rgb(28, 31, 33);">从末尾开始，找到 decreasing subsequence，5430，因为来调 5430 无论怎么调，都不可能有比它更小的，数也被自然的分成两部分 (1,2) 和 （5，4，3，0)</font>
-+ <font style="color:rgb(28, 31, 33);">下一步是找这个 sequence 里面第一个比前面部分，比 2 大的，3，也很容易理解，因为下一个必定是 (1,3) 打头</font>
-+ <font style="color:rgb(28, 31, 33);">交换 3 和 2 ，变成 (1,3,5,4,2,0), 再把后面的部分 reverse，得到后面部分可得到的最小的</font>
-
-<font style="color:rgb(0, 0, 0);">这个时候，得到下一个 sequence 130245</font>
-
-<font style="color:rgb(0, 0, 0);">下面我们来看下具体的代码实现：</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
-    public void nextPermutation(int[] nums) {
-        int idx = nums.length - 2;
-        //寻找从右边开始第一个比右边小的数
-        while (idx >= 0 && nums[idx] >= nums[idx + 1]) {
-            idx--;
-        }
-        if (idx >= 0) {
-            int next = nums.length - 1;
-            //寻找nums[idx]的下一个数
-            while (next >= 0 && nums[next] <= nums[idx]) {
-                next--;
-            }
-            //交换nums[idx]和nums[next]
-            int temp = nums[idx];
-            nums[idx] = nums[next];
-            nums[next] = temp;
-        }
-        //将nums[idx+1..]倒过来
-        int left = idx + 1, right = nums.length - 1;
+    public int search(int[] nums, int target) {
+        // 1. 找旋转点（最小值）
+        int n = nums.length;
+        int left = 0, right = n - 1;
         while (left < right) {
-            int temp = nums[left];
-            nums[left] = nums[right];
-            nums[right] = temp;
-            left++;
-            right--;
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        int pivot = left;
+        
+        // 2. 确定搜索区间
+        left = 0;
+        right = n - 1;
+        if (target >= nums[pivot] && target <= nums[right]) {
+            left = pivot;
+        } else {
+            right = pivot - 1;
+        }
+        
+        // 3. 标准二分查找
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(logn) - 两次二分
+空间复杂度: O(1)
+```
+
+### 解法3：递归二分查找
+**核心思路**
+```markdown
+1. 递归实现二分查找
+2. 每次递归判断有序区间
+3. 缩小搜索范围
+```
+
+**实现代码**
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        return helper(nums, 0, nums.length - 1, target);
+    }
+    
+    private int helper(int[] nums, int left, int right, int target) {
+        if (left > right) return -1;
+        
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target) return mid;
+        
+        if (nums[mid] <= nums[right]) { // 右半有序
+            if (target > nums[mid] && target <= nums[right]) {
+                return helper(nums, mid + 1, right, target);
+            } else {
+                return helper(nums, left, mid - 1, target);
+            }
+        } else { // 左半有序
+            if (target >= nums[left] && target < nums[mid]) {
+                return helper(nums, left, mid - 1, target);
+            } else {
+                return helper(nums, mid + 1, right, target);
+            }
         }
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(logn)
+空间复杂度: O(logn) - 递归栈
+```
+
+### 解法对比
+| 维度       | 标准二分法 | 两次二分法 | 递归二分法 |
+|------------|-----------|------------|------------|
+| 时间复杂度 | O(logn)   | O(logn)    | O(logn)    |
+| 空间复杂度 | O(1)      | O(1)       | O(logn)    |
+| 实现难度   | 中等      | 中等       | 简单       |
+| 推荐指数   | ★★★★★    | ★★★★      | ★★★       |
+
+**补充说明**
+1. 标准二分法是面试最佳选择
+2. 两次二分法思路更清晰但效率稍低
+3. 递归法代码简洁但空间效率低
 
 
-### <font style="color:rgb(28, 31, 33);">小结</font>
 
-<font style="color:rgb(0, 0, 0);">这道题的难点在于如何十进制数怎么求下一个数？同学们吧过程仔细的多看几遍，然后动手敲，敲第一遍的时候不要看代码，硬着头皮上。这样会对你的算法能力有很大的促进。</font>
 
 ## 最接近的三数之和
 ### <font style="color:rgb(28, 31, 33);">内容描述</font>

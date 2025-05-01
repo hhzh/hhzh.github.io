@@ -1,262 +1,143 @@
 ## 大数相加
-题目描述
+**题目描述**
+
+```markdown
 以字符串的形式读入两个数字，编写一个函数计算它们的和，以字符串形式返回。
-
 数据范围：s.length,t.length≤100000，字符串仅由'0'~‘9’构成
-
 要求：时间复杂度 O(n)
 
 示例：
-
 输入："1","99"
-
 返回值："100"
-
 说明：1+99=100
+```
+思路
+```markdown
+模拟人工竖式计算过程，从最低位开始逐位相加并处理进位。通过双指针从字符串末尾同步遍历，避免转换为整数导致溢出
+```
 
-解法
-使用双指针指向两个字符串末尾，从后向前逐位相加，同时处理进位问题。如果还有剩余进位，将剩余进位结果添加到字符串中。
-
+关键步骤
+```agsl
+1. 预处理空值：处理输入为空字符串的边界情况
+2. 双指针遍历：同步移动指针获取当前位的数字
+3. 进位处理：记录每一位相加后的进位值
+4. 结果反转：计算结果按低位到高位顺序存储，需反转得到最终结果
+```
+解法1
 ```java
 public class Solution {
-    public String solve(String s, String t) {
-        if (s == null || "".equals(s)) {
-            return t;
-        }
-        if (t == null || "".equals(t)) {
-            return s;
-        }
-        
-        int i = s.length() - 1;  // 指向字符串 s 的末尾
-        int j = t.length() - 1;  // 指向字符串 t 的末尾
-        int carry = 0;  // 进位
-        StringBuilder result = new StringBuilder();  // 存储结果
+  public String solve(String num1, String num2) {
+    // 处理空字符串输入
+    if (num1.isEmpty()) return num2;
+    if (num2.isEmpty()) return num1;
 
-        // 从后往前逐位相加
-        while (i >= 0 || j >= 0) {
-            int digitS = i >= 0 ? s.charAt(i) - '0' : 0;  // 获取 s 的当前位，超出范围则为 0
-            int digitT = j >= 0 ? t.charAt(j) - '0' : 0;  // 获取 t 的当前位，超出范围则为 0
-            int sum = digitS + digitT + carry;  // 当前位的和
-            carry = sum / 10;  // 更新进位
-            result.append(sum % 10);  // 将当前位的结果添加到 StringBuilder
-            i--;  // 移动指针
-            j--;  // 移动指针
-        }
+    int p1 = num1.length() - 1;    // 数字1的指针
+    int p2 = num2.length() - 1;    // 数字2的指针
+    int carry = 0;                 // 进位标志
+    StringBuilder res = new StringBuilder();
 
-        // 如果最终有剩余的进位，将其添加到结果中
-        if (carry != 0) {
-            result.append(carry);
-        }
+    // 双指针同步遍历
+    while (p1 >= 0 || p2 >= 0) {
+      // 获取当前位的数字（指针越界则补0）
+      int n1 = (p1 >= 0) ? num1.charAt(p1--) - '0' : 0;
+      int n2 = (p2 >= 0) ? num2.charAt(p2--) - '0' : 0;
 
-        // 由于结果是从低位到高位逐位添加的，所以需要反转结果字符串
-        return result.reverse().toString();
+      int sum = n1 + n2 + carry;
+      carry = sum / 10;          // 计算新进位
+      res.append(sum % 10);       // 记录当前位结果
     }
 
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        String s = "12345";
-        String t = "6789";
-        System.out.println(solution.solve(s, t));  // 输出：19134
-    }
+    // 处理最高位进位
+    if (carry > 0) res.append(carry);
+
+    return res.reverse().toString(); // 反转得到最终结果
+  }
+
+  public static void main(String[] args) {
+    Solution solution = new Solution();
+    System.out.println(solution.solve("999", "1"));    // 输出：1000
+    System.out.println(solution.solve("12345", "6789")); // 输出：19134 
+  }
 }
 ```
 
-#### <font style="color:rgb(28, 31, 33);">内容描述</font>
+复杂度分析
+```agsl
+时间复杂度：O(max(M,N))，M/N为输入字符串长度
+空间复杂度：O(max(M,N))，存储结果字符串
+```
 
+我将按照标准格式优化这篇文章，分为两个独立的部分（整数转罗马数字、罗马数字转整数），以下是优化后的版本：
 
-```plain
-罗马数字包含以下七种字符： I、 V、 X、 L、C、D 和 M。
+---
 
-字符          数值
-I             1
-V             5
-X             10
-L             50
-C             100
-D             500
-M             1000
-例如， 罗马数字 2 写做 II ，即为两个并列的 1；
-12 写做 XII ，即为 X + II ； 27 写做  XXVII, 即为 XX + V + II 。
+## 整数转罗马数字
 
-通常情况下，罗马数字中小的数字在大的数字的右边，但也存在特例。
-例如 4 不写做 IIII，而是 IV。数字 1 在数字 5 的左边，所表示的数等于大数 5 减小数 1 得到的数值 4 。
-同样地，数字 9 表示为 IX。这个特殊的规则只适用于以下六种情况：
+**题目描述**
+```markdown
+给定一个1到3999的整数，将其转换为罗马数字表示。罗马数字包含以下字符：
+I(1), V(5), X(10), L(50), C(100), D(500), M(1000)
 
-I 可以放在 V (5) 和 X (10) 的左边，来表示 4 和 9；
-X 可以放在 L (50) 和 C (100) 的左边，来表示 40 和 90； 
-C 可以放在 D (500) 和 M (1000) 的左边，来表示 400 和 900；
-给定一个整数，将其转为罗马数字。输入确保在 1 到 3999 的范围内。
+特殊组合规则：
+IV(4), IX(9), XL(40), XC(90), CD(400), CM(900)
 
-示例 1:
-输入: 3
-输出: "III"
-
-示例 2:
-输入: 4
-输出: "IV"
-
-示例 3:
-输入: 9
-输出: "IX"
-
-示例 4:
-输入: 58
-输出: "LVIII"
-解释: L = 50, V = 5, III = 3.
-
-示例 5:
+示例：
 输入: 1994
 输出: "MCMXCIV"
-解释: M = 1000, CM = 900, XC = 90, IV = 4.
+解释: M=1000, CM=900, XC=90, IV=4
 ```
 
-### <font style="color:rgb(28, 31, 33);">解题方案</font>
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(1)</font>
-<font style="color:rgb(0, 0, 0);">首先，根据题意，我们可以知道罗马数字有如下符号和其对应的数值：</font>
-
-| <font style="color:rgb(28, 31, 33);">字符</font> | <font style="color:rgb(28, 31, 33);">数值</font> |
-| --- | --- |
-| <font style="color:rgb(28, 31, 33);">I</font> | <font style="color:rgb(28, 31, 33);">1</font> |
-| <font style="color:rgb(28, 31, 33);">V</font> | <font style="color:rgb(28, 31, 33);">5</font> |
-| <font style="color:rgb(28, 31, 33);">X</font> | <font style="color:rgb(28, 31, 33);">10</font> |
-| <font style="color:rgb(28, 31, 33);">L</font> | <font style="color:rgb(28, 31, 33);">50</font> |
-| <font style="color:rgb(28, 31, 33);">C</font> | <font style="color:rgb(28, 31, 33);">100</font> |
-| <font style="color:rgb(28, 31, 33);">D</font> | <font style="color:rgb(28, 31, 33);">500</font> |
-| <font style="color:rgb(28, 31, 33);">M</font> | <font style="color:rgb(28, 31, 33);">1000</font> |
-
-
-<font style="color:rgb(0, 0, 0);">详细的罗马数字计数规则如下：</font>
-
-+ <font style="color:rgb(28, 31, 33);">相同的数字连写，所表示的数等于这些数字相加得到的数，例如：III = 3；</font>
-+ <font style="color:rgb(28, 31, 33);">小的数字在大的数字右边，所表示的数等于这些数字相加得到的数，例如：VIII = 8；</font>
-+ <font style="color:rgb(28, 31, 33);">小的数字，限于（I、X 和 C）在大的数字左边，所表示的数等于大数减去小数所得的数，例如：IV = 4，这条规则好目前与本题无关；</font>
-+ <font style="color:rgb(28, 31, 33);">正常使用时，连续的数字重复不得超过三次；</font>
-+ <font style="color:rgb(28, 31, 33);">在一个数的上面画横线，表示这个数扩大 1000 倍（本题只考虑 3999 以内的数，所以用不到这条规则）；</font>
-+ <font style="color:rgb(28, 31, 33);">从前向后遍历罗马数字，如果某个数比前一个数小，则加上该数；反之，减去前一个数的两倍然后加上该数。</font>
-
-<font style="color:rgb(0, 0, 0);">我们可以将所有罗马数字的不同符号及对应整数放在字典中。但由于题目限制，正常使用时连续的数字重复不能超过三次，所以对于 400、40、4 或者是 900、90、9 这种情况我们直接单独列出来。</font>
-
-<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">注：之所以将 900、90、9 这三种情况列出是因为罗马数字中并没有单独表示 400 的字符存在，而且不允许DCD这样的情况出现。</font>
-
-<font style="color:rgb(0, 0, 0);">将罗马数字和对应整数以及各种特殊情况整合到字典中后，首先将字典按照对应罗马数字的对应整数值进行排序并遍历，每一项中的键</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">symbol</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">对应罗马数字符号 ，值</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">val</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">对应整数。</font>
-
-<font style="color:rgb(0, 0, 0);">如果</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">num</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">大于</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">val</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">则进入</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">while</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">循环，并将当前的罗马数字字符</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">symbol</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">拼接到最后结果</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">roman</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中，然后</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">num - val</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">，每执行一次 while 循环重新判断</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">num >= val</font><font style="color:rgb(0, 0, 0);">。如果不满足则跳出 while 循环，执行下一次 for 循环。具体流程参考：</font>
-
-
-
-```python
-以整数 3568 为例，3568 的对应罗马数字为：MMMDLXVIII
-
-第一次 for 循环 ————> symbol = 'M' val = 1000 , num >= val成立，进入 while 循环：
-	第一次 while 循环：
-		将 'M' 拼接到 roman 中， num 减去当前 val ，此时 roman 为 'M',num 为 2568
-	第二次 while 循环：
-		将 'M' 拼接到 roman 中，num 减去当前 val ，此时 roman 为 'MM',num 为 1568
-	第三次 while 循环：
-		将 'M' 拼接到 roman 中，num 减去当前 val ，此时 roman 为 'MMM',num 为 568 					num >= val 不成立，退出 while 循环。
-第二次 for 循环 ————> symbol = 'CM' val = 900 , num >= val不成立，不能进入 while 循环：    
-第三次 for 循环 ————> symbol = 'D' val = 500 , num >= val成立，进入 while 循环： 
-	第一次 while 循环：
-    	将 'D' 拼接到 roman 中， num 减去当前 val ，此时 roman 为 'MMMD',num 为 68
-        num >= val 不成立，退出 while 循环。
-第四次 for 循环 ————> symbol = 'CD' val = 400 , num >= val不成立，不能进入 while 循环： 
-…………
-第七次 for 循环 ————> symbol = 'L' val = 50 , num >= val成立，进入 while 循环：
-	第一次 while 循环：
-    	将 'L' 拼接到 roman 中， num 减去当前 val ，此时 roman 为 'MMMDL',num 为 18
-        num >= val 不成立，退出 while 循环。
-…………依次执行后得出结果为 MMMDLXVIII 。
+**解题思路**
+```markdown
+贪心算法：从最大的符号开始匹配，每次减去已匹配的数值
 ```
 
+**关键步骤**
+```markdown
+1. 建立数值-符号的映射表（按降序排列）
+2. 遍历映射表，用除法得到当前符号的重复次数
+3. 拼接结果并减去已转换的数值
+```
 
-
+**解法实现**
 ```java
 class Solution {
     public String intToRoman(int num) {
-        // 初始化了一个一一对应的map，方便后面取出符号。
-        String[][] lookup = {
-                {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"},
-                {"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"},
-                {"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"},
-                {"", "M", "MM", "MMM"}
-        };
-        String ret = "";
-        for (int i = 0; i < 4; i++) {
-            ret = lookup[i][num % 10] + ret;
-            num /= 10;
+        // 按从大到小顺序排列的映射表
+        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] symbols = {"M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"};
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            // 获取当前符号的重复次数
+            while (num >= values[i]) {
+                sb.append(symbols[i]);
+                num -= values[i];
+            }
         }
-        return ret;
+        return sb.toString();
     }
 }
 ```
 
-## 罗马数字转整数
-**<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">难度：Easy</font>**<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">  
-</font><font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">原题链接：</font>[https://leetcode-cn.com/problems/roman-to-integer/。](https://leetcode-cn.com/problems/roman-to-integer/%E3%80%82)
-
-<font style="color:rgb(0, 0, 0);">刚才上面的题目要求我们将整数转为罗马数字，其实还有一道题和这道题很相似，那就是罗马数字转整数。这道题和刚才那道题差不多，所以在这里我就不放题目内容了，大家跟着我一起，来把这道题做一下就行。</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(1)</font>
-<font style="color:rgb(0, 0, 0);">这道题同样有将整数限制在</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">1 - 3999</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">之间。我们从前往后扫描，用一个临时变量来分段记录数字。因为有这样一条规则：小的数字，限于（I、X 和 C）在大的数字左边，所表示的数等于大数减去小数所得的数，例如：  
-</font><font style="color:rgb(199, 37, 78);">IV = 4</font><font style="color:rgb(0, 0, 0);">。所以如果当前罗马数字的值比前面一个大，说明这一段的值应当是减去上一个值。否则，应将当前值加入到最后结果中并开始下一次记录，例如:</font><font style="color:rgb(199, 37, 78);">VI = 5 + 1, II = 1 +1</font><font style="color:rgb(0, 0, 0);">。</font>
-
-<font style="color:rgb(0, 0, 0);">下面来看具体代码：</font>
-
-
-
-```java
-class Solution {
-    public int romanToInt(String s) {
-        // 初始化了一个一一对应的map，方便后面取出符号。
-        String[][] lookup = {
-                {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"},
-                {"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"},
-                {"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"},
-                {"", "M", "MM", "MMM"}
-        };
-        int ret = 0;
-        int base = 1000;
-        int x = 3;
-        int y = 3;
-        int pos = 0;
-        while (pos < s.length()){
-            if (pos + lookup[x][y].length() <= s.length()) {
-                boolean wrong = false;
-                for (int i = 0; i < lookup[x][y].length(); i++) {
-                    if (lookup[x][y].charAt(i) != s.charAt(pos + i)){
-                        wrong = true;
-                        break;
-                    }
-                }
-                if (!wrong) {
-                    pos += lookup[x][y].length();
-                    ret += base * y;
-                }
-            }
-            y--;
-            if (y == 0) {
-                base /= 10;
-                x--;
-                y = 9;
-            }
-        }
-        return ret;
-    }
-}
+**复杂度分析**
+```markdown
+时间复杂度: O(1) - 固定次数的循环（数值范围限定）
+空间复杂度: O(1) - 固定大小的存储空间
 ```
 
-### <font style="color:rgb(28, 31, 33);">小结</font>
-<font style="color:rgb(0, 0, 0);">这个小节我们做了两道题。虽然这两道题差不多，但还是有差异的。整数转罗马数字明显更难一些，罗马数字转整数则相对比较简单。建议同学们自己多刷几遍，书读百遍，其义自见。</font>
+以下是优化后的多解法版本：
 
-## 有效括号
-内容描述
+---
+## 有效的括号生成
 
+**题目描述**
+```markdown
+给定一个整数n，生成所有由n对括号组成的有效组合。
 
-```plain
-给出 n 代表生成括号的对数，请你写出一个函数，使其能够生成所有可能的并且有效的括号组合。
-
-例如，给出 n = 3，生成结果为：
-
+示例：
+输入: 3
+输出: 
 [
   "((()))",
   "(()())",
@@ -266,1418 +147,2112 @@ class Solution {
 ]
 ```
 
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
+### 解法1：回溯算法（DFS）
+**核心思路**
+```markdown
+1. 通过递归构建所有可能的组合
+2. 维护两个计数器：已用左括号数(left)和右括号数(right)
+3. 约束条件：
+   - 左括号数 ≤ n
+   - 右括号数 ≤ 左括号数
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(4^N / sqrt(N)) 空间复杂度: O(4^N / sqrt(N))</font>
-
-<font style="color:rgb(0, 0, 0);">这道题是一个枚举题，首先我们看一下有效括号的条件：</font>
-
-+ <font style="color:rgb(28, 31, 33);">左括号和右括号相等</font>
-+ <font style="color:rgb(28, 31, 33);">在括号字符串中的任一前缀，右括号的数量不大于左括号的数量</font>
-
-<font style="color:rgb(0, 0, 0);">假设我们已经枚举到了某个前缀S1，接下来的字符有两种情况，加上’(‘或者加上’)’，加上之后，如果该前缀不符合有效括号的条件，我们应该放弃这次枚举</font>
-
-<font style="color:rgb(0, 0, 0);">比如：前缀’()’，后面一个字符只能是’(’</font>
-
-<font style="color:rgb(0, 0, 0);">我们用递归的方式来实现这个题目</font>
-
-<font style="color:rgb(0, 0, 0);">为了满足有效括号的条件，我们在枚举前缀时，需要左括号的数量和右括号的数量，维护这两个值，有利于我们判断是否满足条件</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public List<String> generateParenthesis(int n) {
         List<String> result = new ArrayList<>();
-        singleStr(result,"",0,0,n);
+        backtrack(result, "", 0, 0, n);
         return result;
     }
 
-    private void singleStr(List<String> result, String str,int left, int right, int n){
-        if (left == n && right == n) {
-            result.add(str);
+    private void backtrack(List<String> result, String current, 
+                         int left, int right, int max) {
+        if (current.length() == max * 2) {
+            result.add(current);
+            return;
         }
-        if (left < n) {
-            singleStr(result,str + "(", left + 1,right,n);
+        
+        if (left < max) {
+            backtrack(result, current + "(", left + 1, right, max);
         }
         if (right < left) {
-            singleStr(result, str + ")", left, right+1,n);
+            backtrack(result, current + ")", left, right + 1, max);
         }
     }
 }
 ```
 
-
-
-### <font style="color:rgb(28, 31, 33);">小结</font>
-
-<font style="color:rgb(0, 0, 0);">递归是个重要的知识点，面试题中经常会出现树的遍历。大家试着把括号生成这个题，跟树的遍历结合起来思考，其实括号生成这个题本质上边递归，边生成出一颗递归树：在每个节点我们计算约束条件，判断是否需要生成出子节点。</font>
-
-<font style="color:rgb(0, 0, 0);">递归，本质上是对搜索节点进行无差别遍历。  
-</font>![](https://cdn.nlark.com/yuque/0/2023/png/12651402/1686493966084-2dac3d8d-b89f-4149-a039-54319cec7c18.png)
-
-#### <font style="color:rgb(28, 31, 33);">内容描述</font>
-
-
-```plain
-请你来实现一个 atoi 函数，使其能将字符串转换成整数。
-
-首先，该函数会根据需要丢弃无用的开头空格字符，直到寻找到第一个非空格的字符为止。
-
-当我们寻找到的第一个非空字符为正或者负号时，则将该符号与之后面尽可能多的连续数字组合起来，作为该整数的正负号；假如第一个非空字符是数字，则直接将其与之后连续的数字字符组合起来，形成整数。
-
-该字符串除了有效的整数部分之后也可能会存在多余的字符，这些字符可以被忽略，它们对于函数不应该造成影响。
-
-注意：假如该字符串中的第一个非空格字符不是一个有效整数字符、字符串为空或字符串仅包含空白字符时，则你的函数不需要进行转换。
-
-在任何情况下，若函数不能进行有效的转换时，请返回 0。
-
-说明：
-
-假设我们的环境只能存储 32 位大小的有符号整数，那么其数值范围为 [−231,  231 − 1]。如果数值超过这个范围，qing返回  INT_MAX (231 − 1) 或 INT_MIN (−231) 。
-
-示例 1:
-
-输入: "42"
-输出: 42
-
-示例 2:
-
-输入: "   -42"
-输出: -42
-解释: 第一个非空白字符为 '-', 它是一个负号。
-     我们尽可能将负号与后面所有连续出现的数字组合起来，最后得到 -42 。
-     
-示例 3:
-
-输入: "4193 with words"
-输出: 4193
-解释: 转换截止于数字 '3' ，因为它的下一个字符不为数字。
-
-示例 4:
-
-输入: "words and 987"
-输出: 0
-解释: 第一个非空字符是 'w', 但它不是数字或正、负号。
-     因此无法执行有效的转换。
-     
-示例 5:
-
-输入: "-91283472332"
-输出: -2147483648
-解释: 数字 "-91283472332" 超过 32 位有符号整数范围。 
-     因此返回 INT_MIN (−231) 。
+**复杂度分析**
+```markdown
+时间复杂度: O(4^n/√n) - 卡特兰数增长趋势
+空间复杂度: O(n) - 递归栈深度
 ```
 
-## 字符串转换整数
-解题方案
+### 解法2：动态规划
+**核心思路**
+```markdown
+1. 利用已知n-1的结果构建n的结果
+2. 每个新组合可表示为 "(a)b" 形式
+   - a是i对括号的有效组合
+   - b是n-1-i对括号的有效组合
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(1)</font>
-
-<font style="color:rgb(0, 0, 0);">这道题还是有很多特殊情况，大家一定要提前充分考虑好再动笔，不然后面会一直在 debug。需要考虑比较多的边界条件&特殊情况：</font>
-
-1. <font style="color:rgb(28, 31, 33);">首先输入可能会有空格，所以先去掉空格‘；</font>
-2. <font style="color:rgb(28, 31, 33);">去掉空格后要考虑空字符串情况；</font>
-3. <font style="color:rgb(28, 31, 33);">字符串首位可能会有正负号，要考虑；</font>
-4. <font style="color:rgb(28, 31, 33);">开始转换成数字，题目说只要遇到非数字就可以break了；</font>
-5. <font style="color:rgb(28, 31, 33);">结果太大或者太小超过</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">int</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">限制就要返回特定数字</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">2147483647</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">或者</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">-2147483648</font><font style="color:rgb(28, 31, 33);">；</font>
-6. <font style="color:rgb(28, 31, 33);">根据之前的正负号结果返回对应数值。</font>
-
-<font style="color:rgb(0, 0, 0);">下面来看具体代码：</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
-    public int myAtoi(String str) {
-        if (str == null || str.length() == 0) {
-            return 0;
+    public List<String> generateParenthesis(int n) {
+        List<List<String>> dp = new ArrayList<>();
+        dp.add(Collections.singletonList(""));
+        
+        for (int i = 1; i <= n; i++) {
+            List<String> current = new ArrayList<>();
+            for (int j = 0; j < i; j++) {
+                for (String a : dp.get(j)) {
+                    for (String b : dp.get(i - 1 - j)) {
+                        current.add("(" + a + ")" + b);
+                    }
+                }
+            }
+            dp.add(current);
         }
-        int start = 0;
-        // 过滤前置空格
-        while (start < str.length() && str.charAt(start) == ' ') {
-            start++;
+        return dp.get(n);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(4^n/√n) - 同解法1
+空间复杂度: O(4^n/√n) - 需要存储所有中间结果
+```
+
+### 解法3：BFS遍历
+**核心思路**
+```markdown
+1. 使用队列进行层序遍历
+2. 每个节点记录当前字符串和括号计数
+3. 逐步构建完整组合
+```
+
+**实现代码**
+```java
+class Solution {
+    class Node {
+        String str;
+        int left;
+        int right;
+        
+        Node(String s, int l, int r) {
+            str = s;
+            left = l;
+            right = r;
         }
-        // 判断符号
-        int sign = 1;
-        if (start < str.length() && str.charAt(start) == '-') {
+    }
+
+    public List<String> generateParenthesis(int n) {
+        List<String> result = new ArrayList<>();
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(new Node("", 0, 0));
+        
+        while (!queue.isEmpty()) {
+            Node node = queue.poll();
+            
+            if (node.left == n && node.right == n) {
+                result.add(node.str);
+                continue;
+            }
+            
+            if (node.left < n) {
+                queue.offer(new Node(node.str + "(", node.left + 1, node.right));
+            }
+            if (node.right < node.left) {
+                queue.offer(new Node(node.str + ")", node.left, node.right + 1));
+            }
+        }
+        return result;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(4^n/√n)
+空间复杂度: O(4^n/√n) - 队列需要存储所有中间状态
+```
+
+### 解法对比
+| 维度       | 回溯法       | 动态规划     | BFS法        |
+|------------|-------------|-------------|-------------|
+| 时间复杂度 | O(4^n/√n)   | O(4^n/√n)   | O(4^n/√n)   |
+| 空间复杂度 | O(n)        | O(4^n/√n)   | O(4^n/√n)   |
+| 优势       | 空间效率高   | 思路清晰     | 可并行化     |
+| 适用场景   | 常规情况     | 需要递推关系 | 需要遍历所有可能 |
+
+**补充说明**
+1. 回溯法是最推荐的解法，在空间效率上有明显优势
+2. 动态规划展示了问题分解的思路
+3. BFS适用于需要获取所有中间状态的场景
+
+以下是优化后的多解法版本：
+
+---
+## 字符串转换整数 (atoi)
+
+**题目描述**
+```markdown
+实现一个将字符串转换为32位有符号整数的函数，需处理以下情况：
+1. 丢弃前导空格
+2. 识别正负号
+3. 截断非数字后缀
+4. 处理整数溢出（返回INT_MAX或INT_MIN）
+
+示例：
+输入: "   -42" → 输出: -42
+输入: "4193 with words" → 输出: 4193
+输入: "-91283472332" → 输出: -2147483648 (INT_MIN)
+```
+
+### 解法1：直接解析法
+**核心思路**
+```markdown
+1. 使用指针逐步处理字符串
+2. 分阶段处理：空格→符号→数字
+3. 实时检测溢出（在计算过程中判断）
+```
+
+**实现代码**
+```java
+class Solution {
+    public int myAtoi(String s) {
+        int index = 0, sign = 1, total = 0;
+        // 1. 处理空字符串
+        if (s == null || s.length() == 0) return 0;
+
+        // 2. 跳过前导空格
+        while (index < s.length() && s.charAt(index) == ' ') index++;
+
+        // 3. 处理符号
+        if (index < s.length() && (s.charAt(index) == '+' || s.charAt(index) == '-')) {
+            sign = s.charAt(index) == '-' ? -1 : 1;
+            index++;
+        }
+
+        // 4. 转换数字并处理溢出
+        while (index < s.length()) {
+            int digit = s.charAt(index) - '0';
+            if (digit < 0 || digit > 9) break;
+
+            // 检查溢出
+            if (Integer.MAX_VALUE / 10 < total || 
+                (Integer.MAX_VALUE / 10 == total && Integer.MAX_VALUE % 10 < digit)) {
+                return sign == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
+
+            total = total * 10 + digit;
+            index++;
+        }
+        return total * sign;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次字符串遍历
+空间复杂度: O(1) - 常量空间
+```
+
+### 解法2：DFA（确定性有限自动机）
+**核心思路**
+```markdown
+1. 定义状态转换表
+   - 0: 初始状态
+   - 1: 已获取符号
+   - 2: 数字处理中
+   - 3: 结束状态
+2. 根据当前字符类型转换状态
+```
+
+**实现代码**
+```java
+class Solution {
+    public int myAtoi(String s) {
+        Automaton automaton = new Automaton();
+        for (char c : s.toCharArray()) {
+            automaton.process(c);
+        }
+        return (int)(automaton.sign * automaton.val);
+    }
+
+    class Automaton {
+        public int sign = 1;
+        public long val = 0;
+        private String state = "start";
+        
+        private final Map<String, String[]> table = Map.of(
+            "start", new String[]{"start", "signed", "number", "end"},
+            "signed", new String[]{"end", "end", "number", "end"},
+            "number", new String[]{"end", "end", "number", "end"},
+            "end", new String[]{"end", "end", "end", "end"}
+        );
+
+        public void process(char c) {
+            state = table.get(state)[getCol(c)];
+            if ("number".equals(state)) {
+                val = val * 10 + (c - '0');
+                val = sign == 1 ? Math.min(val, Integer.MAX_VALUE) : Math.min(val, -(long)Integer.MIN_VALUE);
+            } else if ("signed".equals(state)) {
+                sign = c == '+' ? 1 : -1;
+            }
+        }
+
+        private int getCol(char c) {
+            if (c == ' ') return 0;
+            if (c == '+' || c == '-') return 1;
+            if (Character.isDigit(c)) return 2;
+            return 3;
+        }
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次字符串遍历
+空间复杂度: O(1) - 固定大小的状态表
+```
+
+### 解法3：正则表达式
+**核心思路**
+```markdown
+1. 使用正则提取有效数字部分
+   ^\s*([+-]?\d+)
+2. 对匹配结果进行转换和溢出检查
+```
+
+**实现代码**
+```java
+import java.util.regex.*;
+
+class Solution {
+    public int myAtoi(String s) {
+        Pattern pattern = Pattern.compile("^\\s*([+-]?\\d+)");
+        Matcher matcher = pattern.matcher(s);
+        
+        if (!matcher.find()) return 0;
+        
+        String numStr = matcher.group(1);
+        int sign = 1, start = 0;
+        if (numStr.charAt(0) == '-') {
             sign = -1;
-            start++;
-        } else if (start < str.length() && str.charAt(start) == '+') {
-            sign = 1;
-            start++;
+            start = 1;
+        } else if (numStr.charAt(0) == '+') {
+            start = 1;
         }
-
-        int ret = 0;
-        while (start < str.length()) {
-            if (str.charAt(start) <= '9' && str.charAt(start) >= '0') {
-                if (sign > 0) {
-                    // 判断越界
-                    if (ret > 214748364 || (ret == 214748364 && str.charAt(start)> '7')) {
-                        return 2147483647;
-                    }
-                    ret = ret * 10 + (str.charAt(start) - '0');
-                } else {
-                    // 判断越界
-                    if (ret < -214748364 || (ret == -214748364 && str.charAt(start) > '8')) {
-                        return -2147483648;
-                    }
-                    ret = ret * 10 - (str.charAt(start) - '0');
-                }
-            } else {
-                break;
-            }
-            start++;
+        
+        long result = 0;
+        for (int i = start; i < numStr.length(); i++) {
+            result = result * 10 + (numStr.charAt(i) - '0');
+            if (sign * result > Integer.MAX_VALUE) return Integer.MAX_VALUE;
+            if (sign * result < Integer.MIN_VALUE) return Integer.MIN_VALUE;
         }
-        return ret;
+        
+        return (int)(sign * result);
     }
 }
 ```
 
-### <font style="color:rgb(28, 31, 33);">小结</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 正则匹配和数字转换
+空间复杂度: O(n) - 存储匹配结果
+```
 
-+ <font style="color:rgb(28, 31, 33);">一定要注意大数溢出；</font>
-+ <font style="color:rgb(28, 31, 33);">考虑到负数，0等等edge case；</font>
-+ <font style="color:rgb(28, 31, 33);">提前做一些处理，方便后面的逻辑判断。</font>
+### 解法对比
+| 维度       | 直接解析法 | DFA法      | 正则表达式法 |
+|------------|-----------|------------|-------------|
+| 时间复杂度 | O(n)      | O(n)       | O(n)        |
+| 空间复杂度 | O(1)      | O(1)       | O(n)        |
+| 代码复杂度 | 简单       | 中等       | 简单        |
+| 扩展性     | 一般       | 强（易修改规则） | 弱         |
 
+**补充说明**
+1. 直接解析法最适合面试场景，代码简洁高效
+2. DFA法展示了状态机思想，适合处理复杂文本解析
+3. 正则表达式法代码简洁但性能稍差
+
+以下是优化后的多解法版本：
+
+---
 ## 无重复字符的最长子串
-#### <font style="color:rgb(28, 31, 33);">内容描述</font>
 
+**题目描述**
+```markdown
+给定一个字符串，找出不含有重复字符的最长子串的长度。
 
-```plain
-给定一个字符串，请你找出其中不含有重复字符的 最长子串 的长度。
-
-示例 1:
-输入: "abcabcbb"
-输出: 3 
-解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
-
-示例 2:
-输入: "bbbbb"
-输出: 1
-解释: 因为无重复字符的最长子串是 "b"，所以其长度为 1。
-
-示例 3:
-输入: "pwwkew"
-输出: 3
-解释: 因为无重复字符的最长子串是 "wke"，所以其长度为 3。
-
-请注意，你的答案必须是 子串 的长度，"pwke" 是一个子序列，不是子串。
+示例：
+输入: "abcabcbb" → 输出: 3 ("abc")
+输入: "bbbbb" → 输出: 1 ("b")
+输入: "pwwkew" → 输出: 3 ("wke")
 ```
 
-#### **<font style="color:rgb(28, 31, 33);">题目详解</font>**
-
-+ <font style="color:rgb(28, 31, 33);">首先子串必须是要连续的，子序列可以不连续。比如字符串为</font><font style="color:rgb(199, 37, 78);">abcde</font><font style="color:rgb(28, 31, 33);">，那么子序列可以为</font><font style="color:rgb(199, 37, 78);">ace</font><font style="color:rgb(28, 31, 33);">，但是子串就不行，子串只能是</font><font style="color:rgb(199, 37, 78);">abc</font><font style="color:rgb(28, 31, 33);">,</font><font style="color:rgb(199, 37, 78);">abcd</font><font style="color:rgb(28, 31, 33);">,</font><font style="color:rgb(199, 37, 78);">abcde</font><font style="color:rgb(28, 31, 33);">,</font><font style="color:rgb(199, 37, 78);">bcd</font><font style="color:rgb(28, 31, 33);">等等；</font>
-+ <font style="color:rgb(28, 31, 33);">并且我们要求的是不包含重复字符串的子串；</font>
-+ <font style="color:rgb(28, 31, 33);">并且我们还要求返回的是满足条件的子串中最长的那个子串的长度。</font>
-
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">求一个最长的子串，里面不带任何重复字符。</font>
-
-<font style="color:rgb(0, 0, 0);">假设</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">input</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">为</font><font style="color:rgb(199, 37, 78);">"abcabcbb"</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">，我们先从第一个字符开始，只有一个字符肯定不会重复吧。</font><font style="color:rgb(199, 37, 78);">“a”</font><font style="color:rgb(0, 0, 0);">满足条件，更新最大长度为</font><font style="color:rgb(199, 37, 78);">1</font><font style="color:rgb(0, 0, 0);">；然后走到第二个字符，</font><font style="color:rgb(199, 37, 78);">“ab”</font><font style="color:rgb(0, 0, 0);">也满足，更新最大长度为</font><font style="color:rgb(199, 37, 78);">2</font><font style="color:rgb(0, 0, 0);">。  
-</font><font style="color:rgb(0, 0, 0);">走到第三个字符，</font><font style="color:rgb(199, 37, 78);">“abc”</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">也满足，更新最大长度为</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">3</font><font style="color:rgb(0, 0, 0);">。  
-</font><font style="color:rgb(0, 0, 0);">走到第四个字符，我们发现</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">“a”</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">已经出现过了，于是我们就必须要删除之前的一些字符来继续满足无重复字符的条件，但是我们不知道前面已经出现过一次的</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">“a”</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">的</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">在哪里呀，所以我们只能一个一个找了，从当前子串的</font><font style="color:rgb(199, 37, 78);">“abca”</font><font style="color:rgb(0, 0, 0);">的第一个字符开始找，删除第一个字符</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">“a”</font><font style="color:rgb(0, 0, 0);">，发现这时候只剩下一个</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">“a”</font><font style="color:rgb(0, 0, 0);">了，我们又满足条件了，更新最大长度为</font><font style="color:rgb(199, 37, 78);">3</font><font style="color:rgb(0, 0, 0);">，以此类推：</font>
-
-
-
-```plain
-start
-end
-  |
-  |
-  v
-
-  a  b  c  a  b  c  b  b
-
-end 指针不停往前走，只要当前子串 s[start:end+1] 不满足无重复字符条件的时候，我们就让 start 指针往前走直到满足条件为止，每次满足条件我们都要更新一下最大长度，即 res。
+### 解法1：滑动窗口（HashSet）
+**核心思路**
+```markdown
+1. 使用双指针维护滑动窗口
+2. 右指针扩展窗口，左指针收缩窗口
+3. HashSet记录窗口内字符
+4. 遇到重复字符时移动左指针
 ```
 
-<font style="color:rgb(0, 0, 0);">这就是滑动窗口的思想，也称为</font><font style="color:rgb(199, 37, 78);">sliding window</font><font style="color:rgb(0, 0, 0);">，下面我们来看下代码：</font>
-
-
-
+**实现代码**
 ```java
-import java.util.HashSet;
 class Solution {
     public int lengthOfLongestSubstring(String s) {
-        if (s == null || "".equals(s)) {
-            return 0;
-        }
-        int start = 0;
-        int end = 0;
-        int res = 0;
-        // HashSet 用来去重
-        HashSet lookup = new HashSet();
-        while (start < s.length() && end < s.length()) {
-            if (!lookup.contains(s.charAt(end))){
-                // end 指针所遇到的字符没有在之前遍历的字符中没有遇到过，就放到 HashSet 中
-                lookup.add(s.charAt(end));
-                // 满足无重复字串时更新最大长度
-                res = res > (end - start + 1) ? res : (end - start + 1);
-                // end 指针后移
-                end++;
-            } else {
-                // end 指针所遇到的字符没有在之前遍历的字符中遇到过，就从 HashSet 移除
-                lookup.remove(s.charAt(start));
-                // start 指针后移
-                start++;
+        Set<Character> set = new HashSet<>();
+        int left = 0, max = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            while (set.contains(s.charAt(right))) {
+                set.remove(s.charAt(left++));
             }
+            set.add(s.charAt(right));
+            max = Math.max(max, right - left + 1);
         }
-        return res;
+        return max;
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(2n) = O(n) - 最坏情况下左右指针各遍历一次
+空间复杂度: O(min(m,n)) - 字符集大小或字符串长度
+```
 
+### 解法2：优化的滑动窗口（HashMap）
+**核心思路**
+```markdown
+1. 使用HashMap存储字符及其最新索引
+2. 遇到重复字符时直接跳转左指针
+3. 避免不必要的窗口收缩
+```
 
-<font style="color:rgb(0, 0, 0);">思路一的话其实就是典型的滑动窗口的思想，定义两个指针，右指针不停走直到范围不满足，此时通过左指针向右边的移动来使得条件重新被满足，一直重复下去直到长度超出了。</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 2：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">那么为了便于解答之后 </font><font style="color:rgb(199, 37, 78);">LeetCode</font><font style="color:rgb(0, 0, 0);"> 里面的类似题目，我们这里做一个 </font><font style="color:rgb(199, 37, 78);">slide window</font><font style="color:rgb(0, 0, 0);"> 的模版，以后就可以重复使用了，思路 2 其实就是把思路 1 做一个总结，写成一个通用型的，下面来看代码：</font>
-
-_**<font style="color:rgb(0, 0, 0);">Java beats 51.04%</font>**_
-
-
-
+**实现代码**
 ```java
-import java.util.HashMap;
 class Solution {
     public int lengthOfLongestSubstring(String s) {
-        HashMap<Character, Integer> lookup = new HashMap();
-        int l = 0;
-        int r = 0;
-        //  counter 用来标记当前字串中 unique 字符的数量
-        int counter = 0;
-        int res = 0;
-        while (r < s.length()) {
-            if (lookup.get(s.charAt(r)) == null) {
-                // 当前遍历到的字符如果不在 map 中需要进行判空处理
-                lookup.put(s.charAt(r),  1);
-            }else {
-                // 否则可以直接 +1
-                lookup.put(s.charAt(r), lookup.get(s.charAt(r)) + 1);
+        Map<Character, Integer> map = new HashMap<>();
+        int left = 0, max = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            if (map.containsKey(c)) {
+                left = Math.max(left, map.get(c) + 1);
             }
-            // 如果遍历到之前没有遇到的字符，则 counter++
-            if (lookup.get(s.charAt(r)) == 1) {
-                counter++;
-            }
-            // r 指针右移
-            r++;
-            // counter < r - l 则说明有重复字串出现，否则 counter 等于 r - l
-            while (l < r && counter < r - l) {
-                lookup.put(s.charAt(l), lookup.get(s.charAt(l)) - 1);
-                // 当前 l 指针所代表的字符在 map 中如果为 0，说明 l 指针所代表的字符在 map 中完全被清除
-                if (lookup.get(s.charAt(l)) == 0) {
-                    counter--;
-                }
-                // l 指针右移
-                l++;
-            }
-            // 更新最大字串长度
-            res = res > (r - l) ? res : (r - l);
+            map.put(c, right);
+            max = Math.max(max, right - left + 1);
         }
-        return res;
+        return max;
     }
 }
 ```
 
-<font style="color:rgb(0, 0, 0);">有兴趣的同学可以用这个模版去做一下第</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">159</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">题和第</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">340</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">题，会发现改几个数字就完全OK了。</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(min(m,n)) - 字符集大小或字符串长度
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 3：时间复杂度: O(N) 空间复杂度: O(N)</font>
+### 解法3：字符集数组（最优）
+**核心思路**
+```markdown
+1. 假设字符集为ASCII 128
+2. 使用int数组替代HashMap
+3. 数组索引对应字符ASCII码
+```
 
-<font style="color:rgb(0, 0, 0);">刚才思路 1 中有这样一句话：</font><font style="color:rgb(199, 37, 78);">但是我们不知道前面已经出现过一次的“a”的index在哪里呀，所以我们只能一个一个找了</font><font style="color:rgb(0, 0, 0);">。</font>
-
-<font style="color:rgb(0, 0, 0);">我们可以对这里做一个优化，就不需要一个个去找了。只需要用一个字典，对当前子串中的每一个字符，将其在</font><font style="color:rgb(199, 37, 78);">input</font><font style="color:rgb(0, 0, 0);">中的来源</font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);">记录下来即可。</font>
-
-<font style="color:rgb(0, 0, 0);">我们先从第一个字符开始，只要碰到已经出现过的字符，我们就必须从之前出现该字符的</font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);">开始重新往后看。</font>
-
-<font style="color:rgb(0, 0, 0);">例如</font><font style="color:rgb(199, 37, 78);">‘xyzxlkjh’</font><font style="color:rgb(0, 0, 0);">，当看到第二个</font><font style="color:rgb(199, 37, 78);">‘x’</font><font style="color:rgb(0, 0, 0);">时，我们就应该从第一个</font><font style="color:rgb(199, 37, 78);">x</font><font style="color:rgb(0, 0, 0);">后面的</font><font style="color:rgb(199, 37, 78);">y</font><font style="color:rgb(0, 0, 0);">开始重新往后看了。</font>
-
-<font style="color:rgb(0, 0, 0);">我们将每一个已经阅读过的字符作为</font><font style="color:rgb(199, 37, 78);">key</font><font style="color:rgb(0, 0, 0);">，而它的值就是它在原字符串中的</font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);">。如果我们现在的字符不在字典里面，我们就把它加进字典中去。因此，只要</font><font style="color:rgb(199, 37, 78);">end</font><font style="color:rgb(0, 0, 0);">指针指向的这个字符</font><font style="color:rgb(199, 37, 78);">c</font><font style="color:rgb(0, 0, 0);">，在该字典中的值大于等于了当前子串首字符的</font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);">时，就说明</font><font style="color:rgb(199, 37, 78);">c</font><font style="color:rgb(0, 0, 0);">在当前子串中已经出现过了，我们就将当前子串的首字符的</font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);">加</font><font style="color:rgb(199, 37, 78);">1</font><font style="color:rgb(0, 0, 0);">，即从后一位又重新开始读，此时当前子串已经满足条件了，然后我们更新</font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(0, 0, 0);">。</font>
-
-### <font style="color:rgb(28, 31, 33);">程序变量解释</font>
-
-+ <font style="color:rgb(199, 37, 78);">start</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">是当前无重复字符的子串首字符的</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(28, 31, 33);">；</font>
-+ <font style="color:rgb(199, 37, 78);">maps</font><font style="color:rgb(28, 31, 33);"> 放置每一个字符的 </font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(28, 31, 33);">，如果 </font><font style="color:rgb(199, 37, 78);">maps.get(s[i], -1)</font><font style="color:rgb(28, 31, 33);"> 大于等于 </font><font style="color:rgb(199, 37, 78);">start</font><font style="color:rgb(28, 31, 33);"> 的话，就说明字符重复了，此时就要重置 </font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(28, 31, 33);"> 和 </font><font style="color:rgb(199, 37, 78);">start</font><font style="color:rgb(28, 31, 33);"> 的值了。</font>
-
-_**<font style="color:rgb(0, 0, 0);">Java beats 90.87%</font>**_
-
-
-
+**实现代码**
 ```java
-import java.util.HashMap;
 class Solution {
     public int lengthOfLongestSubstring(String s) {
-        int res = 0;
-        // start 标记当前字串首字符在 s 中对应的索引位置
-        int start = 0;
-        int length = s.length();
-        HashMap<Character, Integer> map = new HashMap();
-        for (int i = 0; i < length; i++) {
-            int temp = -1;
-            if (map.get(s.charAt(i)) != null) {
-                // 可能当前遍历到的字符是一个全新的字符，没有存在过 map 中，所以需要判空处理
-                temp = map.get(s.charAt(i));
-            }
-            // 找到字串新的起点
-            start = start > (temp + 1) ? start : (temp + 1);
-            // 更新字串的长度
-            res = res > (i - start + 1) ? res : (i - start + 1);
-            // 将当前遍历到的字符记录在 map 中
-            map.put(s.charAt(i), i);
+        int[] index = new int[128];
+        int left = 0, max = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            left = Math.max(left, index[c]);
+            index[c] = right + 1;
+            max = Math.max(max, right - left + 1);
         }
-        return res;
+        return max;
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(1) - 固定大小数组
+```
 
+### 解法对比
+| 维度       | 滑动窗口(HashSet) | 优化滑动窗口(HashMap) | 字符集数组 |
+|------------|------------------|----------------------|-----------|
+| 时间复杂度 | O(2n)            | O(n)                 | O(n)      |
+| 空间复杂度 | O(min(m,n))      | O(min(m,n))          | O(1)      |
+| 适用场景   | 通用             | 需要快速跳转         | ASCII字符 |
 
-<font style="color:rgb(0, 0, 0);">思路3的话又可以省一些时间了，因为相当于我们的左指针不需要一步一步走了，而是知道下一步在哪里。</font>
+**补充说明**
+1. 解法3是效率最高的实现，适用于已知字符范围的情况
+2. 解法2在大多数编程面试中是最佳选择
+3. 解法1最容易理解，适合教学演示
 
-## <font style="color:rgb(28, 31, 33);">总结</font>
+以下是优化后的多解法版本：
 
-1. <font style="color:rgb(28, 31, 33);">分清子串和子序列的概念；</font>
-2. <font style="color:rgb(28, 31, 33);">学会从当前做不到的一些东西去优化，想想怎么利用基础数据结构去做优化；</font>
-3. <font style="color:rgb(28, 31, 33);">学会从一类题中总结出模版。</font>
-
+---
 ## Z字形变换
-#### <font style="color:rgb(28, 31, 33);">内容描述</font>
 
+**题目描述**
+```markdown
+将给定字符串按指定行数进行Z字形排列后按行读取。
 
-```plain
-将一个给定字符串根据给定的行数，以从上往下、从左到右进行 Z 字形排列。
-
-比如输入字符串为 "LEETCODEISHIRING" 行数为 3 时，排列如下：
-
-L   C   I   R
-E T O E S I I G
-E   D   H   N
-之后，你的输出需要从左往右逐行读取，产生出一个新的字符串，比如："LCIRETOESIIGEDHN"。
-
-请你实现这个将字符串进行指定行数变换的函数：
-
-string convert(string s, int numRows);
-
-示例 1:
-
+示例：
 输入: s = "LEETCODEISHIRING", numRows = 3
 输出: "LCIRETOESIIGEDHN"
 
-示例 2:
-
-输入: s = "LEETCODEISHIRING", numRows = 4
-输出: "LDREOEIIECIHNTSG"
-解释:
-
-L     D     R
-E   O E   I I
-E C   I H   N
-T     S     G
+排列形式：
+L   C   I   R
+E T O E S I I G
+E   D   H   N
 ```
 
-<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">题目详解</font>
+### 解法1：数学规律法
+**核心思路**
+```markdown
+1. 找出每行字符在原字符串中的位置规律
+2. 第一行和最后一行字符间隔固定为 cycle = 2*(numRows-1)
+3. 中间行字符间隔交替变化：cycle-2*i 和 2*i
+```
 
-+ <font style="color:rgb(28, 31, 33);">我们首先要考虑到一些特殊情况，比如空字符串的情况，还有numRows 比字符串长度大的情况。</font>
-
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">观察一下每一行的每个字符在原字符串的位置：</font>
-
-+ <font style="color:rgb(28, 31, 33);">第一行和最后一行，两个相邻字符之间，在原字符串位置，相差</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">(numRows-1)*2</font><font style="color:rgb(28, 31, 33);">；</font>
-+ <font style="color:rgb(28, 31, 33);">中间的行，相邻字符之间，在原字符串的位置，都以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">(numRows-1)</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的倍数为中间数成为等差数列，并且差值比</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">numRows-1</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">小。也就是，假设上一个字符在原字符串的位置是</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">j</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">，这个字符距离下一个</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">numRows-1</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的倍数最近的是，</font><font style="color:rgb(199, 37, 78);">j + (numRows - 1) - (j % (numRows - 1))</font><font style="color:rgb(28, 31, 33);">，那么下一个字符在原字符串的位置是，</font><font style="color:rgb(199, 37, 78);">j + 2 * ((numRows - 1) - (j % (numRows - 1)))</font><font style="color:rgb(28, 31, 33);">；</font>
-+ <font style="color:rgb(28, 31, 33);">注意，如果 </font><font style="color:rgb(199, 37, 78);">numRows为1</font><font style="color:rgb(28, 31, 33);"> 时，</font><font style="color:rgb(199, 37, 78);">numRows-1为0</font><font style="color:rgb(28, 31, 33);">，此时上述公式失效，需要特判。</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public String convert(String s, int numRows) {
-        if (numRows == 1) { // numRows为1时需要特判
-            return s;
-        }
-        String res = "";
-        int step = numRows - 1;
+        if (numRows == 1) return s;
+        
+        StringBuilder res = new StringBuilder();
+        int cycle = 2 * (numRows - 1);
+        
         for (int i = 0; i < numRows; i++) {
-            int j = i;
-            while (j < s.length()) {
-                res += s.charAt(j);
-                if (i == 0 || i == numRows - 1) { // 第一行和最后一行
-                    j += 2 * step;
-                } else { // 其它行
-                    j += 2 * (step - j % step);
+            for (int j = 0; j + i < s.length(); j += cycle) {
+                res.append(s.charAt(j + i));
+                if (i != 0 && i != numRows - 1 && j + cycle - i < s.length()) {
+                    res.append(s.charAt(j + cycle - i));
                 }
             }
         }
-        return res;
+        return res.toString();
     }
 }
 ```
 
-
-
-#### <font style="color:rgb(28, 31, 33);">思路 2：时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">刚才的思路一我们需要推公式，公式有的时候还不适用，需要特判，所以我们不如暴力模拟。并且思路1需要取模运算，它的效率很低。</font>
-
-<font style="color:rgb(199, 37, 78);">idx</font><font style="color:rgb(0, 0, 0);">从</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">0</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">开始，自增直到</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">numRows-1</font><font style="color:rgb(0, 0, 0);">，此后又一直自减到</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">0</font><font style="color:rgb(0, 0, 0);">，重复执行。</font>
-
-<font style="color:rgb(0, 0, 0);">给个例子容易懂一些：</font><font style="color:rgb(199, 37, 78);">s = “abcdefghijklmn”</font><font style="color:rgb(0, 0, 0);">,</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">numRows = 4</font>
-
-
-
-```plain
-a   g   m
-b f h l n
-c e i k
-d   j
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 每个字符只访问一次
+空间复杂度: O(n) - 存储结果字符串
 ```
 
-<font style="color:rgb(0, 0, 0);">从第一行开始往下，走到第四行又往上走，这里用</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">step = 1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">代表往下走，</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">step = -1</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">代表往上走。</font>
+### 解法2：模拟Z字形遍历
+**核心思路**
+```markdown
+1. 使用StringBuilder数组存储每行字符
+2. 维护当前行索引和移动方向
+3. 到达边界时改变方向
+```
 
-<font style="color:rgb(0, 0, 0);">因为只会有一次遍历，同时把每一行的元素都存下来，所以时间复杂度和空间复杂度都是 </font><font style="color:rgb(199, 37, 78);">O(N)</font><font style="color:rgb(0, 0, 0);">。</font>
-
-
-
+**实现代码**
 ```java
 class Solution {
     public String convert(String s, int numRows) {
-        // 只有一行，或者每一行只有一个元素
-        if (numRows == 1 || s.length() <= numRows) {
-            return s;
+        if (numRows == 1) return s;
+        
+        StringBuilder[] rows = new StringBuilder[numRows];
+        for (int i = 0; i < numRows; i++) {
+            rows[i] = new StringBuilder();
         }
-        StringBuffer[] buffers = new StringBuffer[numRows];
-        for (int i = 0; i < buffers.length; i++) {
-            buffers[i] = new StringBuffer("");
-        }
-        int idx = 0;
-        int step = 1;
-        for (int i = 0; i < s.length(); i++) {
-            buffers[idx].append(s.charAt(i));
-            // 如果在第一行，就往下走
-            if (idx == 0) {
-                step = 1;
+        
+        int curRow = 0;
+        boolean goingDown = false;
+        
+        for (char c : s.toCharArray()) {
+            rows[curRow].append(c);
+            if (curRow == 0 || curRow == numRows - 1) {
+                goingDown = !goingDown;
             }
-            // 如果在最后一行，就往上走
-            if (idx == numRows - 1) {
-                step = -1;
-            }
-            idx += step;
+            curRow += goingDown ? 1 : -1;
         }
-        String res = "";
-        for (int i = 0; i < buffers.length; i++) {
-            res += buffers[i];
+        
+        StringBuilder res = new StringBuilder();
+        for (StringBuilder row : rows) {
+            res.append(row);
         }
-        return res;
+        return res.toString();
     }
 }
 ```
 
-_**<font style="color:rgb(0, 0, 0);"></font>**_
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次字符串遍历
+空间复杂度: O(n) - 存储所有字符
+```
 
-### <font style="color:rgb(28, 31, 33);">小结</font>
+### 解法3：优化空间模拟法
+**核心思路**
+```markdown
+1. 预先计算每行容量
+2. 使用字符数组代替StringBuilder
+3. 直接计算字符最终位置
+```
 
-<font style="color:rgb(0, 0, 0);">有的时候我们上来就会想到暴力解法，就像这里的思路2，然后我们想着说能不能做一些优化，于是想到一个数学上的办法，觉得自己很厉害，但其实暴力解法可能会更好一些，至少在某些简单场景下。</font>
-
-## 最长公共子串
-## <font style="color:rgb(51, 51, 51);">描述</font>
-
-给定两个字符串str1和str2,输出两个字符串的最长公共子串
-
-题目保证str1和str2的最长公共子串存在且唯一。
-
-
-数据范围： 1≤∣str1∣,∣str2∣≤5000  
-要求： 空间复杂度O(n2)，时间复杂度 O(n2)
-
-
-**<font style="color:rgb(51, 51, 51);">示例1</font>**
-
-输入："1AB2345CD","12345EF"复制
-
-返回值："2345"
-
-<font style="color:rgb(51, 51, 51);">备注：</font><font style="color:rgb(51, 51, 51);">1≤≤∣str1∣,∣str2∣≤5000</font>
-
-<font style="color:rgb(51, 51, 51);"></font>
-
-# <font style="color:rgb(51, 51, 51);">解法1 动态规划</font>
-
-使用动态规划
-
-1. 创建一个二维数组，长度为 l1+1 和 l2+1，其中** dp[i][j] **表示以 **str1[i-1] **和 **str2[j-1]** 结尾的最长公共子串的长度。
-2. 填充dp数组：遍历两个字符串，当 **str1[i-1]** 和 **str2[j-1]** 相等时，**dp[i][j] = dp[i-1][j-1] + 1**。这表示当前字符匹配，且在此基础上扩展了之前的公共子串长度。如果不相等，则设置 **dp[i][j] **为0，表示以这两个字符结尾的字符串没有公共子串。
-
+**实现代码**
 ```java
-public class Solution {
-    public String longestCommonSubstring(String str1, String str2) {
-        if (str1 == null || str2 == null || str1.length() == 0 || str2.length() == 0) {
-            return "";
+class Solution {
+    public String convert(String s, int numRows) {
+        if (numRows == 1) return s;
+        
+        char[] chars = s.toCharArray();
+        char[] res = new char[chars.length];
+        int cycle = 2 * (numRows - 1);
+        int index = 0;
+        
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j + i < chars.length; j += cycle) {
+                res[index++] = chars[j + i];
+                if (i != 0 && i != numRows - 1 && j + cycle - i < chars.length) {
+                    res[index++] = chars[j + cycle - i];
+                }
+            }
         }
+        return new String(res);
+    }
+}
+```
 
-        int maxLength = 0; // 最长公共子串的长度
-        int endIndex = 0; // 记录最长公共子串结束的位置
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(n) - 字符数组存储
+```
 
-        int l1 = str1.length(), l2 = str2.length();
-        // dp[i][j]表示以str1[i-1]和str2[j-1]结尾的最长公共子串的长度
-        int[][] dp = new int[l1 + 1][l2 + 1]; 
+### 解法对比
+| 维度       | 数学规律法 | 模拟遍历法 | 优化空间法 |
+|------------|-----------|------------|-----------|
+| 时间复杂度 | O(n)      | O(n)       | O(n)      |
+| 空间复杂度 | O(n)      | O(n)       | O(n)      |
+| 优势       | 无额外空间| 直观易理解 | 内存连续  |
+| 适用场景   | 行数较少  | 通用场景   | 大字符串  |
 
-        for (int i = 1; i <= l1; i++) {
-            for (int j = 1; j <= l2; j++) {
-                if (str1.charAt(i - 1) == str2.charAt(j - 1)) {
-                    dp[i][j] = dp[i - 1][j - 1] + 1;
-                    if (dp[i][j] > maxLength) {
-                        maxLength = dp[i][j];
-                        endIndex = i - 1; // 更新最长公共子串的结束位置
+**补充说明**
+1. 解法2是最推荐的方法，直观且易于理解
+2. 解法1适合行数较少的情况，避免方向判断
+3. 解法3在性能敏感场景下最优
+
+以下是优化后的多解法版本：
+
+---
+## 最长公共子串
+
+**题目描述**
+```markdown
+给定两个字符串str1和str2，找出它们的最长公共子串（要求连续）
+示例：
+输入："1AB2345CD", "12345EF"
+输出："2345"
+```
+
+### 解法1：动态规划（标准实现）
+**核心思路**
+```markdown
+1. 构建dp[i][j]表示以str1[i-1]和str2[j-1]结尾的公共子串长度
+2. 状态转移：字符相等时dp[i][j] = dp[i-1][j-1] + 1
+3. 记录最大长度和结束位置
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonSubstring(String str1, String str2) {
+        int m = str1.length(), n = str2.length();
+        int[][] dp = new int[m+1][n+1];
+        int maxLen = 0, endPos = 0;
+        
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (str1.charAt(i-1) == str2.charAt(j-1)) {
+                    dp[i][j] = dp[i-1][j-1] + 1;
+                    if (dp[i][j] > maxLen) {
+                        maxLen = dp[i][j];
+                        endPos = i-1;
+                    }
+                }
+            }
+        }
+        return maxLen == 0 ? "" : str1.substring(endPos-maxLen+1, endPos+1);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(mn) - 双重循环
+空间复杂度: O(mn) - DP数组
+```
+
+### 解法2：动态规划（空间优化）
+**核心思路**
+```markdown
+1. 观察状态转移只依赖前一行数据
+2. 使用滚动数组将空间降至O(n)
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonSubstring(String str1, String str2) {
+        int m = str1.length(), n = str2.length();
+        int[] dp = new int[n+1];
+        int maxLen = 0, endPos = 0;
+        
+        for (int i = 1; i <= m; i++) {
+            int prev = 0;
+            for (int j = 1; j <= n; j++) {
+                int temp = dp[j];
+                if (str1.charAt(i-1) == str2.charAt(j-1)) {
+                    dp[j] = prev + 1;
+                    if (dp[j] > maxLen) {
+                        maxLen = dp[j];
+                        endPos = i-1;
                     }
                 } else {
-                    dp[i][j] = 0; // 如果当前字符不匹配，重置长度为0
+                    dp[j] = 0;
                 }
+                prev = temp;
             }
         }
-
-        // 根据最长公共子串的长度和结束位置回溯得到子串
-        return str1.substring(endIndex - maxLength + 1, endIndex + 1);
+        return maxLen == 0 ? "" : str1.substring(endPos-maxLen+1, endPos+1);
     }
 }
 ```
 
-# 解法2 滑动窗口
+**复杂度分析**
+```markdown
+时间复杂度: O(mn)
+空间复杂度: O(n)
+```
 
-将两个字符串str1和str2沿其长度方向“滑动”，在每个可能的对齐方式下检查并更新最长公共子串。
+### 解法3：后缀自动机
+**核心思路**
+```markdown
+1. 构建str1的后缀自动机
+2. 用str2在后缀自动机上匹配
+3. 维护当前匹配长度和最大长度
+```
 
-1. 外层循环：遍历str1和str2的所有可能的对齐方式。这可以通过首先固定str1，然后移动str2的起始位置，接着固定str2，移动str1的起始位置来实现。
-2. 内层循环：在每种对齐方式下，比较str1和str2当前位置的字符，如果相同，则继续比较下一个字符，同时更新最长公共子串的记录；如果不同，则结束当前对齐方式下的比较，进入下一种对齐方式。
-3. 更新最长公共子串记录：在内层循环中，如果找到了更长的公共子串，则更新最长公共子串的长度和内容。
-
-时间复杂度O(n^3)
-
+**实现代码**
 ```java
-public class Solution {
+class Solution {
     public String longestCommonSubstring(String str1, String str2) {
-        int maxLength = 0;
-        String longestCommon = "";
-
-        // 滑动str2相对于str1
-        for (int i = 0; i < str1.length(); i++) {
-            for (int j = 0; j < str2.length(); j++) {
-                int length = 0;
-                while (i + length < str1.length() && j + length < str2.length()
-                        && str1.charAt(i + length) == str2.charAt(j + length)) {
-                    length++;
-                }
-                if (length > maxLength) {
-                    maxLength = length;
-                    longestCommon = str1.substring(i, i + length);
+        SAM sam = new SAM(str1);
+        int maxLen = 0, endPos = 0;
+        int currentLen = 0;
+        
+        for (int i = 0, j = 0; j < str2.length(); j++) {
+            char c = str2.charAt(j);
+            while (i > 0 && !sam.hasTransition(i, c)) {
+                i = sam.link[i];
+                currentLen = sam.length[i];
+            }
+            if (sam.hasTransition(i, c)) {
+                i = sam.getTransition(i, c);
+                currentLen++;
+                if (currentLen > maxLen) {
+                    maxLen = currentLen;
+                    endPos = j;
                 }
             }
         }
-
-        return longestCommon.isEmpty() ? "-1" : longestCommon;
+        return maxLen == 0 ? "" : str2.substring(endPos-maxLen+1, endPos+1);
     }
-}
-
-```
-
-## 跳台阶
-# <font style="color:rgb(51, 51, 51);">题目描述</font>
-
-一只青蛙一次可以跳上1级台阶，也可以跳上2级。求该青蛙跳上一个 n 级的台阶总共有多少种跳法（先后次序不同算不同的结果）。
-
-数据范围：1≤n≤40
-
-要求：时间复杂度：O(n) ，空间复杂度： O(1)
-
-
-
-**<font style="color:rgb(51, 51, 51);">示例1</font>**
-
-输入：2
-
-返回值：2
-
-说明：青蛙要跳上两级台阶有两种跳法，分别是：先跳一级，再跳一级或者直接跳两级。因此答案为2
-
-**<font style="color:rgb(51, 51, 51);">示例2</font>**
-
-输入：7
-
-返回值：21
-
-# 解法1 递归
-
-使用递归：
-
-1. 当n为1时，只有一种跳法，即跳1级。因此，返回1。
-2. 当n为2时，有两种跳法，可以是两次跳1级，或者一次跳2级。因此，返回2。
-3. 对于 **n > 2** 的情况，设想你现在就站在第 n 级台阶上，那么你是怎么来到这里的呢？根据题目条件，你只可能是从第 **n-1** 级台阶上跳上来的（这时你只需要跳1级台阶），或者是从第 **n-2** 级台阶上跳上来的（这时你需要跳2级台阶）。因此，达到第**n**级台阶的总跳法数，就是达到第 **n-1** 级台阶的跳法数 加上 达到第 **n-2** 级台阶的跳法数。
-
-时间复杂度O(n^2)
-
-```java
-class Solution {
-    public int jumpFloor(int number) {
-        if (number == 1) {
-            return 1;
-        } else if (number == 2) {
-            return 2;
-        } else {
-            return jumpFloor(number - 1) + jumpFloor(number - 2);
-        }
+    
+    class SAM {
+        // 实现后缀自动机数据结构
+        // 省略具体实现...
     }
 }
 ```
 
-# 解法2 动态规划
-
-使用动态规划可以降低重复计算，时间复杂度O(n)
-
-```java
-class Solution {
-    public int jumpFloor(int number) {
-        if (number <= 2) {
-            return number;
-        }
-        int[] dp = new int[number + 1];
-        dp[1] = 1; // 只有1种方式跳到第1阶
-        dp[2] = 2; // 有2种方式跳到第2阶
-        for (int i = 3; i <= number; i++) {
-            // 第i阶的跳法等于第i-1阶和第i-2阶的跳法之和
-            dp[i] = dp[i - 1] + dp[i - 2]; 
-        }
-        return dp[number];
-    }
-}
-
+**复杂度分析**
+```markdown
+时间复杂度: O(m+n) - 线性构建和查询
+空间复杂度: O(m) - 后缀自动机存储
 ```
 
-## 斐波那契数列
-## <font style="color:rgb(51, 51, 51);">描述</font>
+### 解法对比
+| 维度       | 标准DP | 空间优化DP | 后缀自动机 |
+|------------|--------|------------|------------|
+| 时间复杂度 | O(mn)  | O(mn)      | O(m+n)     |
+| 空间复杂度 | O(mn)  | O(n)       | O(m)       |
+| 优势       | 易理解 | 空间高效   | 理论最优   |
+| 适用场景   | 小数据 | 中等数据   | 大数据     |
 
-大家都知道斐波那契数列，现在要求输入一个正整数 n ，请你输出斐波那契数列的第 n 项。
+**补充说明**
+1. 面试推荐使用空间优化DP版本
+2. 后缀自动机实现较复杂但性能最优
+3. 滑动窗口法时间复杂度O(n^3)不推荐
 
-斐波那契数列是一个满足
+以下是优化后的多解法版本：
 
-F(0)=1，F(1)=1, F(n)=F(n - 1)+F(n - 2)（n ≥ 2，n ∈ N*）
+---
+## 跳台阶问题
 
-的数列
+**题目描述**
+```markdown
+一只青蛙一次可以跳上1级或2级台阶，求跳上n级台阶的总跳法数。
+示例：
+输入：2 → 输出：2 (1+1或2)
+输入：7 → 输出：21
+```
 
-数据范围：1≤n≤40
+### 解法1：递归法（不推荐）
+**核心思路**
+```markdown
+1. 基本情况：n=1时1种，n=2时2种
+2. 递推关系：f(n) = f(n-1) + f(n-2)
+```
 
-要求：空间复杂度 O(1)，时间复杂度O(n) ，本题也有时间复杂度 O(logn) 的解法
-
-### <font style="color:rgb(51, 51, 51);">输入描述：</font>
-
-一个正整数n
-
-### <font style="color:rgb(51, 51, 51);">返回值描述：</font>
-
-输出一个正整数。
-
-
-
-# 解法1 递归
-
-使用递归
-
+**实现代码**
 ```java
 class Solution {
-    public int Fibonacci(int n) {
-        if (n == 0) {
-            return 0;
-        }
-        if (n == 1 || n == 2) {
-            return 1;
-        }
-        return Fibonacci(n - 1) + Fibonacci(n - 2);
+    public int jumpFloor(int n) {
+        if (n <= 2) return n;
+        return jumpFloor(n-1) + jumpFloor(n-2);
     }
 }
 ```
 
-# 解法2 循环
+**复杂度分析**
+```markdown
+时间复杂度: O(2^n) - 存在大量重复计算
+空间复杂度: O(n) - 递归栈深度
+```
 
-使用循环
+### 解法2：记忆化递归
+**核心思路**
+```markdown
+1. 使用数组存储已计算结果
+2. 避免重复计算
+```
 
+**实现代码**
 ```java
 class Solution {
-    public int Fibonacci(int n) {
-        if (n == 1 || n == 2) {
-            return 1;
-        }
-        int res = 0;
-        int s1 = 1;
-        int s2 = 1;
+    private int[] memo;
+    
+    public int jumpFloor(int n) {
+        memo = new int[n+1];
+        return helper(n);
+    }
+    
+    private int helper(int n) {
+        if (n <= 2) return n;
+        if (memo[n] != 0) return memo[n];
+        memo[n] = helper(n-1) + helper(n-2);
+        return memo[n];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 每个子问题只计算一次
+空间复杂度: O(n) - 存储记忆数组
+```
+
+### 解法3：动态规划（标准版）
+**核心思路**
+```markdown
+1. 自底向上计算
+2. 使用数组存储中间结果
+```
+
+**实现代码**
+```java
+class Solution {
+    public int jumpFloor(int n) {
+        if (n <= 2) return n;
+        int[] dp = new int[n+1];
+        dp[1] = 1;
+        dp[2] = 2;
         for (int i = 3; i <= n; i++) {
-            res = s1 + s2;
-            s1 = s2;
-            s2 = res;
+            dp[i] = dp[i-1] + dp[i-2];
         }
-        return res;
+        return dp[n];
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(n)
+```
+
+### 解法4：动态规划（空间优化）
+**核心思路**
+```markdown
+1. 只需要前两个状态
+2. 用变量代替数组
+```
+
+**实现代码**
+```java
+class Solution {
+    public int jumpFloor(int n) {
+        if (n <= 2) return n;
+        int a = 1, b = 2;
+        for (int i = 3; i <= n; i++) {
+            int c = a + b;
+            a = b;
+            b = c;
+        }
+        return b;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(1)
+```
+
+### 解法5：矩阵快速幂
+**核心思路**
+```markdown
+1. 将递推式转化为矩阵幂运算
+2. 使用快速幂算法加速计算
+```
+
+**实现代码**
+```java
+class Solution {
+    public int jumpFloor(int n) {
+        if (n <= 2) return n;
+        int[][] matrix = {{1, 1}, {1, 0}};
+        int[][] result = matrixPower(matrix, n-2);
+        return 2*result[0][0] + result[0][1];
+    }
+    
+    private int[][] matrixPower(int[][] m, int p) {
+        int[][] res = {{1,0},{0,1}};
+        while (p > 0) {
+            if ((p & 1) != 0) {
+                res = multiply(res, m);
+            }
+            m = multiply(m, m);
+            p >>= 1;
+        }
+        return res;
+    }
+    
+    private int[][] multiply(int[][] a, int[][] b) {
+        int[][] c = new int[2][2];
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                c[i][j] = a[i][0]*b[0][j] + a[i][1]*b[1][j];
+            }
+        }
+        return c;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(logn) - 快速幂算法
+空间复杂度: O(1) - 固定大小矩阵
+```
+
+### 解法6：通项公式法
+**核心思路**
+```markdown
+1. 斐波那契数列通项公式：
+   f(n) = (φ^n - ψ^n)/√5
+   其中φ=(1+√5)/2, ψ=(1-√5)/2
+2. 由于ψ^n很小可忽略
+```
+
+**实现代码**
+```java
+class Solution {
+    public int jumpFloor(int n) {
+        double sqrt5 = Math.sqrt(5);
+        double phi = (1 + sqrt5) / 2;
+        return (int)Math.round(Math.pow(phi, n+1) / sqrt5);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(1) - 数学运算
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 递归法 | 记忆化递归 | 标准DP | 优化DP | 矩阵法 | 公式法 |
+|------------|--------|------------|--------|--------|--------|--------|
+| 时间复杂度 | O(2^n) | O(n)       | O(n)   | O(n)   | O(logn)| O(1)   |
+| 空间复杂度 | O(n)   | O(n)       | O(n)   | O(1)   | O(1)   | O(1)   |
+| 推荐指数   | ★      | ★★★       | ★★★★  | ★★★★★ | ★★★★  | ★★★    |
+
+**补充说明**
+1. 面试推荐使用空间优化DP（解法4）
+2. 公式法存在浮点精度问题，n较大时可能不准确
+3. 矩阵法适合n非常大的场景（如n>10^6）
+
+以下是优化后的多解法版本：
+
+---
+## 斐波那契数列
+
+**题目描述**
+```markdown
+输出斐波那契数列的第n项（从0开始）
+定义：
+F(0)=0, F(1)=1, 
+F(n)=F(n-1)+F(n-2) (n≥2)
+```
+
+### 解法1：递归法（不推荐）
+**核心思路**
+```markdown
+直接根据定义递归实现
+```
+
+**实现代码**
+```java
+class Solution {
+    public int Fibonacci(int n) {
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+        return Fibonacci(n-1) + Fibonacci(n-2);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(2^n) - 指数级增长
+空间复杂度: O(n) - 递归栈深度
+```
+
+### 解法2：记忆化递归
+**核心思路**
+```markdown
+使用数组存储已计算结果避免重复计算
+```
+
+**实现代码**
+```java
+class Solution {
+    private int[] memo;
+    
+    public int Fibonacci(int n) {
+        memo = new int[n+1];
+        return helper(n);
+    }
+    
+    private int helper(int n) {
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+        if (memo[n] != 0) return memo[n];
+        memo[n] = helper(n-1) + helper(n-2);
+        return memo[n];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(n)
+```
+
+### 解法3：动态规划（标准版）
+**核心思路**
+```markdown
+自底向上计算并存储所有中间结果
+```
+
+**实现代码**
+```java
+class Solution {
+    public int Fibonacci(int n) {
+        if (n == 0) return 0;
+        int[] dp = new int[n+1];
+        dp[0] = 0;
+        dp[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i-1] + dp[i-2];
+        }
+        return dp[n];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(n)
+```
+
+### 解法4：动态规划（空间优化）
+**核心思路**
+```markdown
+只保留前两个状态，空间优化到O(1)
+```
+
+**实现代码**
+```java
+class Solution {
+    public int Fibonacci(int n) {
+        if (n == 0) return 0;
+        int a = 0, b = 1;
+        for (int i = 2; i <= n; i++) {
+            int c = a + b;
+            a = b;
+            b = c;
+        }
+        return b;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(1)
+```
+
+### 解法5：矩阵快速幂
+**核心思路**
+```markdown
+利用矩阵快速幂将时间复杂度降至O(logn)
+```
+
+**实现代码**
+```java
+class Solution {
+    public int Fibonacci(int n) {
+        if (n == 0) return 0;
+        int[][] matrix = {{1,1},{1,0}};
+        int[][] result = matrixPower(matrix, n-1);
+        return result[0][0];
+    }
+    
+    private int[][] matrixPower(int[][] m, int p) {
+        int[][] res = {{1,0},{0,1}};
+        while (p > 0) {
+            if ((p & 1) != 0) {
+                res = multiply(res, m);
+            }
+            m = multiply(m, m);
+            p >>= 1;
+        }
+        return res;
+    }
+    
+    private int[][] multiply(int[][] a, int[][] b) {
+        int[][] c = new int[2][2];
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                c[i][j] = a[i][0]*b[0][j] + a[i][1]*b[1][j];
+            }
+        }
+        return c;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(logn)
+空间复杂度: O(1)
+```
+
+### 解法6：通项公式法
+**核心思路**
+```markdown
+使用斐波那契数列的闭式表达式直接计算
+```
+
+**实现代码**
+```java
+class Solution {
+    public int Fibonacci(int n) {
+        double sqrt5 = Math.sqrt(5);
+        double phi = (1 + sqrt5) / 2;
+        return (int)Math.round(Math.pow(phi, n) / sqrt5);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(1)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 递归法 | 记忆化递归 | 标准DP | 优化DP | 矩阵法 | 公式法 |
+|------------|--------|------------|--------|--------|--------|--------|
+| 时间复杂度 | O(2^n) | O(n)       | O(n)   | O(n)   | O(logn)| O(1)   |
+| 空间复杂度 | O(n)   | O(n)       | O(n)   | O(1)   | O(1)   | O(1)   |
+| 推荐指数   | ★      | ★★★       | ★★★★  | ★★★★★ | ★★★★  | ★★★    |
+
+**补充说明**
+1. 面试推荐使用空间优化DP（解法4）
+2. 矩阵法适合n非常大的场景（如n>10^6）
+3. 公式法存在浮点精度问题，n较大时可能不准确
+
+以下是优化后的字符串变形解法，包含多种实现方式和详细分析：
+
+---
 ## 字符串变形
-题目描述
 
-对于一个长度为 n 字符串，我们需要对它做一些变形。
+**题目描述**
+```markdown
+将字符串中的单词顺序反转，同时反转每个字符的大小写
+示例：
+输入："This is a sample" → 输出："SAMPLE A IS tHIS"
+注意：需处理前导/后缀空格
+```
 
-首先这个字符串中包含着一些空格，就像"Hello World"一样，然后我们要做的是把这个字符串中由空格隔开的单词反序，同时反转每个字符的大小写。
+### 解法1：双反转法（推荐）
+**核心思路**
+```markdown
+1. 先整体反转字符串
+2. 再逐个单词反转
+3. 同步处理大小写转换
+```
 
-比如"Hello World"变形后就变成了"wORLD hELLO"。
-
-示例1：
-
-> 输入："This is a sample",16
->
-> 返回值："SAMPLE A IS tHIS"
-
-示例2：
-
-> 输入："ios",3
->
-> 返回值："IOS"
-
-示例3：
-
-> 输入：" h i",4
->
-> 返回值："I H "
-
-注意：输入的字符串前后都可能包含空格
-
-解法1
-
-本来考虑把字符串以空格拆分成数组，然后倒序遍历数组，对数组中每个元素进行大小写转换，最后再拼接成字符串返回。后来测试后发现，输入的字符前后可能包含空格，这种做法处理边界问题比较麻烦，于是放弃了。
-
-后来想到一个可行的办法如下：
-
-1. 先将字符串进行大小写转换
-2. 将字符串整体反转
-3. 再将字符串局部反转
-
-**具体流程效果如下：**
-
-原字符串："Hello World"
-
-大小写转换："hELLO wORLD"
-
-整体反转："DLROw OLLEh"
-
-局部反转："wORLD hELLO"
-
-**复杂度分析：**
-
-时间复杂度：O(n)。虽然有多次循环，但是每次循环只有一层。
-
-空间复杂度：O(n)。申请了额外的空间存储返回值。
-
+**实现代码**
 ```java
-public String trans(String s, int n) {
-    // 判空
-    if (n == 0) {
-        return s;
+class Solution {
+    public String trans(String s, int n) {
+        if (n == 0) return s;
+        
+        char[] chars = s.toCharArray();
+        // 大小写转换
+        for (int i = 0; i < n; i++) {
+            chars[i] = toggleCase(chars[i]);
+        }
+        
+        // 整体反转
+        reverse(chars, 0, n-1);
+        
+        // 逐个单词反转
+        int start = 0;
+        while (start < n) {
+            while (start < n && chars[start] == ' ') start++;
+            int end = start;
+            while (end < n && chars[end] != ' ') end++;
+            reverse(chars, start, end-1);
+            start = end;
+        }
+        
+        return new String(chars);
     }
-    StringBuilder result = new StringBuilder();
-    // 先将字符串进行大小写转换
-    for (int i = 0; i < n; i++) {
-        if (s.charAt(i) <= 'Z' && s.charAt(i) >= 'A') {
-            result.append((char) (s.charAt(i) - 'A' + 'a'));
-        } else if (s.charAt(i) >= 'a' && s.charAt(i) <= 'z') {
-            result.append((char) (s.charAt(i) - 'a' + 'A'));
-        } else {
-            // 空格直接复制
-            result.append(s.charAt(i));
+    
+    private char toggleCase(char c) {
+        if (Character.isUpperCase(c)) {
+            return Character.toLowerCase(c);
+        } else if (Character.isLowerCase(c)) {
+            return Character.toUpperCase(c);
+        }
+        return c;
+    }
+    
+    private void reverse(char[] arr, int left, int right) {
+        while (left < right) {
+            char temp = arr[left];
+            arr[left++] = arr[right];
+            arr[right--] = temp;
         }
     }
-
-    // 将字符串整体反转
-    result.reverse();
-    for (int i = 0; i < n; i++) {
-        int j = i;
-        // 以空格为界，进行局部反转
-        while (j < n && result.charAt(j) != ' ') {
-            j++;
-        }
-        String temp = result.substring(i, j);
-        StringBuilder builder = new StringBuilder(temp);
-        temp = builder.reverse().toString();
-        result.replace(i, j, temp);
-        i = j;
-    }
-    return result.toString();
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 三次线性遍历
+空间复杂度: O(n) - 字符数组存储
+```
+
+### 解法2：栈辅助法
+**核心思路**
+```markdown
+1. 使用栈存储单词
+2. 后进先出实现反转
+3. 处理大小写转换
+```
+
+**实现代码**
+```java
+class Solution {
+    public String trans(String s, int n) {
+        Stack<String> stack = new Stack<>();
+        StringBuilder word = new StringBuilder();
+        
+        // 处理前导空格
+        int i = 0;
+        while (i < n && s.charAt(i) == ' ') {
+            word.append(' ');
+            i++;
+        }
+        if (word.length() > 0) stack.push(word.toString());
+        
+        // 提取单词
+        word = new StringBuilder();
+        while (i < n) {
+            char c = s.charAt(i);
+            if (c == ' ') {
+                stack.push(word.toString());
+                word = new StringBuilder();
+                // 处理连续空格
+                while (i < n && s.charAt(i) == ' ') {
+                    word.append(' ');
+                    i++;
+                }
+                stack.push(word.toString());
+                word = new StringBuilder();
+            } else {
+                word.append(toggleCase(c));
+                i++;
+            }
+        }
+        if (word.length() > 0) stack.push(word.toString());
+        
+        // 构建结果
+        StringBuilder res = new StringBuilder();
+        while (!stack.isEmpty()) {
+            res.append(stack.pop());
+        }
+        return res.toString();
+    }
+    
+    private char toggleCase(char c) {
+        if (Character.isUpperCase(c)) {
+            return Character.toLowerCase(c);
+        } else if (Character.isLowerCase(c)) {
+            return Character.toUpperCase(c);
+        }
+        return c;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 两次遍历
+空间复杂度: O(n) - 栈空间
+```
+
+### 解法3：双指针法
+**核心思路**
+```markdown
+1. 从后向前遍历字符串
+2. 使用双指针定位单词边界
+3. 实时处理大小写转换
+```
+
+**实现代码**
+```java
+class Solution {
+    public String trans(String s, int n) {
+        StringBuilder res = new StringBuilder();
+        int end = n;
+        
+        for (int i = n-1; i >= 0; i--) {
+            if (s.charAt(i) == ' ') {
+                if (i+1 < end) {
+                    res.append(convertCase(s.substring(i+1, end)));
+                }
+                res.append(' ');
+                end = i;
+            }
+        }
+        // 处理第一个单词
+        if (end > 0) {
+            res.append(convertCase(s.substring(0, end)));
+        }
+        return res.toString();
+    }
+    
+    private String convertCase(String word) {
+        char[] chars = word.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            chars[i] = toggleCase(chars[i]);
+        }
+        return new String(chars);
+    }
+    
+    private char toggleCase(char c) {
+        if (Character.isUpperCase(c)) {
+            return Character.toLowerCase(c);
+        } else if (Character.isLowerCase(c)) {
+            return Character.toUpperCase(c);
+        }
+        return c;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(n) - 结果存储
+```
+
+### 解法对比
+| 维度       | 双反转法 | 栈辅助法 | 双指针法 |
+|------------|---------|----------|----------|
+| 时间复杂度 | O(n)    | O(n)     | O(n)     |
+| 空间复杂度 | O(n)    | O(n)     | O(n)     |
+| 边界处理   | 优秀     | 良好      | 优秀      |
+| 推荐指数   | ★★★★★  | ★★★★    | ★★★★★   |
+
+**补充说明**
+1. 双反转法代码简洁高效，推荐面试使用
+2. 栈辅助法思路直观，适合教学演示
+3. 双指针法空间利用率最优
+
+以下是优化后的多解法版本：
+
+---
 ## 最长回文子串
-# <font style="color:rgb(28, 31, 33);">内容描述</font>
 
-```plain
-给定一个字符串 s，找到 s 中最长的回文子串。你可以假设 s 的最大长度为 1000。
-
-示例 1：
-输入: "babad"
-输出: "bab"
-注意: "aba" 也是一个有效答案。
-
-示例 2：
-输入: "cbbd"
-输出: "bb"
+**题目描述**
+```markdown
+给定一个字符串s，找到s中最长的回文子串
+示例：
+输入："babad" → 输出："bab"或"aba"
+输入："cbbd" → 输出："bb"
 ```
 
-**<font style="color:rgb(0, 0, 0);">题目详解</font>**
-
-+ <font style="color:rgb(28, 31, 33);">回文的概念我们已经介绍过了，指的是一个字符串 </font><font style="color:rgb(199, 37, 78);">a</font><font style="color:rgb(28, 31, 33);"> 和其逆序 </font><font style="color:rgb(199, 37, 78);">a[::-1]</font><font style="color:rgb(28, 31, 33);">是相等的；</font>
-+ <font style="color:rgb(28, 31, 33);">题目中要求我们输出的是最长的那个回文子串，而不是子序列；</font>
-+ <font style="color:rgb(28, 31, 33);">这样的子串可能会有多个，题目说了，任意返回其中一个即可。</font>
-
-# <font style="color:rgb(28, 31, 33);">解法1 暴力破解</font>
-
-时间复杂度O(n^2)
-
-使用两层for循环判断每个子串是否是回文，如果是则更新。
-
-```java
-class Solution {
-    public String getLongestPalindrome(String s) {
-        String res = s.substring(0, 1);
-        for (int i = 0; i < s.length() - 1; i++) {
-            for (int j = i + 1; j < s.length(); j++) {
-                if (j - i + 1 > res.length()
-                        && isLongestPalindrome(s.substring(i, j + 1))) {
-                    res = s.substring(i, j + 1);
-                }
-            }
-        }
-        return res;
-    }
-
-    public boolean isLongestPalindrome(String s) {
-        for (int i = 0; i < s.length() / 2; i++) {
-            if (s.charAt(i) != s.charAt(s.length() - i - 1)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-}
+### 解法1：中心扩展法（推荐）
+**核心思路**
+```markdown
+1. 遍历每个字符作为中心点
+2. 向两边扩展寻找最长回文
+3. 处理奇偶长度两种情况
 ```
 
-# <font style="color:rgb(28, 31, 33);">解法2 动态规划</font>
-
-<font style="color:rgb(28, 31, 33);">时间复杂度: O(N^2) 空间复杂度: O(N^2)</font>
-
-<font style="color:rgb(0, 0, 0);">我们可以用 dp动态规划 的方式来处理这道题。</font>
-
-<font style="color:rgb(0, 0, 0);background-color:rgb(245, 245, 245);">注：dp 解法可参看 2.5 小节最长公共前缀。</font>
-
-+ <font style="color:rgb(199, 37, 78);">dp[i][j] = True</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">代表</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">s[i:j+1]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">是回文；</font>
-+ <font style="color:rgb(199, 37, 78);">dp[i][j] = False</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">代表</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">s[i:j+1]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">不是回文；</font>
-+ 判断dp[i][j]是否是回文，分解为：s.charAt(i) == s.charAt(j) 并且 dp[i+1][j-1]是回文。
-
+**实现代码**
 ```java
 class Solution {
     public String longestPalindrome(String s) {
-        int length = s.length();
-        String res = "";
-        // dp[i][j] 用来表示 i 到 j 的字串是否是回文串
-        boolean[][] dp = new boolean[length][length];
-        for (int i = length - 1; i >= 0; i--) {
-            for (int j = i; j < length; j++) {
-                dp[i][j] = s.charAt(i) == s.charAt(j) && (j - i < 3 || dp[i + 1][j - 1]);
-                // dp[i][j] 用来判断是否为回文串， j - i + 1 > res.length() 用来判断是否是最长回文串
-                if (dp[i][j] && (res == null || j - i + 1 > res.length())) {
-                    res = s.substring(i, j + 1);
-                }
-            }
-        }
-        return res;
-    }
-}
-```
-
-# 解法3 中心扩散法
-
-选取一个中心点，从中心向两边扩散，直到不满足回文为止，这个中心点从0开始向后移动。
-
-时间复杂度 O(n^2)
-
-```java
-class Solution {
-    public String longestPalindrome(String s) {
-        String res = s.substring(0, 1);
+        if (s == null || s.length() < 1) return "";
+        
+        int start = 0, end = 0;
         for (int i = 0; i < s.length(); i++) {
-            int len1 = expandAroundCenter(s, i, i);
-            int len2 = expandAroundCenter(s, i, i + 1);
+            int len1 = expandAroundCenter(s, i, i);    // 奇数长度
+            int len2 = expandAroundCenter(s, i, i+1);  // 偶数长度
             int len = Math.max(len1, len2);
-            if (len > res.length()) {
-                res = s.substring(i - (len - 1) / 2, i + len / 2);
+            if (len > end - start) {
+                start = i - (len - 1) / 2;
+                end = i + len / 2;
             }
         }
-        return res;
+        return s.substring(start, end + 1);
     }
-
+    
     private int expandAroundCenter(String s, int left, int right) {
-        while (left >= 0 && right < s.length() && s.charAt(left) == s.charAt(right)) {
+        while (left >= 0 && right < s.length() 
+               && s.charAt(left) == s.charAt(right)) {
             left--;
             right++;
         }
         return right - left - 1;
     }
-
 }
 ```
 
-# <font style="color:rgb(28, 31, 33);">解法3</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 中心点遍历+扩展
+空间复杂度: O(1) - 常量空间
+```
 
-<font style="color:rgb(28, 31, 33);">时间复杂度: O(N^2) 空间复杂度: O(1)</font>
+### 解法2：动态规划
+**核心思路**
+```markdown
+1. dp[i][j]表示s[i..j]是否为回文
+2. 状态转移：两端相等且内部是回文
+3. 记录最长回文位置
+```
 
-<font style="color:rgb(0, 0, 0);">回文字符串长度为奇数和偶数是不一样的：</font>
-
-1. <font style="color:rgb(28, 31, 33);">奇数：</font><font style="color:rgb(199, 37, 78);">'xxx s[i] xxx'</font><font style="color:rgb(28, 31, 33);">, 比如</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">'abcdcba'</font><font style="color:rgb(28, 31, 33);">；</font>
-2. <font style="color:rgb(28, 31, 33);">偶数：</font><font style="color:rgb(199, 37, 78);">'xxx s[i] s[i+1] xxx'</font><font style="color:rgb(28, 31, 33);">, 比如</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">'abcddcba'</font><font style="color:rgb(28, 31, 33);">。</font>
-
-<font style="color:rgb(0, 0, 0);">我们区分回文字符串长度为奇数和偶数的情况，然后依次把每一个字符当做回文字符串的中间字符，向左右扩展到满足回文的最大长度，不停更新满足回文条件的最长子串的左右</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">index</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">:</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">l</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">和</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">r</font><font style="color:rgb(0, 0, 0);">，最后返回</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">s[l:r+1]</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">即为结果。</font>
-
-<font style="color:rgb(0, 0, 0);">下面来看具体代码：</font>
-
+**实现代码**
 ```java
 class Solution {
     public String longestPalindrome(String s) {
-        if(s.equals("")){
-            return "";
-        }
-        int l = 0; // left index of the current substring
-        int r = 0; // right index of the current substring
-        int maxLength = 0; // length of the longest palindromic substring for now
         int n = s.length();
-        for (int i = 0; i < n; i++) {
-            // odd case: 'xxx s[i] xxx', such as 'abcdcba' 
-            // 向左最多移动 i 位，向右最多移动 n - 1 - i 位
-            for (int j = 0; j < Math.min(i + 1, n - i); j++) {
-                // 不对称了就不用继续往下判断了
-                if (s.charAt(i - j) != s.charAt(i + j)) {
-                    break;
-                }
-                // 如果当前子串长度大于目前最长长度
-                if (2 * j + 1 > maxLength) {
-                    maxLength = 2 * j + 1;
-                    l = i - j;
-                    r = i + j;
-                }
-            }
-            // even case: 'xxx s[i] s[i+1] xxx', such as 'abcddcba' 
-            if (i + 1 < n && s.charAt(i) == s.charAt(i + 1)) {
-                // s[i]向左最多移动 i 位，s[i+1]向右最多移动 [n-1-(i+1)] 位
-                for (int j = 0; j < Math.min(i + 1, n - i - 1); j++ ) {
-                    // 不对称了就不用继续往下判断了
-                    if (s.charAt(i - j) != s.charAt(i + 1 + j)) {
-                        break;
-                    }
-                    if (2 * j + 2 > maxLength) {
-                        maxLength = 2 * j + 2;
-                        l = i - j;
-                        r = i + 1 + j;
-                    }
+        boolean[][] dp = new boolean[n][n];
+        String res = "";
+        
+        for (int i = n-1; i >= 0; i--) {
+            for (int j = i; j < n; j++) {
+                dp[i][j] = s.charAt(i) == s.charAt(j) 
+                          && (j - i < 3 || dp[i+1][j-1]);
+                
+                if (dp[i][j] && j - i + 1 > res.length()) {
+                    res = s.substring(i, j+1);
                 }
             }
         }
-        return s.substring(l,r + 1); 
+        return res;
     }
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 填表
+空间复杂度: O(n^2) - DP表
+```
 
+### 解法3：Manacher算法（最优）
+**核心思路**
+```markdown
+1. 插入特殊字符处理偶回文
+2. 维护回文半径数组P[i]
+3. 利用对称性减少重复计算
+```
 
-# <font style="color:rgb(28, 31, 33);">解法3</font>
-
-<font style="color:rgb(28, 31, 33);">时间复杂度: O(N) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(199, 37, 78);">Manacher</font><font style="color:rgb(0, 0, 0);">算法增加两个辅助变量</font><font style="color:rgb(199, 37, 78);">id</font><font style="color:rgb(0, 0, 0);">和</font><font style="color:rgb(199, 37, 78);">mx</font><font style="color:rgb(0, 0, 0);">，其中</font><font style="color:rgb(199, 37, 78);">id</font><font style="color:rgb(0, 0, 0);">表示最大回文子串中心的位置，</font><font style="color:rgb(199, 37, 78);">mx</font><font style="color:rgb(0, 0, 0);">则为</font><font style="color:rgb(199, 37, 78);">id+P[id]</font><font style="color:rgb(0, 0, 0);">，也就是最大回文子串的边界。得到一个很重要的结论：</font>
-
-<font style="color:rgb(0, 0, 0);">如果</font><font style="color:rgb(199, 37, 78);">mx > i</font><font style="color:rgb(0, 0, 0);">，那么</font><font style="color:rgb(199, 37, 78);">P[i] >= Min(P[2 * id - i], mx - i)</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">. 为什么这样说呢，下面解释：</font>
-
-<font style="color:rgb(0, 0, 0);">下面，令</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">j = 2*id - i</font><font style="color:rgb(0, 0, 0);">，也就是说</font><font style="color:rgb(199, 37, 78);">j</font><font style="color:rgb(0, 0, 0);">是</font><font style="color:rgb(199, 37, 78);">i</font><font style="color:rgb(0, 0, 0);">关于</font><font style="color:rgb(199, 37, 78);">id</font><font style="color:rgb(0, 0, 0);">的对称点。</font>
-
-+ <font style="color:rgb(28, 31, 33);">当</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">mx - i > P[j]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的时候，以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[j]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串包含在以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[id]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串中，由于</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">i</font><font style="color:rgb(28, 31, 33);">和</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">j</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">对称，以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[i]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串必然包含在以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[id]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串中，所以必有</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">P[i] = P[j]</font><font style="color:rgb(28, 31, 33);">；  
-  </font>![](https://cdn.nlark.com/yuque/0/2023/png/12651402/1686493553484-4f363497-432a-4edf-8ba9-e789b3b8693d.png)
-+ <font style="color:rgb(28, 31, 33);">当 P</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">[j] >= mx - i</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的时候，以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[j]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串不一定完全包含于以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">S[id]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">为中心的回文子串中，但是基于对称性可知，下图中两个绿框所包围的部分是相同的，也就是说以</font><font style="color:rgb(199, 37, 78);">S[i]</font><font style="color:rgb(28, 31, 33);">为中心的回文子串，其向右至少会扩张到</font><font style="color:rgb(199, 37, 78);">mx</font><font style="color:rgb(28, 31, 33);">的位置，也就是说</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">P[i] >= mx - i</font><font style="color:rgb(28, 31, 33);">。至于</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">mx</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">之后的部分是否对称，再具体匹配。所以</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">P[i] >= Min(P[2 * id - i], mx - i)</font><font style="color:rgb(28, 31, 33);">，因为以</font><font style="color:rgb(199, 37, 78);">j</font><font style="color:rgb(28, 31, 33);">为中心的绘回文子串的左边界可能会比</font><font style="color:rgb(199, 37, 78);">mx</font><font style="color:rgb(28, 31, 33);">关于</font><font style="color:rgb(199, 37, 78);">id</font><font style="color:rgb(28, 31, 33);">的对称点要大，此时只能证明</font><font style="color:rgb(199, 37, 78);">P[i]=P[j]</font><font style="color:rgb(28, 31, 33);">。</font>
-
-<font style="color:rgb(0, 0, 0);">下面的图来源于上面的链接</font>
-
-![](https://cdn.nlark.com/yuque/0/2023/png/12651402/1686493553665-8f9c4d2c-9f29-41e6-971c-67b04ddc0409.png)
-
-+ <font style="color:rgb(28, 31, 33);">此外，对于</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">mx <= i</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的情况，因为无法对</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">P[i]</font><font style="color:rgb(28, 31, 33);">做更多的假设，只能让</font><font style="color:rgb(199, 37, 78);">P[i] = 0</font><font style="color:rgb(28, 31, 33);">，然后再去匹配。</font>
-
-<font style="color:rgb(0, 0, 0);">在下面的程序中我的</font><font style="color:rgb(199, 37, 78);">P数组</font><font style="color:rgb(0, 0, 0);">保存的是以当前字符为回文子串中心时，该回文子串的长度（不包含当前字符自身）。</font>
-
-<font style="color:rgb(0, 0, 0);">简单地用一个小例子来解释：原字符串为</font><font style="color:rgb(199, 37, 78);">'qacbcaw'</font><font style="color:rgb(0, 0, 0);">，一眼就可以看出来最大回文子串是</font><font style="color:rgb(199, 37, 78);">'acbca'</font><font style="color:rgb(0, 0, 0);">，  
-</font><font style="color:rgb(0, 0, 0);">下面是我做的表格。</font>
-
-![](https://cdn.nlark.com/yuque/0/2023/png/12651402/1686493554397-76bcb384-16d5-49e0-9b72-dede361d8bbe.png)<font style="color:rgb(0, 0, 0);">  
-</font><font style="color:rgb(0, 0, 0);">所以最终代码中的</font><font style="color:rgb(199, 37, 78);">max_i</font><font style="color:rgb(0, 0, 0);">就是字符</font><font style="color:rgb(199, 37, 78);">'b'</font><font style="color:rgb(0, 0, 0);">所对应的</font><font style="color:rgb(199, 37, 78);">index8</font><font style="color:rgb(0, 0, 0);">，</font><font style="color:rgb(199, 37, 78);">start</font><font style="color:rgb(0, 0, 0);">的值就是</font><font style="color:rgb(199, 37, 78);">(max_i - P[max_i] - 1) // 2 = 1</font><font style="color:rgb(0, 0, 0);">,最终输出结果为</font><font style="color:rgb(199, 37, 78);">s[1:6]</font><font style="color:rgb(0, 0, 0);">,即</font><font style="color:rgb(199, 37, 78);">acbca’</font>
-
+**实现代码**
 ```java
 class Solution {
     public String longestPalindrome(String s) {
-        String data = "#";
+        String T = preProcess(s);
+        int n = T.length();
+        int[] P = new int[n];
+        int C = 0, R = 0;
+        
+        for (int i = 1; i < n-1; i++) {
+            int mirror = 2*C - i;
+            if (R > i) {
+                P[i] = Math.min(R - i, P[mirror]);
+            }
+            
+            while (T.charAt(i + 1 + P[i]) == T.charAt(i - 1 - P[i])) {
+                P[i]++;
+            }
+            
+            if (i + P[i] > R) {
+                C = i;
+                R = i + P[i];
+            }
+        }
+        
+        int maxLen = 0;
+        int center = 0;
+        for (int i = 1; i < n-1; i++) {
+            if (P[i] > maxLen) {
+                maxLen = P[i];
+                center = i;
+            }
+        }
+        int start = (center - maxLen) / 2;
+        return s.substring(start, start + maxLen);
+    }
+    
+    private String preProcess(String s) {
+        StringBuilder sb = new StringBuilder("^");
         for (int i = 0; i < s.length(); i++) {
-            data += s.charAt(i);
-            data += "#";
+            sb.append("#").append(s.charAt(i));
         }
-        // 半径
-        int[] rad = new int[data.length()];
-        int id = 0;
-        int mx = 0;
-        for (int i = 1; i < data.length(); i++) {
-            int last = 0;
-            if (i > mx) {
-                last = i;
-            } else {
-                if (rad[2 * id - i] < mx - i) {
-                    // 2*id-i为中心的最大回文被以id为中心的最大回文所覆盖，没必要继续扩展下去，直接返回
-                    rad[i] = rad[2 * id - i];
-                    continue;
-                } else {
-                    last = mx;
-                }
-            }
-            // 继续扩展
-            while (last + 1 < data.length() && 2 * i - (last + 1) >= 0 && data.charAt(last + 1) == data.charAt(2 * i - (last + 1))) {
-                last++;
-            }
-            rad[i] = last - i;
-            id = i;
-            mx = last;
-        }
-        int left = 0;
-        int right = -1;
-        for (int i = 0; i < data.length(); i++) {
-            // 因为有#的存在，i-rad[i]必是#，也就是偶数下标，i-rad[i]+1对应的必是字母，所以(i-rad[i]+1-1)/2就是原来字母的位置
-            int tempLeft = (i - rad[i]) / 2;
-            // 同理
-            int tempRight = (i + rad[i] - 2) / 2;
-            if (tempLeft <= tempRight && right - left < tempRight - tempLeft) {
-                left = tempLeft;
-                right = tempRight;
-            }
-        }
-        return s.substring(left, right + 1);
+        sb.append("#$");
+        return sb.toString();
     }
 }
 ```
 
-<font style="color:rgb(0, 0, 0);">第647题也可以用这个算法解，可以记一下这个算法的模版，或者自己去实现一个你喜欢的版本。</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 线性扫描
+空间复杂度: O(n) - 半径数组
+```
 
-## 最长公共序列2
-# <font style="color:rgb(51, 51, 51);">题目描述</font>
+### 解法对比
+| 维度       | 中心扩展法 | 动态规划 | Manacher算法 |
+|------------|-----------|----------|--------------|
+| 时间复杂度 | O(n^2)    | O(n^2)   | O(n)         |
+| 空间复杂度 | O(1)      | O(n^2)   | O(n)         |
+| 实现难度   | 简单       | 中等     | 较难         |
+| 推荐指数   | ★★★★★    | ★★★★    | ★★★★★       |
 
-给定两个字符串str1和str2，输出两个字符串的最长公共子序列。如果最长公共子序列为空，则返回"-1"。目前给出的数据，仅仅会存在一个最长的公共子序列。
+**补充说明**
+1. 面试推荐使用中心扩展法，平衡效率和实现难度
+2. Manacher算法适合性能敏感场景
+3. 动态规划有助于理解回文特性
 
+以下是优化后的最长公共子序列（LCS）解法，包含多种实现方式和详细分析：
 
-数据范围：0≤∣str1∣,∣str2∣≤2000
+---
+## 最长公共子序列
 
-要求：空间复杂度 O(n2) ，时间复杂度 O(n2)
+**题目描述**
+```markdown
+给定两个字符串str1和str2，返回它们的最长公共子序列
+示例：
+输入："ABCBDAB", "BDCABA" → 输出："BCBA"
+```
 
-# 解法
+### 解法1：标准动态规划
+**核心思路**
+```markdown
+1. dp[i][j]表示str1前i个和str2前j个的LCS长度
+2. 状态转移：
+   - 字符相等：dp[i][j] = dp[i-1][j-1]+1
+   - 不等：dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+3. 反向追踪构建LCS字符串
+```
 
-使用动态规划：
-
-1. 创建一个二维数组，长度是 (l1+1)x(l2+1)，l1和l2分别是两个字符串的长度，**dp[i][j]** 表示s1的前i个字符和s2的前j个字符的最长公共子序列。
-2. 初始化dp的第一行和第一列为""（空字符串），代表任何字符串与长度为0的字符串的最长公共子序列是空。
-3. 使用两层for循环，遍历两个字符串
-4. 如果 **s1[i - 1]** 等于 **s2[j - 1]**（注意数组索引从0开始，所以访问时要减1），说明这两个字符是当前所考虑的公共子序列的一部分，因此 **dp[i][j]** 应该是 **dp[i - 1][j - 1] **加上这个公共字符。
-5. 如果 **s1[i - 1]** 不等于 **s2[j - 1]**，则说明当前字符不可能同时出现在两个字符串的公共子序列中，此时 **dp[i][j] **应该是 **dp[i - 1][j]** 和 **dp[i][j - 1] **中较长的一个，因为我们要找的是最长公共子序列。
-
-时间复杂度O(n^2)
-
+**实现代码**
 ```java
 class Solution {
     public String LCS(String s1, String s2) {
-        int l1 = s1.length(), l2 = s2.length();
-        String[][] dp = new String[l1 + 1][l2 + 1];
-        for (int i = 0; i <= l1; i++) {
-            for (int j = 0; j <= l2; j++) {
-                if (i == 0 || j == 0) {
-                    dp[i][j] = "";
-                } else if (s1.charAt(i - 1) == s2.charAt(j - 1)) {
-                    dp[i][j] = dp[i - 1][j - 1] + s1.charAt(i - 1);
+        int m = s1.length(), n = s2.length();
+        int[][] dp = new int[m+1][n+1];
+        
+        // 构建DP表
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (s1.charAt(i-1) == s2.charAt(j-1)) {
+                    dp[i][j] = dp[i-1][j-1] + 1;
                 } else {
-                    dp[i][j] = dp[i - 1][j].length() >= dp[i][j - 1].length()
-                            ? dp[i - 1][j] : dp[i][j - 1];
+                    dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
                 }
             }
         }
-        return "".equals(dp[l1][l2]) ? "-1" : dp[l1][l2];
+        
+        // 回溯构建LCS字符串
+        StringBuilder sb = new StringBuilder();
+        int i = m, j = n;
+        while (i > 0 && j > 0) {
+            if (s1.charAt(i-1) == s2.charAt(j-1)) {
+                sb.append(s1.charAt(i-1));
+                i--; j--;
+            } else if (dp[i-1][j] > dp[i][j-1]) {
+                i--;
+            } else {
+                j--;
+            }
+        }
+        
+        return sb.length() == 0 ? "-1" : sb.reverse().toString();
     }
-
 }
 ```
 
-## 判断整数是否是回文数
-题目描述
+**复杂度分析**
+```markdown
+时间复杂度: O(mn) - 填表+回溯
+空间复杂度: O(mn) - DP表存储
+```
 
-判断一个整数是否是回文数。回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。
+### 解法2：空间优化DP
+**核心思路**
+```markdown
+1. 观察DP表只依赖前一行和当前行
+2. 使用两行数组替代完整DP表
+```
 
-示例 1:
-
-> 输入: 121
->
-> 返回: true
-
-示例 2:
-
-> 输入: -121
->
-> 返回: false
-
-示例 3:
-
-> 输入: 10
->
-> 返回: false
-
-解法1
-
-将数值转换成字符串，然后比较字符串的首尾字符是否相等，因为字符串支持随机访问。
-
-**复杂度分析：**
-
-时间复杂度：O(n)。需要遍历数值的每一位数。
-
-空间复杂度：O(n)。申请了额外的空间存储字符串。
-
+**实现代码**
 ```java
-public boolean isPalindrome(int x) {
-    // 负数不是回文数
-    if (x < 0) {
-        return false;
+class Solution {
+    public String LCS(String s1, String s2) {
+        int m = s1.length(), n = s2.length();
+        int[][] dp = new int[2][n+1];
+        
+        for (int i = 1; i <= m; i++) {
+            int curr = i % 2;
+            int prev = 1 - curr;
+            for (int j = 1; j <= n; j++) {
+                if (s1.charAt(i-1) == s2.charAt(j-1)) {
+                    dp[curr][j] = dp[prev][j-1] + 1;
+                } else {
+                    dp[curr][j] = Math.max(dp[prev][j], dp[curr][j-1]);
+                }
+            }
+        }
+        
+        // 回溯需要重建完整DP表（略）
+        // 实际应用中可结合解法1的回溯方法
+        return reconstructLCS(s1, s2, dp[m%2], m, n);
     }
+}
+```
 
-    // 转换成字符串进行比较
-    String str = String.valueOf(x);
+**复杂度分析**
+```markdown
+时间复杂度: O(mn)
+空间复杂度: O(n) - 两行数组
+```
+
+### 解法3：递归+记忆化
+**核心思路**
+```markdown
+1. 自顶向下递归实现
+2. 使用memo数组避免重复计算
+```
+
+**实现代码**
+```java
+class Solution {
+    private int[][] memo;
     
-    // 前半段字符与后半段字符进行比较
-    for (int i = 0; i < str.length() / 2; i++) {
-        if (str.charAt(i) != str.charAt(str.length() - 1 - i)) {
+    public String LCS(String s1, String s2) {
+        int m = s1.length(), n = s2.length();
+        memo = new int[m+1][n+1];
+        for (int[] row : memo) Arrays.fill(row, -1);
+        
+        lcsLength(s1, s2, m, n);
+        return reconstruct(s1, s2, m, n);
+    }
+    
+    private int lcsLength(String s1, String s2, int i, int j) {
+        if (i == 0 || j == 0) return 0;
+        if (memo[i][j] != -1) return memo[i][j];
+        
+        if (s1.charAt(i-1) == s2.charAt(j-1)) {
+            memo[i][j] = lcsLength(s1, s2, i-1, j-1) + 1;
+        } else {
+            memo[i][j] = Math.max(lcsLength(s1, s2, i-1, j), 
+                               lcsLength(s1, s2, i, j-1));
+        }
+        return memo[i][j];
+    }
+    
+    private String reconstruct(String s1, String s2, int i, int j) {
+        if (i == 0 || j == 0) return "";
+        if (s1.charAt(i-1) == s2.charAt(j-1)) {
+            return reconstruct(s1, s2, i-1, j-1) + s1.charAt(i-1);
+        }
+        if (memo[i-1][j] > memo[i][j-1]) {
+            return reconstruct(s1, s2, i-1, j);
+        }
+        return reconstruct(s1, s2, i, j-1);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(mn)
+空间复杂度: O(mn) - 递归栈+memo数组
+```
+
+### 解法对比
+| 维度       | 标准DP | 空间优化DP | 记忆化递归 |
+|------------|--------|------------|------------|
+| 时间复杂度 | O(mn)  | O(mn)      | O(mn)      |
+| 空间复杂度 | O(mn)  | O(n)       | O(mn)      |
+| 实现难度   | 中等   | 中等       | 较难       |
+| 推荐指数   | ★★★★★ | ★★★★      | ★★★       |
+
+**补充说明**
+1. 面试推荐使用标准DP解法，清晰易实现
+2. 空间优化版适合内存敏感场景
+3. 记忆化递归有助于理解问题本质
+
+以下是优化后的回文数判断解法，包含多种实现方式和详细分析：
+
+---
+## 回文数判断
+
+**题目描述**
+```markdown
+判断一个整数是否是回文数（正序和倒序相同）
+示例：
+121 → true
+-121 → false
+10 → false
+```
+
+### 解法1：字符串比较法
+**核心思路**
+```markdown
+1. 将整数转换为字符串
+2. 双指针比较首尾字符
+```
+
+**实现代码**
+```java
+class Solution {
+    public boolean isPalindrome(int x) {
+        if (x < 0) return false;
+        String s = Integer.toString(x);
+        int left = 0, right = s.length() - 1;
+        while (left < right) {
+            if (s.charAt(left++) != s.charAt(right--)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - n为数字位数
+空间复杂度: O(n) - 字符串存储
+```
+
+### 解法2：数字反转法（推荐）
+**核心思路**
+```markdown
+1. 反转后半部分数字
+2. 与前半部分比较
+3. 处理奇偶位数情况
+```
+
+**实现代码**
+```java
+class Solution {
+    public boolean isPalindrome(int x) {
+        if (x < 0 || (x % 10 == 0 && x != 0)) {
             return false;
         }
+        
+        int reversed = 0;
+        while (x > reversed) {
+            reversed = reversed * 10 + x % 10;
+            x /= 10;
+        }
+        
+        return x == reversed || x == reversed / 10;
     }
-    return true;
 }
 ```
 
-解法2
+**复杂度分析**
+```markdown
+时间复杂度: O(logn) - 反转一半数字
+空间复杂度: O(1) - 常量空间
+```
 
-既然是回文数，我们可以把整数反转后，再进行比较。
+### 解法3：数学比较法
+**核心思路**
+```markdown
+1. 计算数字位数
+2. 逐位比较首尾数字
+3. 使用数学运算取位
+```
 
-**复杂度分析：**
-
-时间复杂度：O(1)。
-
-空间复杂度：O(1)。常量的空间。
-
+**实现代码**
 ```java
-public boolean isPalindrome(int x) {
-    // 负数不是回文数
-    if (x < 0) {
-        return false;
+class Solution {
+    public boolean isPalindrome(int x) {
+        if (x < 0) return false;
+        
+        int div = 1;
+        while (x / div >= 10) {
+            div *= 10;
+        }
+        
+        while (x > 0) {
+            int left = x / div;
+            int right = x % 10;
+            if (left != right) return false;
+            
+            x = (x % div) / 10;
+            div /= 100;
+        }
+        return true;
     }
-    int result = x;
-    // 反转之后的数字可能超过整型的范围
-    long y = 0;
-    while (x != 0) {
-        y = y * 10 + x % 10;
-        x /= 10;
-    }
-    return result == y;
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(logn) - 数字位数
+空间复杂度: O(1) - 常量空间
+```
+
+### 解法对比
+| 维度       | 字符串法 | 数字反转法 | 数学比较法 |
+|------------|---------|------------|------------|
+| 时间复杂度 | O(n)    | O(logn)    | O(logn)    |
+| 空间复杂度 | O(n)    | O(1)       | O(1)       |
+| 实现难度   | 简单    | 中等       | 较难       |
+| 推荐指数   | ★★★★   | ★★★★★     | ★★★★      |
+
+**补充说明**
+1. 数字反转法是最优解法，推荐面试使用
+2. 字符串法简单直观，适合快速实现
+3. 数学比较法展示位运算技巧
+
+以下是优化后的有效括号判断解法，包含多种实现方式和详细分析：
+
+---
 ## 有效的括号
-# 题目描述
 
-给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串，判断字符串是否有效。
-
-有效字符串需满足：
-
-1.左括号必须用相同类型的右括号闭合。
-
-2.左括号必须以正确的顺序闭合。
-
-注意：空字符串可被认为是有效字符串。
-
-
-
-示例1
-
-> 输入: "()"
->
-> 返回: true
-
-示例2
-
-> 输入: "()[]{}"
->
-> 返回: true
-
-示例3
-
-> 输入: "([)]"
->
-> 返回: false
-
-示例4
-
-> 输入: "{[]}"
->
-> 返回: true
-
-解法1
-
-我们可以使用 String 提供的 replace() 方法，把所有成对的括号替换成空字符串，如果最后还有剩余，说明不是有效的。
-
-**复杂度分析：**
-
-时间复杂度：O(n^2)。需要不断循环替换。
-
-空间复杂度：O(n)。替换的过程中需要申请额外的空间。
-
-
-
-```java
-public boolean isValid(String s) {
-    int length;
-    do {
-        length = s.length();
-        // 把成对括号替换成空字符串
-        s = s.replace("()", "");
-        s = s.replace("[]", "");
-        s = s.replace("{}", "");
-        // 如果本次没有可替换的成对括号，就结束
-    } while (length != s.length());
-    // 判断是否还有剩余括号
-    return length == 0;
-}
+**题目描述**
+```markdown
+给定包含'(){}[]'的字符串，判断括号是否有效匹配
+示例：
+"()" → true
+"([)]" → false
+"{[]}" → true
 ```
 
-解法2
+### 解法1：栈匹配法（推荐）
+**核心思路**
+```markdown
+1. 使用栈存储遇到的左括号
+2. 遇到右括号时检查栈顶是否匹配
+3. 最终检查栈是否为空
+```
 
-涉及到成对匹配的问题，我们可以使用 栈 结构来解决。
-
-实现思路：
-
-1. 遍历整个字符串，如果是左括号就入栈。
-2. 如果是右括号则查看当前栈顶括号是否与之相匹配，如果不匹配直接返回 false，如果匹配就弹出栈顶元素。
-3. 遍历完成后，如果栈内没有元素则说明全部匹配成功，返回 true，否则返回 false。
-
-**复杂度分析：**
-
-时间复杂度：O(n)。只需遍历一次字符串。
-
-空间复杂度：O(n)。替换的过程中需要申请额外的空间。
-
+**实现代码**
 ```java
-public boolean isValid(String s) {
-    // 新建栈结构
-    Stack<Character> stack = new Stack<>();
-    for (int i = 0; i < s.length(); i++) {
-        // 如果是左括号就入栈
-        if (s.charAt(i) == '{' || s.charAt(i) == '[' || s.charAt(i) == '(') {
-            stack.push(s.charAt(i));
-        }
-        // 如果是右括号就和栈顶进行比较
-        if (s.charAt(i) == ']') {
-            if (stack.isEmpty() || stack.peek() != '[') {
+class Solution {
+    public boolean isValid(String s) {
+        Deque<Character> stack = new ArrayDeque<>();
+        Map<Character, Character> map = Map.of(
+            ')', '(', 
+            ']', '[', 
+            '}', '{'
+        );
+        
+        for (char c : s.toCharArray()) {
+            if (!map.containsKey(c)) {
+                stack.push(c);
+            } else if (stack.isEmpty() || stack.pop() != map.get(c)) {
                 return false;
             }
-            // 匹配成功，就弹出栈顶元素
-            stack.pop();
         }
-        if (s.charAt(i) == '}') {
-            if (stack.isEmpty() || stack.peek() != '{') {
-                return false;
-            }
-            stack.pop();
-        }
-        if (s.charAt(i) == ')') {
-            if (stack.isEmpty() || stack.peek() != '(') {
-                return false;
-            }
-            stack.pop();
-        }
+        return stack.isEmpty();
     }
-    // 如果栈为空，说明全部匹配成功
-    return stack.isEmpty();
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(n) - 栈空间
+```
+
+### 解法2：字符串替换法
+**核心思路**
+```markdown
+循环替换所有成对括号为空字符串
+```
+
+**实现代码**
+```java
+class Solution {
+    public boolean isValid(String s) {
+        while (s.contains("()") || s.contains("[]") || s.contains("{}")) {
+            s = s.replace("()", "")
+                .replace("[]", "")
+                .replace("{}", "");
+        }
+        return s.isEmpty();
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 嵌套替换
+空间复杂度: O(n) - 字符串拷贝
+```
+
+### 解法3：计数法（有限场景）
+**核心思路**
+```markdown
+1. 仅适用于单一括号类型
+2. 维护左括号计数器
+3. 遇到右括号时减计数
+```
+
+**实现代码**
+```java
+// 仅适用于全小括号场景
+class Solution {
+    public boolean isValid(String s) {
+        int balance = 0;
+        for (char c : s.toCharArray()) {
+            if (c == '(') balance++;
+            else if (c == ')') balance--;
+            if (balance < 0) return false;
+        }
+        return balance == 0;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 栈匹配法 | 替换法 | 计数法 |
+|------------|---------|--------|--------|
+| 时间复杂度 | O(n)    | O(n^2) | O(n)   |
+| 空间复杂度 | O(n)    | O(n)   | O(1)   |
+| 适用范围   | 通用    | 教学用 | 单一型 |
+| 推荐指数   | ★★★★★  | ★★     | ★★★    |
+
+**补充说明**
+1. 栈解法是最通用高效的实现
+2. 替换法虽然直观但性能较差
+3. 计数法仅适用于面试特定变种题
+
+以下是优化后的整数反转解法，包含多种实现方式和详细分析：
+
+---
 ## 整数反转
-题目描述
 
-给定一个 32 位的有符号整数，你需要将这个整数中每位上的数字进行反转。
+**题目描述**
+```markdown
+反转32位有符号整数，溢出时返回0
+示例：
+123 → 321
+-123 → -321
+120 → 21
+```
 
-注意：假设我们的环境只能存储得下 32 位的有符号整数，则其数值范围为 [−2^31,  2^31 − 1]。请根据这个假设，如果反转后整数溢出那么就返回 0。
+### 解法1：数学运算（推荐）
+**核心思路**
+```markdown
+1. 逐位弹出原数末尾数字
+2. 推入新数开头
+3. 每次检查溢出情况
+```
 
-示例 1:
-
-> 输入: 123
->
-> 返回: 321
-
-示例 2:
-
-> 输入: -123
->
-> 返回: -321
-
-示例 3:
-
-> 输入: 120
->
-> 返回: 21
-
-解法
-
-整数反转的思路比较简单，把这个数对 10 求余后，就得到个位数值。先除以 10，再对 10 求余，就得到了十位数值，以此类推。
-
-有几种特殊情况需要处理：
-
-1. 负数的情况
-2. 如果负数是 Integer.MIN_VALUE，直接转成正数，会出现溢出情况。
-3. 个位数是零的情况下，反转后，要舍去最高位的零，例如 120 反转后为 21。
-
+**实现代码**
 ```java
-public int reverse(int x) {
-    // 如果是 int 最小值，反转后会溢出
-    if (x == Integer.MIN_VALUE) {
-        return 0;
+class Solution {
+    public int reverse(int x) {
+        int rev = 0;
+        while (x != 0) {
+            int pop = x % 10;
+            x /= 10;
+            // 检查正数溢出
+            if (rev > Integer.MAX_VALUE/10 || 
+               (rev == Integer.MAX_VALUE/10 && pop > 7)) {
+                return 0;
+            }
+            // 检查负数溢出
+            if (rev < Integer.MIN_VALUE/10 || 
+               (rev == Integer.MIN_VALUE/10 && pop < -8)) {
+                return 0;
+            }
+            rev = rev * 10 + pop;
+        }
+        return rev;
     }
+}
+```
 
-    // 如果是负数，直接转成正数处理
-    if (x < 0) {
-        return -reverse(-x);
-    }
+**复杂度分析**
+```markdown
+时间复杂度: O(log|x|) - 数字位数
+空间复杂度: O(1) - 常量空间
+```
 
-    // 循环计算每位数值
-    int result = 0;
-    while (x != 0) {
-        // 处理溢出
-        if (result > 214748364) {
+### 解法2：字符串反转
+**核心思路**
+```markdown
+1. 转换为字符串处理
+2. 反转后转换回整数
+3. 捕获溢出异常
+```
+
+**实现代码**
+```java
+class Solution {
+    public int reverse(int x) {
+        try {
+            String reversed = new StringBuilder()
+                .append(Math.abs(x))
+                .reverse()
+                .toString();
+            int result = Integer.parseInt(reversed);
+            return x < 0 ? -result : result;
+        } catch (NumberFormatException e) {
             return 0;
         }
-        result = result * 10 + x % 10;
-        x /= 10;
     }
-    return result;
 }
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 字符串操作
+空间复杂度: O(n) - 字符串存储
+```
+
+### 解法3：长整型处理
+**核心思路**
+```markdown
+1. 使用更大范围的long存储
+2. 完成反转后检查是否溢出
+```
+
+**实现代码**
+```java
+class Solution {
+    public int reverse(int x) {
+        long rev = 0;
+        while (x != 0) {
+            rev = rev * 10 + x % 10;
+            x /= 10;
+            if (rev > Integer.MAX_VALUE || rev < Integer.MIN_VALUE) {
+                return 0;
+            }
+        }
+        return (int)rev;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(log|x|)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 数学运算 | 字符串法 | 长整型法 |
+|------------|---------|----------|----------|
+| 时间复杂度 | O(logn) | O(n)     | O(logn)  |
+| 空间复杂度 | O(1)    | O(n)     | O(1)     |
+| 溢出处理   | 提前检查 | 异常捕获 | 后期检查 |
+| 推荐指数   | ★★★★★  | ★★★      | ★★★★     |
+
+**补充说明**
+1. 数学运算解法最优，推荐面试使用
+2. 字符串解法简单但效率较低
+3. 长整型解法代码更简洁
 

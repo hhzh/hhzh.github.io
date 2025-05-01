@@ -373,7 +373,7 @@ export default sidebar({
                             link: "redis-bigkey",
                         },
                         {
-                            text: "4.8 热点key问题",
+                            text: "4.8 Redis热点key问题",
                             link: "redis-hotkey",
                         },
                         {
@@ -421,7 +421,7 @@ export default sidebar({
                     prefix: "spring/",
                     children: [
                         {
-                            text: "架构设计",
+                            text: "Spring架构设计",
                             link: "spring-framework",
                         },
                         {
@@ -498,6 +498,10 @@ export default sidebar({
                         {
                             text: "SpringCloud架构设计",
                             link: "springcloud-framework",
+                        },
+                        {
+                            text: "SpringCloud体系架构选型",
+                            link: "springcloud-select",
                         },
                         {
                             text: "Eureka架构设计",
