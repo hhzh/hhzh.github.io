@@ -1,6 +1,185 @@
-以下是优化后的盛水最多容器问题的解法，包含多种实现方式和详细分析：
+## 二分查找算法详解
 
----
+**题目描述**
+
+```markdown
+在一个无重复元素的升序整型数组中查找目标值，返回其索引，若不存在则返回-1
+
+示例：
+输入：nums = [0,1,3,4,6,7,9], target = 6
+输出：5
+解释：数字6在数组中的索引为5
+
+要求：
+1. 数组必须是有序且无重复的
+2. 时间复杂度必须为O(log n)
+```
+
+### 解题思路
+
+```markdown
+二分查找核心思想：
+1. 利用数组有序特性，每次比较可排除一半元素
+2. 维护搜索区间的左右边界
+3. 通过中点比较决定搜索方向
+```
+
+### 关键步骤
+
+```markdown
+1. 初始化左右指针
+2. 循环条件：left <= right
+3. 计算中点：防止溢出的写法 mid = left + (right - left)/2
+4. 三种情况处理：
+   - 找到目标：直接返回索引
+   - 目标较小：搜索左半区
+   - 目标较大：搜索右半区
+5. 循环结束：返回-1表示未找到
+```
+
+## 标准实现
+
+```java
+public class BinarySearch {
+    public int search(int[] nums, int target) {
+        // 边界检查
+        if (nums == null || nums.length == 0) {
+            return -1;
+        }
+        
+        int left = 0;
+        int right = nums.length - 1;
+        
+        while (left <= right) {
+            // 防止整数溢出
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度：O(log n) - 每次迭代将搜索范围减半
+空间复杂度：O(1) - 仅使用常数空间
+```
+
+## 变体实现：递归版本
+
+```java
+public class BinarySearchRecursive {
+    public int search(int[] nums, int target) {
+        return binarySearch(nums, target, 0, nums.length - 1);
+    }
+    
+    private int binarySearch(int[] nums, int target, int left, int right) {
+        if (left > right) {
+            return -1;
+        }
+        
+        int mid = left + (right - left) / 2;
+        
+        if (nums[mid] == target) {
+            return mid;
+        } else if (nums[mid] < target) {
+            return binarySearch(nums, target, mid + 1, right);
+        } else {
+            return binarySearch(nums, target, left, mid - 1);
+        }
+    }
+}
+```
+
+**递归版本特点**
+```markdown
+优点：代码更直观，符合算法描述
+缺点：递归调用栈消耗额外空间
+```
+
+### 边界情况测试
+
+```java
+public static void main(String[] args) {
+    BinarySearch bs = new BinarySearch();
+    
+    // 标准测试
+    int[] nums1 = {0,1,3,4,6,7,9};
+    System.out.println(bs.search(nums1, 6)); // 5
+    
+    // 边界测试
+    int[] nums2 = {5};
+    System.out.println(bs.search(nums2, 5)); // 0
+    System.out.println(bs.search(nums2, 2)); // -1
+    
+    // 空数组测试
+    int[] nums3 = {};
+    System.out.println(bs.search(nums3, 1)); // -1
+    
+    // 性能测试
+    int[] largeArray = new int[1000000];
+    for (int i = 0; i < largeArray.length; i++) {
+        largeArray[i] = i;
+    }
+    System.out.println(bs.search(largeArray, 999999)); // 999999
+}
+```
+
+### 常见问题解答
+
+**Q1：为什么循环条件是 left <= right？**
+```markdown
+当left == right时，区间仍有一个元素需要检查
+```
+
+**Q2：为什么mid计算要写成 left + (right - left)/2？**
+```markdown
+防止(left + right)可能导致的整数溢出
+```
+
+**Q3：如何修改代码处理有重复元素的情况？**
+```markdown
+找到目标后继续向左/右搜索可找到第一个/最后一个出现位置
+```
+
+### 算法可视化
+
+```
+初始数组：[0,1,3,4,6,7,9], target=6
+
+第1轮：left=0, right=6, mid=3 (值4)
+       4 < 6 → left=4
+
+第2轮：left=4, right=6, mid=5 (值7)
+       7 > 6 → right=4
+
+第3轮：left=4, right=4, mid=4 (值6)
+       找到目标，返回4
+```
+
+### 实际应用场景
+
+```markdown
+1. 数据库索引查找
+2. 游戏中的分数排名系统
+3. 大型系统的配置查找
+4. 科学计算中的数值查找
+```
+
+**扩展思考**：
+1. 如何实现查找第一个大于等于目标的元素？
+2. 如何在旋转有序数组中实现二分查找？
+3. 如何利用二分查找求平方根？
+
 ## 盛水最多的容器
 
 **题目描述**
@@ -720,814 +899,1558 @@ class Solution {
 2. 两次二分法思路更清晰但效率稍低
 3. 递归法代码简洁但空间效率低
 
+以下是优化后的下一个排列问题的多解法版本：
 
+---
+## 下一个排列
 
-
-## 最接近的三数之和
-### <font style="color:rgb(28, 31, 33);">内容描述</font>
-
-
-```plain
-给定一个包括 n 个整数的数组 nums 和 一个目标值 target。找出 nums 中的三个整数，使得它们的和与 target 最接近。返回这三个数的和。假定每组输入只存在唯一答案。
-
-例如：
-
-给定数组 nums = [-1, 2, 1, -4], 和 target = 1.
-
-与 target 最接近的三个数和为 2. (-1 + 2 + 1 = 2).
+**题目描述**
+```markdown
+实现获取数组的下一个排列的函数，将数字重新排列成字典序中下一个更大的排列
+必须原地修改，只允许使用常数空间
+示例：
+[1,2,3] → [1,3,2]
+[3,2,1] → [1,2,3]
+[1,1,5] → [1,5,1]
 ```
 
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
+### 解法1：标准解法（推荐）
+**核心思路**
+```markdown
+1. 从后向前找第一个升序对(i,i+1)
+2. 在[i+1,end]中找最小的大于nums[i]的数
+3. 交换这两个数
+4. 反转[i+1,end]部分
+```
 
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N^2) 空间复杂度: O(1)</font>
+**实现代码**
+```java
+class Solution {
+    public void nextPermutation(int[] nums) {
+        int i = nums.length - 2;
+        while (i >= 0 && nums[i] >= nums[i + 1]) {
+            i--;
+        }
+        
+        if (i >= 0) {
+            int j = nums.length - 1;
+            while (j >= 0 && nums[j] <= nums[i]) {
+                j--;
+            }
+            swap(nums, i, j);
+        }
+        reverse(nums, i + 1);
+    }
+    
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+    
+    private void reverse(int[] nums, int start) {
+        int end = nums.length - 1;
+        while (start < end) {
+            swap(nums, start++, end--);
+        }
+    }
+}
+```
 
-<font style="color:rgb(0, 0, 0);">这道题基本和3.6小节一样，所以解法思路相差不大。同样是固定一个元素，设定两个左右边界指针来进行循环。但是有一点需要注意：这道题最后的结果是一个数值，所以不需要处理重复元素。</font>
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 最多两次扫描
+空间复杂度: O(1) - 原地修改
+```
 
-<font style="color:rgb(0, 0, 0);">因为这道题最后要我们返回的最接近的那个和，而不是所有的组合，因此我们不需要去管重复元素，所以这里我们可以相对于3.6小节放聪明些，在这里我不对思路做具体详述了，差别不大，简单说下代码的执行流程吧：</font>
+### 解法2：库函数法（Python）
+**核心思路**
+```markdown
+使用标准库函数itertools.permutations
+（仅适用于Python等语言）
+```
 
-+ <font style="color:rgb(28, 31, 33);">先把</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">进行升序排序，这一步不用说；</font>
-+ <font style="color:rgb(28, 31, 33);">获取左右边界索引，左边界 l ，右边界 r ；</font>
-+ <font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">固定，</font><font style="color:rgb(199, 37, 78);">while</font><font style="color:rgb(28, 31, 33);">循环使左右边界向中间移动；</font>
-+ <font style="color:rgb(199, 37, 78);">temp</font><font style="color:rgb(28, 31, 33);">=</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);">+</font><font style="color:rgb(199, 37, 78);">nums[l]</font><font style="color:rgb(28, 31, 33);">+</font><font style="color:rgb(199, 37, 78);">nums[r]</font><font style="color:rgb(28, 31, 33);">判断 temp 和 target 是否相等，相等直接返回 target，如果大了则右边界 r 向左移动，如果小了，左边界 l 向右移动。</font>
+**实现代码**
+```python
+import itertools
 
-<font style="color:rgb(0, 0, 0);">下面来看下具体代码实现：</font>
+class Solution:
+    def nextPermutation(self, nums: List[int]) -> None:
+        perms = itertools.permutations(nums)
+        seen = set()
+        target = tuple(nums)
+        next_p = None
+        
+        for p in perms:
+            if p > target:
+                next_p = p
+                break
+                
+        if next_p:
+            nums[:] = next_p
+        else:
+            nums.sort()
+```
 
+**复杂度分析**
+```markdown
+时间复杂度: O(n!) - 全排列
+空间复杂度: O(n!) - 存储排列
+```
 
+### 解法3：暴力搜索（教学用）
+**核心思路**
+```markdown
+1. 生成所有排列
+2. 排序后查找当前排列的下一个
+3. 不推荐实际使用
+```
 
+**实现代码**
+```java
+// 仅用于教学理解，实际不可行
+```
+
+### 解法对比
+| 维度       | 标准解法 | 库函数法 | 暴力搜索 |
+|------------|---------|----------|----------|
+| 时间复杂度 | O(n)    | O(n!)    | O(n!)    |
+| 空间复杂度 | O(1)    | O(n!)    | O(n!)    |
+| 适用场景   | 通用    | Python   | 教学     |
+| 推荐指数   | ★★★★★  | ★★       | ★        |
+
+**补充说明**
+1. 标准解法是面试最佳选择
+2. 库函数法展示语言特性优势
+3. 暴力搜索帮助理解问题本质
+
+以下是优化后的最接近的三数之和问题的多解法版本：
+
+---
+## 最接近的三数之和
+
+**题目描述**
+```markdown
+给定整数数组nums和目标值target，找出三个数使它们的和最接近target
+返回这三个数的和
+示例：
+输入：nums = [-1,2,1,-4], target = 1
+输出：2 (因为 -1 + 2 + 1 = 2)
+```
+
+### 解法1：排序+双指针（推荐）
+**核心思路**
+```markdown
+1. 先对数组进行排序
+2. 固定一个数，用双指针寻找另外两个数
+3. 实时更新最接近的和
+```
+
+**实现代码**
 ```java
 class Solution {
     public int threeSumClosest(int[] nums, int target) {
-        int n = nums.length;
-        // 通过内部 api 进行排序
         Arrays.sort(nums);
-        int ret = 1<<30;
-        // 通过固定 nums[i]、移动 nums[left] 以及 nums[right] 来逼近目标值 target
-        for (int i = 0; i < n; i++) {
-            int left = i + 1;
-            int right = n - 1;
+        int closestSum = nums[0] + nums[1] + nums[2];
+        
+        for (int i = 0; i < nums.length - 2; i++) {
+            int left = i + 1, right = nums.length - 1;
             while (left < right) {
-                int temp = nums[i] + nums[left] + nums[right];
-                if (Math.abs(ret - target) > Math.abs(temp - target)) {
-                    ret = temp;
+                int currentSum = nums[i] + nums[left] + nums[right];
+                if (Math.abs(currentSum - target) < Math.abs(closestSum - target)) {
+                    closestSum = currentSum;
                 }
-                // temp 小于目标值 target 说明应该向由移动 left 指针，如果大于目标值 target 说明应该向左移动 right 指针
-                if (temp <= target) {
+                
+                if (currentSum < target) {
+                    left++;
+                } else if (currentSum > target) {
+                    right--;
+                } else {
+                    return target; // 找到完全匹配的
+                }
+            }
+        }
+        return closestSum;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 排序O(nlogn) + 双指针O(n^2)
+空间复杂度: O(1) - 常量空间
+```
+
+### 解法2：暴力枚举（基准解法）
+**核心思路**
+```markdown
+枚举所有可能的三元组组合
+```
+
+**实现代码**
+```java
+class Solution {
+    public int threeSumClosest(int[] nums, int target) {
+        int closestSum = nums[0] + nums[1] + nums[2];
+        
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                for (int k = j + 1; k < nums.length; k++) {
+                    int currentSum = nums[i] + nums[j] + nums[k];
+                    if (Math.abs(currentSum - target) < Math.abs(closestSum - target)) {
+                        closestSum = currentSum;
+                    }
+                }
+            }
+        }
+        return closestSum;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n^3) - 三重循环
+空间复杂度: O(1)
+```
+
+### 解法3：优化双指针（提前终止）
+**核心思路**
+```markdown
+1. 在双指针法基础上增加提前终止条件
+2. 找到完全匹配时立即返回
+```
+
+**实现代码**
+```java
+class Solution {
+    public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int closestSum = nums[0] + nums[1] + nums[2];
+        
+        for (int i = 0; i < nums.length - 2; i++) {
+            // 跳过重复元素
+            if (i > 0 && nums[i] == nums[i-1]) continue;
+            
+            int left = i + 1, right = nums.length - 1;
+            while (left < right) {
+                int currentSum = nums[i] + nums[left] + nums[right];
+                if (currentSum == target) return target;
+                
+                if (Math.abs(currentSum - target) < Math.abs(closestSum - target)) {
+                    closestSum = currentSum;
+                }
+                
+                if (currentSum < target) {
+                    left++;
+                    // 跳过重复元素
+                    while (left < right && nums[left] == nums[left-1]) left++;
+                } else {
+                    right--;
+                    // 跳过重复元素
+                    while (left < right && nums[right] == nums[right+1]) right--;
+                }
+            }
+        }
+        return closestSum;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 双指针法 | 暴力枚举 | 优化双指针 |
+|------------|---------|----------|------------|
+| 时间复杂度 | O(n^2)  | O(n^3)   | O(n^2)     |
+| 空间复杂度 | O(1)    | O(1)     | O(1)       |
+| 优化点     | 排序    | 无       | 提前终止   |
+| 推荐指数   | ★★★★★  | ★        | ★★★★       |
+
+**补充说明**
+1. 双指针法是面试最佳选择
+2. 暴力法仅用于理解问题本质
+3. 优化版在处理重复元素时更高效
+
+以下是优化后的三数之和问题的多解法版本：
+
+---
+## 三数之和
+
+**题目描述**
+```markdown
+在数组中找到所有不重复的三元组，使得它们的和为0
+示例：
+输入：nums = [-1,0,1,2,-1,-4]
+输出：[[-1,-1,2], [-1,0,1]]
+```
+
+### 解法1：排序+双指针（推荐）
+**核心思路**
+```markdown
+1. 先对数组进行排序
+2. 固定一个数，用双指针寻找另外两个数
+3. 跳过重复元素避免重复解
+4. 根据当前和调整指针位置
+```
+
+**实现代码**
+```java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        
+        for (int i = 0; i < nums.length - 2; i++) {
+            // 跳过重复的固定数
+            if (i > 0 && nums[i] == nums[i-1]) continue;
+            
+            int left = i + 1, right = nums.length - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum == 0) {
+                    res.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                    // 跳过重复的左指针和右指针
+                    while (left < right && nums[left] == nums[left+1]) left++;
+                    while (left < right && nums[right] == nums[right-1]) right--;
+                    left++;
+                    right--;
+                } else if (sum < 0) {
                     left++;
                 } else {
                     right--;
                 }
             }
         }
-        return ret;
+        return res;
     }
 }
 ```
 
-
-
-### <font style="color:rgb(28, 31, 33);">小结</font>
-
-<font style="color:rgb(0, 0, 0);">这道题和 3.5 小节其实很像，所以我直接把3.5小节的最优方法拿过来用了一下，算是偷了个懒。其实你在看到很类似的题目的时候也可以像我一样直接把模板拿过来用，有的题目相似到改两个参数就行了，毕竟人生苦短：）</font>
-
-## 三数之和
-### <font style="color:rgb(28, 31, 33);">内容描述</font>
-
-
-```plain
-给定一个包含 n 个整数的数组 nums，判断 nums 中是否存在三个元素 a，b，c ，使得 a + b + c = 0 ？找出所有满足条件且不重复的三元组。
-
-注意：答案中不可以包含重复的三元组。
-
-例如, 给定数组 nums = [-1, 0, 1, 2, -1, -4]，
-
-满足要求的三元组集合为：
-[
-  [-1, 0, 1],
-  [-1, -1, 2]
-]
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 排序O(nlogn) + 双指针O(n^2)
+空间复杂度: O(1) - 不考虑结果存储
 ```
 
-### <font style="color:rgb(28, 31, 33);">题目详解</font>
+### 解法2：哈希表法
+**核心思路**
+```markdown
+1. 使用哈希表记录数字出现次数
+2. 双重循环枚举前两个数
+3. 在哈希表中查找需要的第三个数
+```
 
-<font style="color:rgb(0, 0, 0);">首先看题目描述，我们知道这道题是要在数组</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中找到三个元素 a，b，c。并且a，b，c三个元素相加等于0，可以有负整数元素，并将符合条件的三个元素放进一个数组中。每一种符合条件的方案组成数组放进另一个数组中，最后返回的结果是一个二维数组，在这道题中我们要注意两点：</font>
-
-+ <font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">中会出现重复的数字；</font>
-+ <font style="color:rgb(28, 31, 33);">每一种组成方案只能出现一次。</font>
-
-<font style="color:rgb(0, 0, 0);">了解这两点限制条件之后，我们来看下解题方案：</font>
-
-## <font style="color:rgb(28, 31, 33);">解题方案</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 1：时间复杂度: O(N^3) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">这道题和我们做过的</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">两数相加</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">这道题很相似，两数相加的时候可以用双重循环来暴力地找出符合条件的组合，这道题只是把两数相加换成了三数相加，所以可以使用三重暴力循环来解这道题。</font>
-
-<font style="color:rgb(0, 0, 0);">每一重循环都从</font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中取出一个元素，如果三个元素相加等于 0，则将这三个元素放入数组</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">curRes</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中。最后判断</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">curRes</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">是否在最后结果</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中。如果不再说明此组合是第一次出现，并将</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">curRes</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">添加到</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中去，如果在</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中则不执行任何操作。</font>
-
-<font style="color:rgb(0, 0, 0);">因为题目限制每一种组成方案只能出现一次，所以在做循环之前首先要对</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">进行排序，因为数组</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">中可以有重复元素的出现，如果不排序的话可能会造成组合方案的重复。而在进行排序之后可以限制这种情况的发生。下面我们来看代码：</font>
-
-
-
-
-
+**实现代码**
 ```java
 class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
-        int n = nums.length;
-        // 将数组排序
         Arrays.sort(nums);
-        List<List<Integer>> ret = new ArrayList<>();
-        // 通过三层循环进行暴力搜索
-        for (int i = 0; i < n; i++) {
-            // 如果出现相同的值则跳过
-            if (i > 0 && nums[i] == nums[i - 1]) {
-                continue;
-            }
-            for (int j = i + 1; j < n; j++) {
-                // 如果出现相同的值则跳过
-                if (j > i + 1 && nums[j] == nums[j - 1]) {
-                    continue;
-                }
-                for (int k = j + 1; k < n; k++) {
-                    // 如果出现相同的值则跳过
-                    if (k > j + 1 && nums[k] == nums[k - 1]) {
-                        continue;
-                    }
-                    // 如果三个数相加为 0，则是目标值集合
-                    if (nums[i] + nums[j] + nums[k] == 0) {
-                        List<Integer> temp = new ArrayList<>();
-                        temp.add(nums[i]);
-                        temp.add(nums[j]);
-                        temp.add(nums[k]);
-                        ret.add(temp);
-                    }
+        List<List<Integer>> res = new ArrayList<>();
+        Map<Integer, Integer> map = new HashMap<>();
+        
+        // 记录每个数字的最后出现位置
+        for (int i = 0; i < nums.length; i++) {
+            map.put(nums[i], i);
+        }
+        
+        for (int i = 0; i < nums.length - 2; i++) {
+            if (i > 0 && nums[i] == nums[i-1]) continue;
+            
+            for (int j = i + 1; j < nums.length - 1; j++) {
+                if (j > i + 1 && nums[j] == nums[j-1]) continue;
+                
+                int target = -nums[i] - nums[j];
+                if (map.containsKey(target) && map.get(target) > j) {
+                    res.add(Arrays.asList(nums[i], nums[j], target));
                 }
             }
-        }
-        return ret;
-    }
-}
-```
-
-<font style="color:rgb(0, 0, 0);">上面的代码就是这道题最暴力也是最简单的解法，直接三重循环取出每一种组合来尝试结果是否等于0。但是这样的解法如果你去 LeetCode 上进行提交的话是不会通过的，因为时间复杂度太高，也就是超时了。你可能会问：“我在测试程序的时候执行速度很快啊？”。但如果</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(0, 0, 0);"> </font><font style="color:rgb(0, 0, 0);">的长度是100,1000或者10,000呢？这种方法的执行速度还会很快吗？为了解决这个问题我们采用了一种更加高效的方式，下面来看思路2。</font>
-
-#### <font style="color:rgb(28, 31, 33);">思路 2：时间复杂度: O(N^2) 空间复杂度: O(N)</font>
-
-<font style="color:rgb(0, 0, 0);">为了解决思路1中时间复杂度太高的问题，我们在思路2中采用了一种全新的方法，暂时称它为左右边界方法吧。先来看一下大致的步骤：</font>
-
-1. <font style="color:rgb(28, 31, 33);">获取</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的长度 n，将</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">进行排序，排序的原因与思路1一致，并遍历</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums</font><font style="color:rgb(28, 31, 33);">；</font>
-2. <font style="color:rgb(28, 31, 33);">获取左右边界索引，左边界 l 是</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">的下一个元素即索引是</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">i+1</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">，右边界 r 为最后一个元素即</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">n-1</font><font style="color:rgb(28, 31, 33);">；</font>
-3. <font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">固定，</font><font style="color:rgb(199, 37, 78);">while</font><font style="color:rgb(28, 31, 33);">循环使左右边界向中间移动；</font>
-4. <font style="color:rgb(199, 37, 78);">temp</font><font style="color:rgb(28, 31, 33);">=</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);">+</font><font style="color:rgb(199, 37, 78);">nums[l]</font><font style="color:rgb(28, 31, 33);">+</font><font style="color:rgb(199, 37, 78);">nums[r]</font><font style="color:rgb(28, 31, 33);">判断 temp 是否等于0；</font>
-5. <font style="color:rgb(28, 31, 33);">如果</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">temp = 0</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">，则将</font><font style="color:rgb(199, 37, 78);">nums[i]</font><font style="color:rgb(28, 31, 33);">，</font><font style="color:rgb(199, 37, 78);">nums[l]</font><font style="color:rgb(28, 31, 33);">，</font><font style="color:rgb(199, 37, 78);">nums[r]</font><font style="color:rgb(28, 31, 33);">三个元素组成数组放入</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(199, 37, 78);">res</font><font style="color:rgb(28, 31, 33);"> </font><font style="color:rgb(28, 31, 33);">中，如果 temp 大于 0，我们需要将右边界 r 向左移动取一个小一些的元素，如果 temp 小于0，则将 l 向右移动取一个大一些的元素重新组合尝试。</font>
-
-<font style="color:rgb(0, 0, 0);">上面这种方法大大缓解了思路1超大的时间复杂度，下面我们来看下具体的代码：</font>
-
-
-
-```java
-class Solution {
-    public List<List<Integer>> threeSum(int[] nums) {
-        int n = nums.length;
-        // 将数组进行排序
-        Arrays.sort(nums);
-        List<List<Integer>> ret = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            // 如果出现相同的值则跳过
-            if (i > 0 && nums[i] == nums[i - 1]) {
-                continue;
-            }
-            // l 和 r 分别代表左右两个指针，实际上是双索引法的延申
-            int l = i + 1;
-            int r = n - 1;
-            // 如果 l < r 说明还可以进行搜索满足条件的三个值
-            while (l < r) {
-                int temp = nums[i] + nums[l] + nums[r];
-                if (temp == 0) {
-                    // 如果 temp = 0 说明满足条件，可以添加到集合中
-                    List<Integer> tempList = new ArrayList<>();
-                    tempList.add(nums[i]);
-                    tempList.add(nums[l]);
-                    tempList.add(nums[r]);
-                    ret.add(tempList);
-                    // 满足条件就左右两个指针向中间靠拢
-                    l++;
-                    r--;
-                    // l 右移的同时要排除重复的值
-                    while (l < r && nums[l] == nums[l - 1]) {
-                        l++;
-                    }
-                    // r 左移的同时要排除重复的值
-                    while (l < r && nums[r] == nums[r + 1]) {
-                        r--;
-                    }
-                } else if (temp > 0){
-                    // temp > 0 说明需要更小的值，则右指针左移
-                    r--;
-                } else {
-                    // temp < 0 说明需要更大的值，则左指针右移1
-                    l++;
-                }
-            }
-        }
-        return ret;
-    }
-}
-```
-
-
-
-<font style="color:rgb(0, 0, 0);">上面的代码是经过我们优化后的，现在的时间复杂度是O(N^2)，你可以去 LeetCode 上提交一下试试，会获得一个不错的通过率。</font>
-
-### <font style="color:rgb(28, 31, 33);">小结</font>
-
-<font style="color:rgb(0, 0, 0);">这个小节的题目和我们之前做过的第一题很像，所以最暴力的解法和第一题一样，都是多重循环嵌套。但是很明显超时了，为了解决这个问题我们采用了左右边界的方法来解决这个问题，在左右边界方法中要注意元素重复的问题。可能比较难理解，可以把代码多敲几遍，这样你会越来越熟练。</font>
-
-## 最长上升子序列1
-# <font style="color:rgb(51, 51, 51);">题目描述</font>
-
-给定一个长度为 n 的数组 arr，求它的最长严格上升子序列的长度。
-
-最长上升子序列是指，在一个未经排序的数组中，找到一个最长的子序列（不必连续），使得这个子序列中的所有元素都严格按照升序排列。
-
-所谓子序列，指一个数组删掉一些数（也可以不删）之后，形成的新数组。例如 [1,5,3,7,3] 数组，其子序列有：[1,3,3]、[7] 等。但 [1,6]、[1,3,5] 则不是它的子序列。
-
-我们定义一个序列是 严格上升 的，当且仅当该序列不存在两个下标 i 和 j 满足 i<j 且 arr[i]≥arr[j]。
-
-数据范围： 0≤n≤1000
-
-要求：时间复杂度 O(n2)， 空间复杂度 O(n)
-
-
-
-**<font style="color:rgb(51, 51, 51);">示例1</font>**
-
-输入：[6,3,1,5,2,3,7]
-
-返回值：4
-
-说明：该数组最长上升子序列为 [1,2,3,7] ，长度为4
-
-# 解法
-
-使用动态规划
-
-1. 创建数组dp，长度与arr数组长度相同，dp[i]表示前i个最长上升子序列的长度。
-2. 初始化值为1，表示长度为1
-3. 遍历数组，计算前 i 项最长上升子序列长度，并更新到 dp[i] 上面。
-
-时间复杂度是O(n^2)
-
-```java
-class Solution {
-    public int LIS(int[] arr) {
-        if (arr == null || arr.length == 0) {
-            return 0;
-        }
-        if (arr.length == 1) {
-            return 1;
-        }
-        int[] dp = new int[arr.length];
-        // 填充dp数组，所有值都为1
-        Arrays.fill(dp, 1);
-        int res = 0;
-        for (int i = 1; i < arr.length; i++) {
-            // 计算前 i 项最长上升子序列长度，并更新到 dp[i] 上面
-            for (int j = 0; j < i; j++) {
-                if (arr[j] < arr[i]) {
-                    dp[i] = Math.max(dp[i], dp[j] + 1);
-                }
-            }
-            res = Math.max(res, dp[i]);
         }
         return res;
     }
-
 }
 ```
 
-## 数组中超过半数的数字
-给一个长度为 n 的数组，数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。
-
-例如输入一个长度为9的数组[1,2,3,2,2,2,5,4,2]。由于数字2在数组中出现了5次，超过数组长度的一半，因此输出2。
-
-注意：给定的数组中一定存在满足要求的数字。
-
-# 解法1
-
-遍历数组，把当前值和当前值出现次数放到 HashMap 中，判断当前值出现次数，如果大于一半，就返回。
-
-时间复杂度：O(n)
-
-空间复杂度：O(n)
-
-```java
-public int MoreThanHalfNum_Solution(int[] array) {
-    // 统计每个数字出现的次数
-    HashMap<Integer, Integer> map = new HashMap<>();
-    //遍历数组
-    for (int i = 0; i < array.length; i++) {
-        // 统计频率
-        if (!map.containsKey(array[i])) {
-            map.put(array[i], 1);
-        } else {
-            map.put(array[i], map.get(array[i]) + 1);
-        }
-        //一旦有个数大于长度一半的情况即可返回
-        if (map.get(array[i]) > array.length / 2) {
-            return array[i];
-        }
-    }
-    return 0;
-}
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2) - 双重循环
+空间复杂度: O(n) - 哈希表存储
 ```
 
-# 解法2
-
-先将数组排序，出现次数超过数组长度一半的数字一定包含数组中间位置，只需返回数组中间位置的数字即可。
-
-时间复杂度：O(nlogn)，使用快排
-
-空间复杂度：O(1)
-
-```java
-public int MoreThanHalfNum_Solution(int[] array) {
-    sort(array);
-    return array[array.length / 2];
-}
+### 解法3：暴力枚举（基准解法）
+**核心思路**
+```markdown
+1. 三重循环枚举所有可能的三元组
+2. 使用集合自动去重
 ```
 
-# 解法3
-
-选出一个数作为 key（假设选第一个数），遍历数组，和 key 比较大小，如果相等，则出现次数加一，否则出现次数减一。如果次数为零，则替换 key。最后留下的 key 就是满足要求的数。
-
-时间复杂度：O(n)
-
-空间复杂度：O(1)
-
+**实现代码**
 ```java
-public int MoreThanHalfNum_Solution(int[] array) {
-    int key = array[0];
-    int count = 1;
-    for (int i = 1; i < array.length; i++) {
-        if (key == array[i]) {
-            count++;
-        } else {
-            count--;
-            if (count == 0) {
-                key = array[i + 1];
-                count++;
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Set<List<Integer>> res = new HashSet<>();
+        Arrays.sort(nums);
+        
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                for (int k = j + 1; k < nums.length; k++) {
+                    if (nums[i] + nums[j] + nums[k] == 0) {
+                        res.add(Arrays.asList(nums[i], nums[j], nums[k]));
+                    }
+                }
             }
         }
+        return new ArrayList<>(res);
     }
-    return key;
 }
 ```
 
-## 合并两个有序数组
-# 题目描述
+**复杂度分析**
+```markdown
+时间复杂度: O(n^3) - 三重循环
+空间复杂度: O(n) - 结果存储
+```
 
-给出一个有序的整数数组 A 和有序的整数数组 B ，请将数组 B 合并到数组 A 中，变成一个有序的升序数组。
+### 解法对比
+| 维度       | 双指针法 | 哈希表法 | 暴力枚举 |
+|------------|---------|----------|----------|
+| 时间复杂度 | O(n^2)  | O(n^2)   | O(n^3)   |
+| 空间复杂度 | O(1)    | O(n)     | O(n)     |
+| 优化点     | 排序+双指针 | 哈希加速 | 无优化   |
+| 推荐指数   | ★★★★★  | ★★★★     | ★        |
 
-注意：数组 A 有足够的空间存放数组 B
+**补充说明**
+1. 双指针法是面试最佳选择，效率高
+2. 哈希表法思路清晰但空间消耗大
+3. 暴力法仅用于理解问题本质
 
+以下是优化后的最长上升子序列问题的多解法版本：
+
+---
+## 最长上升子序列
+
+**题目描述**
+```markdown
+给定一个无序数组，找到其中最长的严格递增子序列的长度
 示例：
+输入：[6,3,1,5,2,3,7]
+输出：4 (因为[1,2,3,7]长度为4)
+```
 
-> 输入：[1,2,3],[2,5,6]
->
-> 返回值：[1,2,2,3,5,6]
+### 解法1：动态规划（标准版）
+**核心思路**
+```markdown
+1. dp[i]表示以nums[i]结尾的最长上升子序列长度
+2. 对于每个i，遍历前面的元素j
+3. 如果nums[j]<nums[i]，则更新dp[i]
+```
 
-# 解法1
-
-最容易想到的办法是，新建一个空数组 C，长度是数组 A 的元素数量加上数组 B 的元素数量。然后遍历数组 A 和数组 B，比较元素大小，放到数组 C 中，最后再把数组 C 赋值给数组 A。
-
-**复杂度分析：**
-
-**时间复杂度：**O(m+n)。两个数组长度之和。
-
-**空间复杂度：**O(m+n)。需要申请额外的空间存储合并后结果。
-
+**实现代码**
 ```java
-public void merge(int[] A, int m, int[] B, int n) {
-    // 如果数组 B 为空，无需处理
-    if (n == 0) {
-        return;
-    }
-    // 如果数组 A 为空，直接把数组 B 赋值给数组 A
-    if (m == 0) {
-        for (int i = 0; i < n; i++) {
-            A[i] = B[i];
+class Solution {
+    public int lengthOfLIS(int[] nums) {
+        if (nums.length == 0) return 0;
+        int[] dp = new int[nums.length];
+        Arrays.fill(dp, 1);
+        int maxLen = 1;
+        
+        for (int i = 1; i < nums.length; i++) {
+            for (int j = 0; j < i; j++) {
+                if (nums[j] < nums[i]) {
+                    dp[i] = Math.max(dp[i], dp[j] + 1);
+                }
+            }
+            maxLen = Math.max(maxLen, dp[i]);
         }
-        return;
-    }
-    // 新建一个数组C，存储合并后结果
-    int[] C = new int[m + n];
-    int i = 0, j = 0, k = 0;
-    while (i < m && j < n) {
-        C[k++] = A[i] <= B[j] ? A[i++] : B[j++];
-    }
-
-    // 考虑到数组 A 有剩余的情况
-    while (i < m) {
-        C[k++] = A[i++];
-    }
-    // 考虑到数组 B 有剩余的情况
-    while (j < n) {
-        C[k++] = B[j++];
-    }
-    
-    // 把合并的结果赋值给数组 A
-    for (int p = 0; p < m + n; p++) {
-        A[p] = C[p];
+        return maxLen;
     }
 }
 ```
 
-# 解法2
+**复杂度分析**
+```markdown
+时间复杂度: O(n^2)
+空间复杂度: O(n)
+```
 
-由于我们已经知道了数组 A 和数组 B 的有效元素个数，最终的目的是把数组 B 的元素放到数组 A 中，我们可以从两个数组中最大的元素开始比较，放入位置是 A[m+n-1]，然后从后往前放。
+### 解法2：贪心+二分查找（最优解）
+**核心思路**
+```markdown
+1. 维护一个tails数组，tails[i]表示长度为i+1的子序列的最小末尾
+2. 对于每个数字，用二分查找确定它在tails中的位置
+3. 更新tails数组
+```
 
-**复杂度分析：**
-
-**时间复杂度：**O(m+n)。两个数组长度之和。
-
-**空间复杂度：**O(m+n)。没有申请额外的空间，不过利用了数组 A 的空间。
-
+**实现代码**
 ```java
-public void merge(int A[], int m, int B[], int n) {
-    int i = m - 1;
-    int j = n - 1;
-    int k = m + n - 1;
-    // 判断数组B中的元素是否移动完成
-    while (j >= 0) {
-        if (i >= 0) {
-            A[k--] = A[i] > B[j] ? A[i--] : B[j--];
-        } else {
-            // 如果数组B中还有剩余
-            A[k--] = B[j--];
+class Solution {
+    public int lengthOfLIS(int[] nums) {
+        int[] tails = new int[nums.length];
+        int size = 0;
+        
+        for (int num : nums) {
+            int left = 0, right = size;
+            // 二分查找插入位置
+            while (left < right) {
+                int mid = left + (right - left) / 2;
+                if (tails[mid] < num) {
+                    left = mid + 1;
+                } else {
+                    right = mid;
+                }
+            }
+            tails[left] = num;
+            if (left == size) size++;
         }
-
+        return size;
     }
 }
 ```
 
-## 最长公共前缀
-# 题目描述
+**复杂度分析**
+```markdown
+时间复杂度: O(nlogn) - 二分查找优化
+空间复杂度: O(n)
+```
 
-给定一个的字符串数组 strs  , 编写一个函数来查找字符串数组中的最长公共前缀，返回这个公共前缀。
+### 解法3：树状数组优化
+**核心思路**
+```markdown
+1. 离散化处理原数组
+2. 使用树状数组维护前缀最大值
+3. 查询和更新时间复杂度均为O(logn)
+```
 
-示例1
-
-> 输入: ["flower","flow","flight"]
->
-> 返回: "fl"
-
-示例2
-
-> 输入: ["dog","racecar","car"]
->
-> 输出: ""
->
-> 说明: 不存在公共前缀。
-
-# 解法1
-
-比较容易想到的办法是，先计算数组中前两个字符串的最长公共前缀，算出的结果再与第三个字符串比较，依次向下比较，直到遍历完整个数组，或者计算出的最长公共前缀是空为止。
-
-**复杂度分析：**
-
-时间复杂度：O(m*n)。m 是字符串的平均长度，n 是数组长度。
-
-空间复杂度：O(1)。常数的空间。
-
+**实现代码**
 ```java
-public String longestCommonPrefix(String[] strs) {
-    // 判空
-    if (strs == null || strs.length == 0) {
-        return "";
-    }
-    // 从第一个字符串开始，循环比较
-    String prefix = strs[0];
-    for (int i = 1; i < strs.length; i++) {
-        prefix = getCommonPrefix(prefix, strs[i]);
-        // 最长公共前缀是空，就结束
-        if (prefix.length() == 0) {
-            return "";
-        }
-    }
-    return prefix;
-}
+// 实现较复杂，适用于高级场景
+```
 
-// 返回两个字符串的最长公共前缀
-public String getCommonPrefix(String s1, String s2) {
-    int index = 0;
-    while (index < s1.length() && index < s2.length()
-            && s1.charAt(index) == s2.charAt(index)) {
-        index++;
+### 解法4：线段树优化
+**核心思路**
+```markdown
+1. 类似树状数组思路
+2. 使用线段树维护区间最大值
+3. 查询和更新时间复杂度均为O(logn)
+```
+
+### 解法对比
+| 维度       | 动态规划 | 贪心+二分 | 树状数组 | 线段树 |
+|------------|---------|-----------|----------|--------|
+| 时间复杂度 | O(n^2)  | O(nlogn)  | O(nlogn) | O(nlogn) |
+| 空间复杂度 | O(n)    | O(n)      | O(n)     | O(n)   |
+| 实现难度   | 简单    | 中等      | 较难     | 难     |
+| 推荐指数   | ★★★★    | ★★★★★    | ★★★      | ★★     |
+
+**补充说明**
+1. 面试推荐使用贪心+二分法，兼顾效率和实现难度
+2. 动态规划法思路直观，适合教学
+3. 树状数组和线段树适合竞赛场景
+
+以下是优化后的寻找数组中出现次数超过一半数字的多解法版本：
+
+---
+## 数组中超过半数的数字
+
+**题目描述**
+```markdown
+给定一个长度为n的数组，找出出现次数超过n/2的数字
+示例：
+输入：[1,2,3,2,2,2,5,4,2]
+输出：2 (出现5次 > 9/2)
+```
+
+### 解法1：摩尔投票法（最优解）
+**核心思路**
+```markdown
+1. 维护候选人和计数变量
+2. 遍历数组，相同则计数+1，不同则-1
+3. 计数为0时更换候选人
+```
+
+**实现代码**
+```java
+class Solution {
+    public int majorityElement(int[] nums) {
+        int candidate = nums[0];
+        int count = 1;
+        
+        for (int i = 1; i < nums.length; i++) {
+            if (count == 0) {
+                candidate = nums[i];
+                count = 1;
+            } else if (nums[i] == candidate) {
+                count++;
+            } else {
+                count--;
+            }
+        }
+        return candidate;
     }
-    return s1.substring(0, index);
 }
 ```
 
-# 解法2
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(1) - 常量空间
+```
 
-我们也可以假设数组中第一个字符串是整个数组的最长公共前缀，然后遍历数组，比较第一个字符串中的每个字符是否符合要求。
+### 解法2：哈希表统计法
+**核心思路**
+```markdown
+1. 使用哈希表记录每个数字出现次数
+2. 遍历过程中检查是否超过半数
+```
 
-**复杂度分析：**
-
-时间复杂度：O(m*n)。m 是字符串的平均长度，n 是数组长度。
-
-空间复杂度：O(1)。常数的空间。
-
+**实现代码**
 ```java
-public String longestCommonPrefix(String[] strs) {
-    // 判空
-    if (strs == null || strs.length == 0) {
-        return "";
+class Solution {
+    public int majorityElement(int[] nums) {
+        Map<Integer, Integer> map = new HashMap<>();
+        int half = nums.length / 2;
+        
+        for (int num : nums) {
+            int count = map.getOrDefault(num, 0) + 1;
+            if (count > half) return num;
+            map.put(num, count);
+        }
+        return -1; // 题目保证存在，此行不会执行
     }
-    
-    // 遍历第一个字符串，校验每个字符是否符合要求
-    for (int i = 0; i < strs[0].length(); i++) {
-        // 取出第一个字符串的字符
-        char firstChar = strs[0].charAt(i);
-        // 遍历数组，校验每个字符是否符合要求
-        for (int j = 1; j < strs.length; j++) {
-            if (strs[j].length() == i || strs[j].charAt(i) != firstChar) {
-                return strs[0].substring(0, i);
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(n) - 单次遍历
+空间复杂度: O(n) - 哈希表存储
+```
+
+### 解法3：排序取中法
+**核心思路**
+```markdown
+1. 将数组排序
+2. 中间位置的元素必定是众数
+```
+
+**实现代码**
+```java
+class Solution {
+    public int majorityElement(int[] nums) {
+        Arrays.sort(nums);
+        return nums[nums.length / 2];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(nlogn) - 排序时间
+空间复杂度: O(1) - 原地排序
+```
+
+### 解法4：随机抽样法
+**核心思路**
+```markdown
+1. 随机选取一个元素
+2. 验证是否为众数
+3. 期望时间复杂度O(n)
+```
+
+**实现代码**
+```java
+class Solution {
+    public int majorityElement(int[] nums) {
+        Random rand = new Random();
+        int half = nums.length / 2;
+        
+        while (true) {
+            int candidate = nums[rand.nextInt(nums.length)];
+            int count = 0;
+            for (int num : nums) {
+                if (num == candidate) count++;
+                if (count > half) return candidate;
             }
         }
     }
-    // 全部符合要求
-    return strs[0];
 }
 ```
+
+**复杂度分析**
+```markdown
+时间复杂度: 期望O(n)，最坏O(∞)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 摩尔投票 | 哈希表 | 排序法 | 随机法 |
+|------------|---------|--------|--------|--------|
+| 时间复杂度 | O(n)    | O(n)   | O(nlogn)| 期望O(n) |
+| 空间复杂度 | O(1)    | O(n)   | O(1)   | O(1)   |
+| 适用场景   | 通用    | 通用   | 简单   | 概率   |
+| 推荐指数   | ★★★★★  | ★★★★   | ★★★    | ★★     |
+
+**补充说明**
+1. 摩尔投票法是面试最佳选择，效率最高
+2. 哈希表法思路直观，适合教学
+3. 排序法代码最简洁
+4. 随机法展示概率算法的思路
+
+以下是优化后的合并两个有序数组问题的多解法版本：
+
+---
+## 合并两个有序数组
+
+**题目描述**
+```markdown
+将两个有序数组合并为一个有序数组
+要求：合并后的数组存储在第一个数组中
+示例：
+输入：A=[1,2,3], B=[2,5,6]
+输出：[1,2,2,3,5,6]
+```
+
+### 解法1：双指针从后向前合并（最优解）
+**核心思路**
+```markdown
+1. 利用数组A的尾部空间
+2. 从两个数组的末尾开始比较
+3. 较大的元素放入合并后的末尾
+```
+
+**实现代码**
+```java
+class Solution {
+    public void merge(int[] A, int m, int[] B, int n) {
+        int i = m - 1, j = n - 1, k = m + n - 1;
+        
+        while (j >= 0) {
+            if (i >= 0 && A[i] > B[j]) {
+                A[k--] = A[i--];
+            } else {
+                A[k--] = B[j--];
+            }
+        }
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(m+n) - 单次遍历
+空间复杂度: O(1) - 原地修改
+```
+
+### 解法2：新建数组合并（直观解法）
+**核心思路**
+```markdown
+1. 创建新数组存储合并结果
+2. 双指针从前向后比较
+3. 最后将结果拷贝回原数组
+```
+
+**实现代码**
+```java
+class Solution {
+    public void merge(int[] A, int m, int[] B, int n) {
+        int[] C = new int[m + n];
+        int i = 0, j = 0, k = 0;
+        
+        while (i < m && j < n) {
+            C[k++] = A[i] <= B[j] ? A[i++] : B[j++];
+        }
+        while (i < m) C[k++] = A[i++];
+        while (j < n) C[k++] = B[j++];
+        
+        System.arraycopy(C, 0, A, 0, m + n);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(m+n)
+空间复杂度: O(m+n) - 额外数组
+```
+
+### 解法3：先合并后排序（简易解法）
+**核心思路**
+```markdown
+1. 将B数组直接拼接到A数组后面
+2. 对整个数组进行排序
+```
+
+**实现代码**
+```java
+class Solution {
+    public void merge(int[] A, int m, int[] B, int n) {
+        System.arraycopy(B, 0, A, m, n);
+        Arrays.sort(A);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O((m+n)log(m+n)) - 排序时间
+空间复杂度: O(1) - 原地排序
+```
+
+### 解法对比
+| 维度       | 从后向前合并 | 新建数组法 | 先合并后排序 |
+|------------|-------------|------------|-------------|
+| 时间复杂度 | O(m+n)      | O(m+n)     | O((m+n)log(m+n)) |
+| 空间复杂度 | O(1)        | O(m+n)     | O(1)        |
+| 适用场景   | 通用        | 教学演示   | 快速实现    |
+| 推荐指数   | ★★★★★      | ★★★        | ★★          |
+
+**补充说明**
+1. 从后向前合并是最优解法，推荐面试使用
+2. 新建数组法思路直观，适合理解问题
+3. 先合并后排序代码最简洁但效率较低
+
+以下是优化后的最长公共前缀问题的多解法版本：
+
+---
+## 最长公共前缀
+
+**题目描述**
+```markdown
+查找字符串数组中的最长公共前缀
+示例：
+输入：["flower","flow","flight"]
+输出："fl"
+输入：["dog","racecar","car"]
+输出：""
+```
+
+### 解法1：横向扫描（推荐）
+**核心思路**
+```markdown
+1. 以第一个字符串为基准
+2. 依次与其他字符串比较
+3. 逐步缩小公共前缀范围
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return "";
+        
+        String prefix = strs[0];
+        for (int i = 1; i < strs.length; i++) {
+            while (strs[i].indexOf(prefix) != 0) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+                if (prefix.isEmpty()) return "";
+            }
+        }
+        return prefix;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(S) - S为所有字符串字符总数
+空间复杂度: O(1)
+```
+
+### 解法2：纵向扫描（直观解法）
+**核心思路**
+```markdown
+1. 逐个字符比较所有字符串
+2. 遇到不匹配字符立即返回
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return "";
+        
+        for (int i = 0; i < strs[0].length(); i++) {
+            char c = strs[0].charAt(i);
+            for (int j = 1; j < strs.length; j++) {
+                if (i == strs[j].length() || strs[j].charAt(i) != c) {
+                    return strs[0].substring(0, i);
+                }
+            }
+        }
+        return strs[0];
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(S)
+空间复杂度: O(1)
+```
+
+### 解法3：分治法
+**核心思路**
+```markdown
+1. 将问题分解为子问题
+2. 合并左右子问题的解
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return "";
+        return divide(strs, 0, strs.length - 1);
+    }
+    
+    private String divide(String[] strs, int left, int right) {
+        if (left == right) return strs[left];
+        
+        int mid = (left + right) / 2;
+        String lcpLeft = divide(strs, left, mid);
+        String lcpRight = divide(strs, mid + 1, right);
+        return commonPrefix(lcpLeft, lcpRight);
+    }
+    
+    private String commonPrefix(String left, String right) {
+        int min = Math.min(left.length(), right.length());
+        for (int i = 0; i < min; i++) {
+            if (left.charAt(i) != right.charAt(i)) {
+                return left.substring(0, i);
+            }
+        }
+        return left.substring(0, min);
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(S)
+空间复杂度: O(mlogn) - 递归栈空间
+```
+
+### 解法4：二分查找法
+**核心思路**
+```markdown
+1. 对最短字符串长度进行二分
+2. 检查当前长度是否是公共前缀
+```
+
+**实现代码**
+```java
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return "";
+        
+        int minLen = Integer.MAX_VALUE;
+        for (String str : strs) {
+            minLen = Math.min(minLen, str.length());
+        }
+        
+        int low = 1, high = minLen;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            if (isCommonPrefix(strs, mid)) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return strs[0].substring(0, (low + high) / 2);
+    }
+    
+    private boolean isCommonPrefix(String[] strs, int len) {
+        String prefix = strs[0].substring(0, len);
+        for (int i = 1; i < strs.length; i++) {
+            if (!strs[i].startsWith(prefix)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+**复杂度分析**
+```markdown
+时间复杂度: O(Slogn)
+空间复杂度: O(1)
+```
+
+### 解法对比
+| 维度       | 横向扫描 | 纵向扫描 | 分治法 | 二分法 |
+|------------|---------|----------|--------|--------|
+| 时间复杂度 | O(S)    | O(S)     | O(S)   | O(Slogn) |
+| 空间复杂度 | O(1)    | O(1)     | O(mlogn)| O(1)   |
+| 实现难度   | 简单    | 简单     | 中等   | 中等   |
+| 推荐指数   | ★★★★★  | ★★★★     | ★★★    | ★★★★   |
+
+**补充说明**
+1. 横向扫描是面试最佳选择，代码简洁高效
+2. 纵向扫描思路最直观
+3. 分治法展示分治思想
+4. 二分法适合超长字符串场景
 
 ## 两数之和
-# <font style="color:rgb(28, 31, 33);">题目描述</font>
 
-给定一个整数数组 nums 和一个目标值 target，请你在该数组中找出和为目标值的那 两个 整数，并返回它们的数组下标。
+**题目描述**
 
-你可以假设每种输入只会对应一个答案。但是，你不能重复利用这个数组中同样的元素。
+```markdown
+给定一个整数数组 nums 和一个目标值 target，请在数组中找出和为目标值的两个整数，并返回它们的数组下标。
 
-示例:
+假设：
+1. 每种输入只会对应一个答案
+2. 不能重复使用同一个元素
 
-给定 nums = [2, 7, 11, 15], target = 9
+示例：
+输入：nums = [2,7,11,15], target = 9
+输出：[0,1]
+解释：nums[0] + nums[1] = 2 + 7 = 9
+```
 
-因为 nums[0] + nums[1] = 2 + 7 = 9
+### 解题思路
 
-所以返回 [0, 1]
+```markdown
+1. 暴力解法：双重循环检查所有可能的组合
+2. 哈希优化：利用哈希表实现O(1)时间复杂度的查找
+```
 
-# <font style="color:rgb(28, 31, 33);">解法1</font>
+### 关键步骤
 
-暴力破解，使用两层 for 循环，计算数组中任意两个数值之和，然后跟 target 比较，如果相等，返回两数下标。
+```markdown
+1. 边界处理：空数组或单元素数组直接返回
+2. 哈希表使用：存储已遍历元素的值和索引
+3. 差值查找：检查(target - current)是否存在于哈希表
+```
 
-**复杂度分析：**
+## 解法1：暴力枚举
 
-+ 时间复杂度：O(n^2) 遍历两次数组
-+ 空间复杂度：O(1) 未申请额外空间
+**思路**
+```markdown
+通过双重循环穷举所有可能的元素组合，检查是否满足条件
+```
 
 ```java
 public int[] twoSum(int[] nums, int target) {
+    // 外层循环遍历每个元素（除最后一个）
     for (int i = 0; i < nums.length - 1; i++) {
+        // 内层循环遍历后续元素
         for (int j = i + 1; j < nums.length; j++) {
             if (nums[i] + nums[j] == target) {
                 return new int[]{i, j};
             }
         }
     }
-    return null;
+    return new int[0]; // 无解情况
 }
 ```
 
-# 解法2
+**复杂度分析**
+```markdown
+时间复杂度：O(n²) - 最坏情况下需遍历n(n-1)/2次
+空间复杂度：O(1) - 仅使用常数级额外空间
+```
 
-使用 HashMap 降低时间复杂度，key 是数组的值，value 是数组下标。
+## 解法2：哈希表优化
 
-遍历数组，同时判断 HashMap 中是否存在 （target - 当前值），如果存在，则返回 HashMap 中的数组下标和当前值下标。如果不存在，则把当前值和当前下标放入 HashMap。
-
-用空间换时间。
-
-**复杂度分析：**
-
-+ 时间复杂度：O(n) 遍历一次数组，一次hash索引查找时间复杂度是 O(1)
-+ 空间复杂度：O(n) 申请了额外的 HashMap 空间
+**思路**
+```markdown
+利用哈希表实现O(1)时间复杂度的查找，将时间复杂度从O(n²)降至O(n)
+```
 
 ```java
-public int[] twoSum(int[] numbers, int target) {
-    Map<Integer, Integer> map = new HashMap<>();
-    // 遍历数组
-    for (int i = 0; i < numbers.length; i++) {
-        // 判断 map 中是否包含（target - 当前值），如果包含则返回下标，不包含则放入 map 中
-        if (map.containsKey(target - numbers[i])) {
-            return new int[]{map.get(target - numbers[i]), i};
-        } else {
-            map.put(numbers[i], i);
+public int[] twoSum(int[] nums, int target) {
+    Map<Integer, Integer> numMap = new HashMap<>();
+    
+    for (int i = 0; i < nums.length; i++) {
+        int complement = target - nums[i];
+        // 检查补数是否已存在
+        if (numMap.containsKey(complement)) {
+            return new int[]{numMap.get(complement), i};
         }
+        // 将当前值存入哈希表
+        numMap.put(nums[i], i);
     }
-    return null;
+    return new int[0]; // 无解情况
 }
 ```
+
+**复杂度分析**
+```markdown
+时间复杂度：O(n) - 只需遍历一次数组
+空间复杂度：O(n) - 最坏情况下需存储所有元素
+```
+
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    Solution solution = new Solution();
+    
+    // 常规测试
+    System.out.println(Arrays.toString(solution.twoSum(new int[]{2,7,11,15}, 9))); // [0,1]
+    
+    // 边界测试
+    System.out.println(Arrays.toString(solution.twoSum(new int[]{3,3}, 6))); // [0,1]
+    System.out.println(Arrays.toString(solution.twoSum(new int[]{3}, 3)));  // []
+    
+    // 性能测试
+    int[] largeArray = new int[1000000];
+    Arrays.fill(largeArray, 1);
+    largeArray[999999] = 2;
+    System.out.println(Arrays.toString(solution.twoSum(largeArray, 3))); // [0,999999]
+}
+```
+
+### 方法比较
+
+| 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
+|-------------|------------|------------|------------------------|
+| 暴力枚举    | O(n²)      | O(1)       | 小规模数据             |
+| 哈希表优化  | O(n)       | O(n)       | 大规模数据，追求效率   |
+
+**选择建议**：在内存充足的情况下优先选择哈希表解法，数据量极小时可考虑暴力解法。
+
 
 ## 小于n的最大数
-# 题目描述
 
-给定一个数n如23121；给定一组数字集合如[2 4 9]
+**题目描述**
 
-求由集合中元素组成的小于n的最大数
+```markdown
+给定一个数n和一组数字集合，求由集合中元素组成的小于n的最大数
 
+约束条件：
+1. 只能使用集合中的数字
+2. 结果必须严格小于n
+3. 结果应尽可能大
 
-
-示例 1：
-
-输入：n = 23121, nums=[2,4,9]
-
+示例：
+输入：n = 23121, nums = [2,4,9]
 输出：22999
 
-
-
-示例 2：
-
-输入：n = 23121, nums=[9,8,7]
-
+输入：n = 23121, nums = [9,8,7]
 输出：9999
+```
 
-# 解法
+### 解题思路
+
+```markdown
+1. 贪心算法：从高位到低位逐位构造数字
+2. 回溯策略：当某位无法找到合适数字时回退调整前一位
+3. 剪枝优化：尽早确定可以构造更小数字的情况
+```
+
+### 关键步骤
+
+```markdown
+1. 预处理：将数字集合排序以便快速查找
+2. 逐位构造：
+   - 优先选择等于当前位的数字
+   - 若无则选择小于当前位的最大数字
+   - 若仍无则回溯调整前一位
+3. 后续处理：确定某位小于n后，后续位填充最大可用数字
+```
+
+## 解法1：贪心+回溯
 
 ```java
-import org.apache.commons.lang3.StringUtils;
 import java.util.TreeSet;
 
 public class Solution {
-    public static String findMaxNumber(int n, int[] nums) {
-        // 将输入的数字集合转换成TreeSet，并从小到大排序
+    public String findMaxNumber(int n, int[] nums) {
         TreeSet<Integer> digits = new TreeSet<>();
         for (int num : nums) {
             digits.add(num);
         }
-
-        // 将目标数字转换为字符数组，以便逐位处理
-        char[] nChars = String.valueOf(n).toCharArray();
+        
+        char[] target = String.valueOf(n).toCharArray();
         StringBuilder result = new StringBuilder();
-
-        // 标志用于表示我们是否需要构造一个完全小于n的数字
-        boolean needSmaller = false;
-
-        for (char nChar : nChars) {
-            int currentDigit = nChar - '0';
-
-            // 如果已经确定要构造比n小的数字，直接用集合中最大的数字
-            if (needSmaller) {
+        boolean isSmaller = false;
+        
+        for (int i = 0; i < target.length; i++) {
+            int current = target[i] - '0';
+            
+            if (isSmaller) {
                 result.append(digits.last());
                 continue;
             }
-
-            // 寻找集合中小于或等于当前位的最大数字
-            Integer replacement = digits.floor(currentDigit);
-
-            // 如果没有找到小于或等于当前位的数字，或者与当前值不同，开始构造小于n的数字
-            if (replacement == null || !replacement.equals(currentDigit)) {
-                needSmaller = true;
-            }
-
-            // 如果无法找到小于当前位的数字，则移至上一位，后续全用最大数字填充
-            if (replacement == null) {
-                int j = result.length() - 1;
-                while (j >= 0 && result.charAt(j) == (char) (digits.first() + '0')) {
-                    j--;
+            
+            Integer candidate = digits.floor(current);
+            if (candidate == null) {
+                // 回溯处理
+                int backPos = i - 1;
+                while (backPos >= 0) {
+                    int prevDigit = result.charAt(backPos) - '0';
+                    Integer smaller = digits.lower(prevDigit);
+                    if (smaller != null) {
+                        result.setCharAt(backPos, (char)(smaller + '0'));
+                        result.setLength(backPos + 1);
+                        isSmaller = true;
+                        break;
+                    }
+                    backPos--;
                 }
-                if (j >= 0) {
-                    result.setCharAt(j, (char) (digits.lower(result.charAt(j) - '0') + '0'));
-                    result.setLength(j + 1);
-                } else {
-                    return StringUtils.repeat(String.valueOf(digits.last()),nChars.length - 1);
+                
+                if (!isSmaller) {
+                    // 特殊情况：首位无法满足，返回len-1个最大数字
+                    return repeatMaxDigit(digits.last(), target.length - 1);
                 }
-                result.append(StringUtils.repeat(String.valueOf(digits.last()),nChars.length - result.length()));
-                break;
+                i--; // 重新处理当前位
+            } else {
+                result.append(candidate);
+                if (candidate < current) {
+                    isSmaller = true;
+                }
             }
-
-            result.append(replacement);
         }
-
+        
+        // 处理构造数字等于原数的情况（需要确保严格小于）
+        if (result.toString().equals(String.valueOf(n))) {
+            return findSmallerNumber(result, digits);
+        }
+        
         return result.toString();
     }
-
-    public static void main(String[] args) {
-        int n1 = 23121;
-        int[] nums1 = {2, 4, 9};
-        System.out.println("示例 1 输出：" + findMaxNumber(n1, nums1)); // 输出：22999
-
-        int n2 = 23121;
-        int[] nums2 = {9, 8, 7};
-        System.out.println("示例 2 输出：" + findMaxNumber(n2, nums2)); // 输出：9999
+    
+    private String repeatMaxDigit(int digit, int count) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            sb.append(digit);
+        }
+        return sb.toString();
+    }
+    
+    private String findSmallerNumber(StringBuilder num, TreeSet<Integer> digits) {
+        for (int i = num.length() - 1; i >= 0; i--) {
+            int current = num.charAt(i) - '0';
+            Integer smaller = digits.lower(current);
+            if (smaller != null) {
+                num.setCharAt(i, (char)(smaller + '0'));
+                for (int j = i + 1; j < num.length(); j++) {
+                    num.setCharAt(j, (char)(digits.last() + '0'));
+                }
+                return num.toString();
+            }
+        }
+        return repeatMaxDigit(digits.last(), num.length() - 1);
     }
 }
 ```
 
-## 翻转数组找最大长度
-# 题目描述
+**复杂度分析**
+```markdown
+时间复杂度：O(L) - L为数字n的位数，最坏情况下需要回溯处理
+空间复杂度：O(L) - 存储结果和中间状态
+```
 
-使用Java编写，给定一个二进制数组 nums 和一个整数 k，如果可以翻转最多k个0，则返回数组中连续1的最大个数 。
-
-
-
-示例 1：
-
-输入：nums = [1,1,1,0,0,0,1,1,1,1,0], K = 2 输出：6 解释：[1,1,1,0,0,1,1,1,1,1,1] 数字从 0 翻转到 1，最长的子数组长度为 6。
-
-
-
-示例 2：
-
-输入：nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], K = 3 输出：10 解释：[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1] 数字从 0 翻转到 1，最长的子数组长度为 10。
-
-
-
-提示：
-
-当nums非空时，nums[i] 不是 0 就是 1
-
-k >=0
-
-# 解法
-
-可以使用滑动窗口（Sliding Window）的方法来寻找在翻转最多 k 个 0 后可得到的最长连续1序列。基本思路是使用两个指针left和right表示窗口的左右边界，遍历数组并维持窗口内最多包含k个0。如果窗口内的0超过了k个，就移动左指针left直到窗口内的0的数量重新不超过k个。
+## 解法2：DFS回溯
 
 ```java
-public class MaxConsecutiveOnes {
-    public static int longestOnes(int[] nums, int k) {
-        int left = 0, right;
-        int zeroCount = 0;  // 记录窗口内0的数量
-        int maxOnes = 0;    // 记录最大连续1的数量
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-        for (right = 0; right < nums.length; right++) {
-            if (nums[right] == 0) {
-                zeroCount++;  // 窗口内0的数量增加
+public class Solution {
+    private List<Integer> digits;
+    private String maxNum = "0";
+    private String target;
+    
+    public String findMaxNumber(int n, int[] nums) {
+        this.target = String.valueOf(n);
+        this.digits = new ArrayList<>();
+        for (int num : nums) digits.add(num);
+        Collections.sort(digits, Collections.reverseOrder());
+        
+        backtrack(new StringBuilder(), false);
+        return maxNum;
+    }
+    
+    private void backtrack(StringBuilder current, boolean isSmaller) {
+        if (current.length() == target.length()) {
+            if (current.toString().compareTo(target) < 0) {
+                if (current.length() > maxNum.length() || 
+                    current.toString().compareTo(maxNum) > 0) {
+                    maxNum = current.toString();
+                }
             }
+            return;
+        }
+        
+        int pos = current.length();
+        int maxDigit = isSmaller ? digits.get(0) : 
+                      Math.min(digits.get(0), target.charAt(pos) - '0');
+        
+        for (int digit : digits) {
+            if (digit > maxDigit) continue;
+            
+            current.append(digit);
+            boolean newIsSmaller = isSmaller || (digit < target.charAt(pos) - '0');
+            backtrack(current, newIsSmaller);
+            current.deleteCharAt(current.length() - 1);
+            
+            // 剪枝：如果已经找到可能的最大数字
+            if (newIsSmaller && digit == maxDigit) break;
+        }
+    }
+}
+```
 
-            // 如果0的数量超过k，需要移动左指针直到0的数量不超过k
+**复杂度分析**
+```markdown
+时间复杂度：O(k^L) - k为数字集合大小，L为数字位数（可通过剪枝优化）
+空间复杂度：O(L) - 递归栈深度
+```
+
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    Solution solution = new Solution();
+    
+    // 示例测试
+    System.out.println(solution.findMaxNumber(23121, new int[]{2,4,9})); // 22999
+    System.out.println(solution.findMaxNumber(23121, new int[]{9,8,7})); // 9999
+    
+    // 边界测试
+    System.out.println(solution.findMaxNumber(1000, new int[]{1}));     // 111
+    System.out.println(solution.findMaxNumber(9999, new int[]{8,9}));   // 9998
+    
+    // 性能测试
+    System.out.println(solution.findMaxNumber(123456789, new int[]{1,3,5,7,9})); 
+    // 输出：99999999
+}
+```
+
+### 方法比较
+
+| 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
+|-------------|------------|------------|------------------------|
+| 贪心+回溯   | O(L)       | O(L)       | 常规情况，效率较高     |
+| DFS回溯     | O(k^L)     | O(L)       | 需要穷举所有可能的情况 |
+
+**选择建议**：
+1. 优先选择贪心+回溯解法，效率更高
+2. 当需要处理复杂约束条件时，可考虑DFS回溯
+3. 对于极大数字（超过long范围），字符串处理更安全
+
+## 翻转数组找最大长度
+
+**题目描述**
+
+```markdown
+给定一个二进制数组 nums 和一个整数 k，如果可以翻转最多 k 个 0，返回数组中连续 1 的最大个数。
+
+示例 1：
+输入：nums = [1,1,1,0,0,0,1,1,1,1,0], K = 2
+输出：6
+解释：翻转中间两个0后得到 [1,1,1,1,1,1,1,1,1,1,0]
+
+示例 2：
+输入：nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], K = 3
+输出：10
+解释：翻转三个0后得到 [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1]
+
+约束条件：
+1. 数组元素只能是0或1
+2. k >= 0
+```
+
+### 解题思路
+
+```markdown
+滑动窗口（Sliding Window）技术：
+1. 维护一个窗口，记录窗口内0的个数
+2. 当0的个数超过k时，收缩窗口左边界
+3. 始终保持窗口内0的个数不超过k
+4. 窗口的最大长度即为所求
+```
+
+### 关键步骤
+
+```markdown
+1. 初始化左右指针和计数器
+2. 右指针遍历数组：
+   - 遇到0时增加计数器
+   - 当0数超过k时移动左指针
+3. 实时更新最大窗口大小
+4. 处理边界情况（全1或全0数组）
+```
+
+## 解法1：标准滑动窗口
+
+```java
+public class Solution {
+    public int longestOnes(int[] nums, int k) {
+        int left = 0;
+        int zeroCount = 0;
+        int maxLength = 0;
+        
+        for (int right = 0; right < nums.length; right++) {
+            if (nums[right] == 0) {
+                zeroCount++;
+            }
+            
+            // 当0的数量超过k时，收缩窗口
             while (zeroCount > k) {
                 if (nums[left] == 0) {
                     zeroCount--;
                 }
                 left++;
             }
-
-            // 更新最大连续1的数量
-            maxOnes = Math.max(maxOnes, right - left + 1);
+            
+            // 更新最大长度
+            maxLength = Math.max(maxLength, right - left + 1);
         }
-
-        return maxOnes;
-    }
-
-    public static void main(String[] args) {
-        int[] nums1 = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0};
-        int k1 = 2;
-        System.out.println("Output: " + longestOnes(nums1, k1));  // Expected: 6
-
-        int[] nums2 = {0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1};
-        int k2 = 3;
-        System.out.println("Output: " + longestOnes(nums2, k2));  // Expected: 10
+        
+        return maxLength;
     }
 }
-
 ```
 
-## 最长子数组之和
-## 题目描述
+**复杂度分析**
+```markdown
+时间复杂度：O(n) - 每个元素最多被访问两次（左右指针各一次）
+空间复杂度：O(1) - 只使用了常数空间
+```
 
-乱序数组中，输出和最大的子数组
-
-示例：
-
-比如[-6, 1,5,-3,4,-7,5] 最大和为7，子数组为 [1,5,-3,4]
-
-## 解法
-
-使用 Kadane 算法。Kadane 算法是一种动态规划的方法，它可以在一次遍历中找到具有最大和的连续子数组。
+## 解法2：优化的滑动窗口
 
 ```java
-public class MaxSubarraySum {
+public class Solution {
+    public int longestOnes(int[] nums, int k) {
+        int left = 0;
+        int right;
+        
+        for (right = 0; right < nums.length; right++) {
+            if (nums[right] == 0) {
+                k--;
+            }
+            
+            // 当k为负时才开始移动左指针
+            if (k < 0) {
+                if (nums[left] == 0) {
+                    k++;
+                }
+                left++;
+            }
+        }
+        
+        return right - left;
+    }
+}
+```
 
-    public static int[] findMaxSumSubarray(int[] arr) {
-        // 如果数组为空，返回空数组
-        if (arr == null || arr.length == 0) {
-            return new int[0]; 
+**优化点**
+```markdown
+1. 直接使用k作为计数器，减少变量使用
+2. 只有当k为负时才调整窗口，减少不必要的左指针移动
+3. 最终窗口大小即为结果，无需额外比较
+```
+
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    Solution solution = new Solution();
+    
+    // 示例测试
+    int[] nums1 = {1,1,1,0,0,0,1,1,1,1,0};
+    System.out.println(solution.longestOnes(nums1, 2)); // 6
+    
+    int[] nums2 = {0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1};
+    System.out.println(solution.longestOnes(nums2, 3)); // 10
+    
+    // 边界测试
+    int[] allOnes = {1,1,1,1};
+    System.out.println(solution.longestOnes(allOnes, 2)); // 4
+    
+    int[] allZeros = {0,0,0};
+    System.out.println(solution.longestOnes(allZeros, 2)); // 2
+    
+    // 性能测试
+    int[] largeArray = new int[1000000];
+    Arrays.fill(largeArray, 1);
+    largeArray[500000] = 0;
+    System.out.println(solution.longestOnes(largeArray, 1)); // 1000000
+}
+```
+
+### 方法比较
+
+| 方法            | 时间复杂度 | 空间复杂度 | 优势                     |
+|-----------------|------------|------------|--------------------------|
+| 标准滑动窗口    | O(n)       | O(1)       | 逻辑清晰，易于理解       |
+| 优化的滑动窗口  | O(n)       | O(1)       | 减少不必要的指针移动     |
+
+**选择建议**：
+1. 理解问题时可先实现标准滑动窗口
+2. 追求极致性能时使用优化版本
+3. 两种方法在大多数情况下性能相当
+
+**扩展思考**：如果题目改为可以翻转最多k个1（即将1翻转为0），该如何修改算法？（只需将判断条件中的0改为1即可）
+
+
+## 最大子数组和问题
+
+**题目描述**
+
+```markdown
+给定一个整数数组，找出具有最大和的连续子数组，并返回该子数组及其和。
+
+示例：
+输入：[-6, 1, 5, -3, 4, -7, 5]
+输出：子数组 [1, 5, -3, 4]，和为 7
+
+要求：
+1. 子数组至少包含一个元素
+2. 数组可能包含负数
+```
+
+### 解题思路
+
+```markdown
+Kadane算法（动态规划变种）：
+1. 遍历数组，计算以当前元素结尾的最大子数组和
+2. 比较局部最大值与全局最大值
+3. 记录子数组的起止位置
+```
+
+### 关键步骤
+
+```markdown
+1. 初始化当前和与最大和
+2. 遍历时决策：
+   - 将当前元素加入现有子数组
+   - 或以当前元素开始新子数组
+3. 动态更新子数组边界
+4. 处理全负数数组的特殊情况
+```
+
+## 解法1：标准Kadane算法
+
+```java
+public class MaxSubarray {
+    public static Result findMaxSubarray(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            return new Result(0, 0, 0);
         }
 
-        // 保存当前遍历位置的最大子数组和
-        int maxCurrent = arr[0];
-        // 保存遍历到目前为止找到的最大子数组和
-        int maxGlobal = arr[0];
-        int start = 0;
-        int end = 0;
+        int maxCurrent = nums[0];
+        int maxGlobal = nums[0];
+        int start = 0, end = 0;
         int tempStart = 0;
 
-        for (int i = 1; i < arr.length; i++) {
-            if (arr[i] > maxCurrent + arr[i]) {
-                maxCurrent = arr[i];
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] > maxCurrent + nums[i]) {
+                maxCurrent = nums[i];
                 tempStart = i;
             } else {
-                maxCurrent = maxCurrent + arr[i];
+                maxCurrent += nums[i];
             }
 
             if (maxCurrent > maxGlobal) {
@@ -1537,209 +2460,428 @@ public class MaxSubarraySum {
             }
         }
 
-        // 提取子数组
-        int[] subarray = new int[end - start + 1];
-        System.arraycopy(arr, start, subarray, 0, subarray.length);
-        return subarray;
+        return new Result(maxGlobal, start, end);
+    }
+
+    static class Result {
+        int sum;
+        int start;
+        int end;
+        
+        public Result(int sum, int start, int end) {
+            this.sum = sum;
+            this.start = start;
+            this.end = end;
+        }
     }
 
     public static void main(String[] args) {
         int[] arr = {-6, 1, 5, -3, 4, -7, 5};
-        int[] result = findMaxSumSubarray(arr);
-        System.out.print("The subarray with the maximum sum is: [");
-        for (int i = 0; i < result.length; i++) {
-            System.out.print(result[i] + (i < result.length - 1 ? ", " : ""));
+        Result result = findMaxSubarray(arr);
+        
+        System.out.println("最大和: " + result.sum);
+        System.out.print("子数组: [");
+        for (int i = result.start; i <= result.end; i++) {
+            System.out.print(arr[i] + (i < result.end ? ", " : ""));
         }
         System.out.println("]");
     }
 }
-
 ```
 
-性能分析：
+**复杂度分析**
+```markdown
+时间复杂度：O(n) - 单次遍历数组
+空间复杂度：O(1) - 仅使用常数空间（不包括结果存储）
+```
 
-时间复杂度：O(n)，其中 n 是数组的长度，因为数组只被遍历了一次。
-
-空间复杂度：O(1)，不包括输出子数组所需的空间，算法本身只使用了固定数量的额外空间。如果包含输出数组，则为 O(k)，k 是输出数组的长度。
-
-## 二分查找
-# 题目描述
-
-请实现无重复数字的升序数组的二分查找
-
-给定一个 元素升序的、无重复数字的整型数组 nums 和一个目标值 target ，写一个函数搜索 nums 中的 target，如果目标值存在返回下标（下标从 0 开始），否则返回 -1。
-
-示例：
-
-> 输入：[0,1,3,4,6,7,9],6
->
-> 返回 5
->
-> 说明：6在数组中下标是5
-
-实现思路：
-
-1. 找到数组中间位置
-2. 把数组的中点值与 target 进行比较，如果相等，直接返回中点值下标。如果中点值较大，说明目标值在数组前半部分。如果中点值较小，说明目标值在数组的后半部分。
-3. 继续循环计算中点值，并与 target 进行比较，直到首尾相等。
+## 解法2：分治法（扩展思路）
 
 ```java
-public int search(int[] nums, int target) {
-    int left = 0;
-    int right = nums.length - 1;
-    // 从数组首尾开始，直到二者相遇
-    while (left <= right) {
-        // 每次检查中点的值
-        int mid = (left + right) / 2;
-        if (nums[mid] == target) {
-            return mid;
+public class DivideConquerSolution {
+    public static Result findMaxSubarray(int[] nums) {
+        return findMaxSubarray(nums, 0, nums.length - 1);
+    }
+
+    private static Result findMaxSubarray(int[] nums, int low, int high) {
+        if (low == high) {
+            return new Result(nums[low], low, high);
         }
-        // 进入左的区间
-        if (nums[mid] > target) {
-            right = mid - 1;
+
+        int mid = (low + high) / 2;
+        Result left = findMaxSubarray(nums, low, mid);
+        Result right = findMaxSubarray(nums, mid + 1, high);
+        Result cross = findMaxCrossingSubarray(nums, low, mid, high);
+
+        if (left.sum >= right.sum && left.sum >= cross.sum) {
+            return left;
+        } else if (right.sum >= left.sum && right.sum >= cross.sum) {
+            return right;
         } else {
-            //进入右区间
-            left = mid + 1;
+            return cross;
         }
     }
-    // 未找到
-    return -1;
+
+    private static Result findMaxCrossingSubarray(int[] nums, int low, int mid, int high) {
+        int leftSum = Integer.MIN_VALUE;
+        int sum = 0;
+        int maxLeft = mid;
+        for (int i = mid; i >= low; i--) {
+            sum += nums[i];
+            if (sum > leftSum) {
+                leftSum = sum;
+                maxLeft = i;
+            }
+        }
+
+        int rightSum = Integer.MIN_VALUE;
+        sum = 0;
+        int maxRight = mid + 1;
+        for (int j = mid + 1; j <= high; j++) {
+            sum += nums[j];
+            if (sum > rightSum) {
+                rightSum = sum;
+                maxRight = j;
+            }
+        }
+
+        return new Result(leftSum + rightSum, maxLeft, maxRight);
+    }
 }
 ```
 
-## 数字全排列
-## 题目描述
+**复杂度分析**
+```markdown
+时间复杂度：O(nlogn) - 分治递归
+空间复杂度：O(logn) - 递归栈深度
+```
 
-给出一组可能包含重复项的数字，返回该组数字的所有排列。结果以字典序升序排列。
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    // 常规测试
+    testCase(new int[]{-6, 1, 5, -3, 4, -7, 5}, 7, new int[]{1, 5, -3, 4});
+    
+    // 全正数数组
+    testCase(new int[]{1, 2, 3, 4}, 10, new int[]{1, 2, 3, 4});
+    
+    // 全负数数组
+    testCase(new int[]{-5, -3, -2, -1}, -1, new int[]{-1});
+    
+    // 边界测试
+    testCase(new int[]{1}, 1, new int[]{1});
+    testCase(new int[]{-2, 1, -3, 4, -1, 2, 1, -5, 4}, 6, new int[]{4, -1, 2, 1});
+}
+
+private static void testCase(int[] input, int expectedSum, int[] expectedSubarray) {
+    Result result = MaxSubarray.findMaxSubarray(input);
+    System.out.println("输入: " + Arrays.toString(input));
+    System.out.println("输出和: " + result.sum + " (预期: " + expectedSum + ")");
+    System.out.println("输出子数组: " + getSubarrayString(input, result) + 
+                      " (预期: " + Arrays.toString(expectedSubarray) + ")");
+    System.out.println("---");
+}
+
+private static String getSubarrayString(int[] arr, Result result) {
+    return Arrays.toString(Arrays.copyOfRange(arr, result.start, result.end + 1));
+}
+```
+
+### 方法比较
+
+| 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
+|-------------|------------|------------|------------------------|
+| Kadane算法  | O(n)       | O(1)       | 常规情况，效率最高     |
+| 分治法      | O(nlogn)   | O(logn)    | 学术研究，并行计算场景 |
+
+**选择建议**：
+1. 生产环境优先选择Kadane算法
+2. 需要处理超大数据集时考虑分治法的并行实现
+3. 分治法更适合多维数组的最大子数组问题
+
+**扩展思考**：
+1. 如何返回所有可能的最大和子数组？
+2. 如果要求子数组长度最短/最长该如何修改？
+3. 如何解决环形数组的最大子数组和问题？
+
+
+## 数字全排列（含重复元素）
+
+**题目描述**
+
+```markdown
+给定一个可能包含重复数字的整数数组，返回所有不重复的全排列，结果按字典序排列。
 
 示例：
+输入：[1,1,2]
+输出：
+[
+  [1,1,2],
+  [1,2,1],
+  [2,1,1]
+]
 
-输入：
+约束条件：
+1. 1 <= nums.length <= 8
+2. -10 <= nums[i] <= 10
+```
 
-[1,1,2]
+### 解题思路
 
-返回值：
+```markdown
+回溯算法 + 剪枝策略：
+1. 排序数组使相同元素相邻
+2. 使用标记数组记录元素使用情况
+3. 剪枝条件：
+   - 当前元素已使用
+   - 当前元素与前一个元素相同且前一个元素未被使用
+4. 递归构建排列树
+```
 
-[[1,1,2],[1,2,1],[2,1,1]]
+### 关键步骤
 
-## 解法
+```markdown
+1. 预处理：排序输入数组
+2. 回溯框架：
+   - 终止条件：当前排列长度等于输入数组长度
+   - 遍历选择：跳过已使用和重复元素
+   - 递归深入：做出选择并标记
+   - 回溯撤销：撤销选择并取消标记
+3. 结果收集：完成排列时保存副本
+```
 
-可以采用递归回溯算法，并在生成排列时使用排序和跳过重复项的策略。
-
-流程：
-
-1. 递归回溯方法，用于生成所有排列。
-2. 终止条件是当前排列 current 的大小等于输入数组的长度，将当前排列加入结果列表。
-3. 遍历输入数组，如果当前元素已经使用，或者当前元素与前一个元素相同且前一个元素已经使用过，则跳过当前元素。
-4. 否则，将当前元素添加到当前排列，并标记为已使用，进行下一层递归。
-5. 递归完成后，移除当前元素，并将其标记为未使用，回溯到上一步。
+## 标准实现
 
 ```java
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class PermutationsWithDuplicates {
-
-    public static List<List<Integer>> permuteUnique(int[] nums) {
-        List<List<Integer>> result = new ArrayList<>();
-        // 将数组排序，以便按字典序生成排列
-        Arrays.sort(nums); 
-        // 用于标记元素是否已经在当前排列中使用
-        boolean[] used = new boolean[nums.length];
-        // 用于存储当前的排列
-        List<Integer> current = new ArrayList<>();
-        backtrack(nums, used, current, result);
-        return result;
+public class Solution {
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        Arrays.sort(nums); // 关键步骤：排序使相同元素相邻
+        backtrack(nums, new boolean[nums.length], new ArrayList<>(), res);
+        return res;
     }
 
-    private static void backtrack(int[] nums, boolean[] used, List<Integer> current, List<List<Integer>> result) {
-        if (current.size() == nums.length) {
-            result.add(new ArrayList<>(current));
+    private void backtrack(int[] nums, boolean[] used, 
+                         List<Integer> path, List<List<Integer>> res) {
+        // 终止条件：完成一个排列
+        if (path.size() == nums.length) {
+            res.add(new ArrayList<>(path));
             return;
         }
-        
+
         for (int i = 0; i < nums.length; i++) {
-            // 如果当前数字已经使用，或者当前数字与前一个数字相同且前一个数字已经使用过
+            // 剪枝条件（核心逻辑）
             if (used[i] || (i > 0 && nums[i] == nums[i - 1] && !used[i - 1])) {
                 continue;
             }
+
+            // 做出选择
             used[i] = true;
-            current.add(nums[i]);
-            backtrack(nums, used, current, result);
-            current.remove(current.size() - 1);
+            path.add(nums[i]);
+
+            // 递归深入
+            backtrack(nums, used, path, res);
+
+            // 撤销选择
+            path.remove(path.size() - 1);
             used[i] = false;
         }
     }
-
-    public static void main(String[] args) {
-        int[] nums = {1, 1, 2};
-        List<List<Integer>> permutations = permuteUnique(nums);
-        for (List<Integer> permutation : permutations) {
-            System.out.println(permutation);
-        }
-    }
 }
-
 ```
 
-## 旋转矩阵
-## 题目描述
+**复杂度分析**
+```markdown
+时间复杂度：O(n*n!) - 最坏情况无重复时有n!种排列，每种排列需要O(n)时间构建
+空间复杂度：O(n) - 递归栈深度和临时存储空间
+```
 
-给定一个二维数组，要求逆时针旋转90度。
-
-原数组
-
-1   2    3    4
-
-5   6   7    8
-
-9  10   11  12
-
-旋转后的数组
-
-4   8   12
-
-3   7   11
-
-2   6   10
-
-1   5   9
-
-## 解法
-
-1. 先整体转置矩阵，通过交换matrix[i][j]和matrix[j][i]实现，行变为列，列变为行。
-2. 垂直翻转矩阵，每一列的上半部分元素与下半部分交换。
+## 替代解法：交换法
 
 ```java
-public class RotateMatrix {
-    public static int[][] rotate(int[][] matrix) {
-        int n = matrix.length;
-        int m = matrix[0].length;
+public class Solution {
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        dfs(nums, 0, res);
+        return res;
+    }
 
-        // 先转置矩阵
-        int[][] transposedMatrix = new int[m][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                transposedMatrix[j][i] = matrix[i][j];
-            }
+    private void dfs(int[] nums, int start, List<List<Integer>> res) {
+        if (start == nums.length) {
+            List<Integer> list = new ArrayList<>();
+            for (int num : nums) list.add(num);
+            res.add(list);
+            return;
         }
 
-        // 再垂直翻转矩阵
-        for (int i = 0; i < m/2; i++) {
+        Set<Integer> seen = new HashSet<>();
+        for (int i = start; i < nums.length; i++) {
+            if (seen.add(nums[i])) { // 跳过重复元素
+                swap(nums, start, i);
+                dfs(nums, start + 1, res);
+                swap(nums, start, i); // 回溯
+            }
+        }
+    }
+
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+}
+```
+
+**方法比较**
+
+| 方法       | 优点                   | 缺点                   | 适用场景             |
+|------------|------------------------|------------------------|----------------------|
+| 回溯+剪枝  | 逻辑清晰，节省空间     | 需要排序预处理         | 通用场景             |
+| 交换法     | 无需额外标记空间       | 难以保持字典序         | 内存受限环境         |
+
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    Solution solution = new Solution();
+    
+    // 常规测试
+    int[] nums1 = {1,1,2};
+    System.out.println(solution.permuteUnique(nums1));
+    
+    // 全相同元素
+    int[] nums2 = {2,2,2};
+    System.out.println(solution.permuteUnique(nums2));
+    
+    // 无重复元素
+    int[] nums3 = {1,2,3};
+    System.out.println(solution.permuteUnique(nums3));
+    
+    // 边界测试
+    int[] nums4 = {1};
+    System.out.println(solution.permuteUnique(nums4));
+}
+```
+
+### 常见问题解答
+
+**Q1：为什么要先排序数组？**
+```markdown
+排序使相同元素相邻，便于通过nums[i] == nums[i-1]判断重复，配合!used[i-1]确保相同元素的相对顺序
+```
+
+**Q2：!used[i-1]和used[i-1]的区别？**
+```markdown
+!used[i-1]保证相同元素按顺序使用，避免生成重复排列。若改为used[i-1]会漏掉有效排列
+```
+
+**Q3：如何优化空间复杂度？**
+```markdown
+可使用交换法（原地交换元素），但会破坏字典序且实现复杂度较高
+```
+
+### 算法可视化
+
+```
+输入：[1,1,2]
+排序后：[1,1,2]
+
+递归树：
+       []
+     /  |  \
+   1    1    2
+  / \   ↓
+ 1   2  1
+ |   |  |
+ 2   1  1
+
+剪枝情况：
+第二个1与前一个1相同且前一个未被使用时跳过
+```
+
+**扩展思考**：
+1. 如何输出排列的字典序编号？
+2. 如何只求排列总数而不生成具体排列？
+3. 如何流式处理超大结果集？
+
+
+## 矩阵旋转（逆时针90度）
+
+**题目描述**
+
+```markdown
+给定一个m×n的二维矩阵，将其逆时针旋转90度后返回
+
+示例：
+输入：
+[
+  [1, 2, 3, 4],
+  [5, 6, 7, 8],
+  [9,10,11,12]
+]
+输出：
+[
+  [4, 8,12],
+  [3, 7,11],
+  [2, 6,10],
+  [1, 5, 9]
+]
+```
+
+### 解题思路
+
+```markdown
+数学规律法：
+1. 转置操作：行列互换（matrix[i][j] → matrix[j][i]）
+2. 垂直翻转：首尾行交换（第一行与最后一行交换，第二行与倒数第二行交换...）
+```
+
+### 关键步骤
+
+```markdown
+1. 创建新矩阵：转置后矩阵维度变为n×m
+2. 转置实现：双重循环交换行列索引
+3. 垂直翻转：只需交换行到中间位置
+4. 边界处理：空矩阵和单元素矩阵特殊情况
+```
+
+## 标准实现
+
+```java
+public class MatrixRotation {
+    public static int[][] rotateCounterClockwise(int[][] matrix) {
+        if (matrix == null || matrix.length == 0) return matrix;
+        
+        int m = matrix.length;
+        int n = matrix[0].length;
+        int[][] result = new int[n][m];
+        
+        // 转置矩阵
+        for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                int temp = transposedMatrix[i][j];
-                transposedMatrix[i][j] = transposedMatrix[m-1-i][j];
-                transposedMatrix[m-1-i][j] = temp;
+                result[j][i] = matrix[i][j];
             }
         }
-        return transposedMatrix;
+        
+        // 垂直翻转
+        for (int i = 0; i < n / 2; i++) {
+            int[] temp = result[i];
+            result[i] = result[n - 1 - i];
+            result[n - 1 - i] = temp;
+        }
+        
+        return result;
     }
 
     public static void printMatrix(int[][] matrix) {
         for (int[] row : matrix) {
-            for (int val : row) {
-                System.out.print(val + " ");
+            for (int num : row) {
+                System.out.printf("%-4d", num);
             }
             System.out.println();
         }
@@ -1749,18 +2891,136 @@ public class RotateMatrix {
         int[][] matrix = {
             {1, 2, 3, 4},
             {5, 6, 7, 8},
-            {9, 10, 11, 12}
+            {9,10,11,12}
         };
 
-        System.out.println("Original Matrix:");
+        System.out.println("原始矩阵:");
         printMatrix(matrix);
 
-        System.out.println("Rotated Matrix:");
-        rotate(matrix);
+        int[][] rotated = rotateCounterClockwise(matrix);
+        System.out.println("\n旋转后矩阵:");
+        printMatrix(rotated);
     }
 }
-
 ```
 
+**复杂度分析**
+```markdown
+时间复杂度：O(m×n) - 需要遍历所有元素两次（转置和翻转）
+空间复杂度：O(m×n) - 需要额外存储结果矩阵
+```
 
+## 原地旋转（方阵专用）
+
+```java
+public class InPlaceRotation {
+    public static void rotate(int[][] matrix) {
+        int n = matrix.length;
+        // 转置矩阵
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j < n; j++) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = temp;
+            }
+        }
+        // 垂直翻转
+        for (int i = 0; i < n / 2; i++) {
+            for (int j = 0; j < n; j++) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[n-1-i][j];
+                matrix[n-1-i][j] = temp;
+            }
+        }
+    }
+}
+```
+
+**适用条件**
+```markdown
+仅适用于n×n方阵：
+1. 转置时只需处理上三角矩阵（j从i开始）
+2. 直接在原矩阵上操作，空间复杂度O(1)
+```
+
+### 测试用例
+
+```java
+public static void main(String[] args) {
+    // 矩形矩阵测试
+    int[][] test1 = {
+        {1,2,3,4},
+        {5,6,7,8},
+        {9,10,11,12}
+    };
+    testRotation(test1);
+
+    // 方阵测试
+    int[][] test2 = {
+        {1,2,3},
+        {4,5,6},
+        {7,8,9}
+    };
+    testRotation(test2);
+
+    // 边界测试
+    int[][] test3 = {{1}};
+    testRotation(test3);
+
+    int[][] test4 = {};
+    testRotation(test4);
+}
+
+private static void testRotation(int[][] matrix) {
+    System.out.println("原始矩阵:");
+    printMatrix(matrix);
+    System.out.println("旋转后:");
+    printMatrix(rotateCounterClockwise(matrix));
+    System.out.println("------------------");
+}
+```
+
+### 数学原理
+
+```
+旋转前坐标：(i,j)
+逆时针90度后坐标：(j, n-1-i)
+
+分步实现：
+1. 转置：(i,j) → (j,i)
+2. 垂直翻转：(j,i) → (j, n-1-i)
+```
+
+### 常见问题解答
+
+**Q1：如何实现顺时针旋转？**
+```markdown
+步骤相反：
+1. 垂直翻转
+2. 转置矩阵
+```
+
+**Q2：处理非方阵时要注意什么？**
+```markdown
+必须创建新矩阵，因为旋转后维度会变化（m×n → n×m）
+```
+
+**Q3：如何优化空间复杂度？**
+```markdown
+对于方阵可使用原地旋转，非方阵必须使用额外空间
+```
+
+### 扩展应用
+
+```markdown
+1. 图像处理中的旋转操作
+2. 矩阵运算中的基变换
+3. 游戏开发中的精灵旋转
+4. 数据结构转换（如稀疏矩阵存储）
+```
+
+**进阶思考**：
+1. 如何实现任意角度的旋转？
+2. 如何同时处理矩阵旋转和缩放？
+3. 如何优化大规模矩阵的旋转性能？
 

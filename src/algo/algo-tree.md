@@ -1,85 +1,14 @@
-## 求二叉树最下层数值之和
-求二叉树最下层数值之和
 
-示例：
 
-1
 
-2 3
 
-4 5 6
 
-数值之和就是 4+5+6=15
 
-# 解法
 
-使用层序遍历，计算出最下层数值之和。
 
-```java
-import java.util.LinkedList;
-import java.util.Queue;
 
-public class BinaryTree {
-    
-    private class TreeNode {
-        TreeNode left;
-        TreeNode right;
-        int val;
 
-        public TreeNode() {}
 
-        public TreeNode(int val) {
-            this.val = val;
-        }
-    }
-
-    public int deepestLeavesSum(TreeNode root) {
-        if (root == null) {
-            return 0;
-        }
-
-        Queue<TreeNode> queue = new LinkedList<>();
-        queue.offer(root);
-        int levelSum = 0;
-
-        while (!queue.isEmpty()) {
-            int levelSize = queue.size(); // 当前层的节点数
-            levelSum = 0; // 初始化当前层的和
-
-            for (int i = 0; i < levelSize; i++) {
-                TreeNode currentNode = queue.poll();
-                levelSum += currentNode.val; // 将当前节点的值加到层和中
-
-                if (currentNode.left != null) {
-                    queue.offer(currentNode.left); // 将左子节点加入队列
-                }
-                if (currentNode.right != null) {
-                    queue.offer(currentNode.right); // 将右子节点加入队列
-                }
-            }
-        }
-
-        return levelSum; // 队列为空时，levelSum包含的是最底层的节点和
-    }
-
-    // 示例代码以展示如何使用
-    public static void main(String[] args) {
-        BinaryTree bt = new BinaryTree();
-        TreeNode root = bt.new TreeNode(1);
-        root.left = bt.new TreeNode(2);
-        root.right = bt.new TreeNode(3);
-        root.left.left = bt.new TreeNode(4);
-        root.left.right = bt.new TreeNode(5);
-        root.right.right = bt.new TreeNode(6);
-        root.left.left.left = bt.new TreeNode(7);
-        root.right.right.right = bt.new TreeNode(8);
-
-        int sum = bt.deepestLeavesSum(root);
-        System.out.println("Sum of deepest leaves: " + sum);  // 应输出 15 (7 + 8)
-    }
-}
-
-```
 
 ## 二叉树的镜像
 # 题目描述
