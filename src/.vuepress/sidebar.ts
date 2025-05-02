@@ -70,6 +70,36 @@ export default sidebar({
             ]
         },
     ],
+    "/eq/": [
+        {
+            text: "程序员的情商课",
+            collapsible: false,
+            children: [
+                {
+                    text: "摒弃学生思维",
+                    link: "student",
+                },
+                {
+                    text: "需求问题",
+                    link: "product",
+                },
+                {
+                    text: "沟通协作问题",
+                    link: "talk",
+                },
+                {
+                    text: "战略规划问题",
+                    link: "plan",
+                },{
+                    text: "个人成长问题",
+                    link: "person",
+                },{
+                    text: "用户与市场问题",
+                    link: "user",
+                }
+            ]
+        },
+    ],
     "/about/": [
         "about-me",
     ],

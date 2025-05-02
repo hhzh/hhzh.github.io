@@ -8,11 +8,6 @@ export default navbar([
         link: "/home.md",
     },
     {
-        text: "面试流程",
-        icon: "interview",
-        link: "/interview/",
-    },
-    {
         text: "算法",
         icon: "algo",
         link: "/algo/",
@@ -21,6 +16,11 @@ export default navbar([
         text: "工具",
         icon: "tool",
         link: "/tool/",
+    },
+    {
+        text: "程序员情商课",
+        icon: "eq",
+        link: "/eq/",
     },
     {
         text: "关于",
