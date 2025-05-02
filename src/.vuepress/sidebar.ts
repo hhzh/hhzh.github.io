@@ -55,6 +55,10 @@ export default sidebar({
                     link: "GuavaCache",
                 },
                 {
+                    text: "Caffeine Cache缓存",
+                    link: "caffeine",
+                },
+                {
                     text: "Linux常用命令",
                     link: "linux",
                 },{

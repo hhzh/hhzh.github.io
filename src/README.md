@@ -30,15 +30,6 @@ head:
   </div>
 </div>
 
-<!-- 按钮保持居中 -->
-<div align="center">
-  <a href="/blog" target="_blank"><img src="https://img.shields.io/badge/每日面经-实时更新-green.svg?style=for-the-badge"></a>
-  <a href="/categories" target="_blank"><img src="https://img.shields.io/badge/题库分类-精准导航-blue.svg?style=for-the-badge"></a>
-  <a href="/community" target="_blank"><img src="https://img.shields.io/badge/面试交流-加入讨论-critical?style=for-the-badge"></a>
-  <a href="/download" target="_blank"><img src="https://img.shields.io/badge/八股文PDF-一键下载-yellow.svg?style=for-the-badge"></a><br><br>
-  <a href="https://github.com/java-baguwen">Github</a> |
-  <a href="https://gitee.com/java-baguwen">Gitee</a>
-</div>
 :::
 
 ## 🚀 网站特色
@@ -107,16 +98,6 @@ head:
 
 ---
 
-## 🤝 加入社区
-
-<div align="center">
-  <img src="https://cdn.java-baguwen.com/wechat-group.jpeg" width="300px" alt="面试交流群">
-  <br>
-  <em>扫码加入10W+Java面试交流群</em><br>
-  <a href="/discuss" target="_blank"><img src="https://img.shields.io/badge/每日面经打卡-参与送PDF-red.svg?style=for-the-badge"></a>
-</div>
-
----
 
 ## 📌 友情提示
 

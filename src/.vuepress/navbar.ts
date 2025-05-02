@@ -18,6 +18,11 @@ export default navbar([
         link: "/tool/",
     },
     {
+        text: "面试流程",
+        icon: "interview",
+        link: "/interview/",
+    },
+    {
         text: "程序员情商课",
         icon: "eq",
         link: "/eq/",
