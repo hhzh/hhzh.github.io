@@ -719,6 +719,16 @@ export default sidebar({
                             link: "ddd-framework",
                         },
                     ]
+                }, {
+                    text: "seata",
+                    collapsible: true,
+                    prefix: "seata/",
+                    children: [
+                        {
+                            text: "Seata架构设计",
+                            link: "seata-framework",
+                        },
+                    ]
                 }
             ]
         },
