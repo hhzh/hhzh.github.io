@@ -2,7 +2,7 @@
 title: 如何刷Java八股文
 isOriginal: true
 headerDepth: 1
-description: Java八股文网
+description: Java八股文大全
 head:
   - - meta
     - name: keywords

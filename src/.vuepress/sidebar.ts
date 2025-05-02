@@ -596,12 +596,8 @@ export default sidebar({
                             link: "kafka-framework",
                         },
                         {
-                            text: "Kafka Controller选举流程",
-                            link: "kafka-controller",
-                        },
-                        {
-                            text: "Kafka Leader Replica选举流程",
-                            link: "kafka-leader",
+                            text: "Kafka 选举流程",
+                            link: "kafka-select",
                         },
                         {
                             text: "Kafka 消息相关问题",
@@ -611,25 +607,25 @@ export default sidebar({
                 }, {
                     text: "RocketMQ",
                     collapsible: true,
-                    prefix: "RocketMQ/",
+                    prefix: "rocketmq/",
                     children: [
                         {
                             text: "RocketMQ架构设计",
-                            link: "RocketMQ-framework",
+                            link: "rocketmq-framework",
                         },
                         {
                             text: "RocketMQ事务消息",
-                            link: "RocketMQ-transaction",
+                            link: "rocketmq-transaction",
                         },
                     ]
                 }, {
                     text: "RabbitMQ",
                     collapsible: true,
-                    prefix: "RabbitMQ/",
+                    prefix: "rabbitmq/",
                     children: [
                         {
-                            text: "紧张写作中",
-                            link: "updating",
+                            text: "RabbitMQ架构设计",
+                            link: "rabbitmq-framework",
                         },
                     ]
                 }

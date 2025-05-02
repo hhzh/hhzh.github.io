@@ -1,7 +1,6 @@
 ---
 home: true
 title: 首页
-icon: home
 isOriginal: true
 headerDepth: 1
 description: Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、数据库等高频考点，助力斩获大厂Offer！
@@ -14,23 +13,24 @@ head:
 ---
 
 ::: center
-<div style="display: flex; align-items: center; gap: 40px; margin-bottom: 30px;">
-  <!-- 图片左侧容器 -->
-  <div style="flex: 0 0 400px;">
+<div style="overflow: hidden;">
+  <!-- 图片左浮动容器 -->
+  <div style="float: left; width: 40%; padding-right: 20px;">
     <a>
       <img src="./img/javaLogo.png" width="60%" alt="Java八股文网">
     </a>
   </div>
 
-  <!-- 文字右侧容器 -->
-  <div style="flex: 1;">
-    <p style="font-size: 1.3em; line-height: 1.7; margin: 0; padding-left: 20px; border-left: 3px solid #42b983;">
-      Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、MySQL、Redis、MyBatis、Spring、SpringBoot、SpringCloud、RocketMQ、Netty、Dubbo、Maven、设计模式、分布式、微服务、消息队列、缓存、、数据结构、算法等高频考点，助力斩获大厂Offer！
-    </p>
+  <!-- 文字右浮动容器 -->
+  <div style="float: right; width: 60%; text-align: left;">
+    <p style="font-size: 1.2em; line-height: 1.6; margin-top: 0;">Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、数据库等高频考点，助力斩获大厂Offer！</p>
   </div>
+
+  <!-- 清除浮动 -->
+  <div style="clear: both;"></div>
 </div>
 
-<!-- 按钮保持居中 -->
+<!-- 保持原有按钮居中 -->
 <div align="center">
   <a href="/blog" target="_blank"><img src="https://img.shields.io/badge/每日面经-实时更新-green.svg?style=for-the-badge"></a>
   <a href="/categories" target="_blank"><img src="https://img.shields.io/badge/题库分类-精准导航-blue.svg?style=for-the-badge"></a>
