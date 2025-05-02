@@ -32,71 +32,73 @@ head:
 
 :::
 
-## 🚀 网站特色
+🌟 **【重磅推荐】Java面试终极神器！「Java八股文网」全网首发，一站式攻克面试难题！** 🌟
 
-- **全网最全**：收录2025年互联网大厂最新Java面试真题
-- **分类精准**：15+技术模块精细划分，快速定位薄弱点
-- **深度解析**：每题附带考点剖析+参考答案+延伸追问
-- **持续更新**：每日新增高频考题，紧跟技术趋势
-
----
-
-## 🔥 高频核心题库
-
-### Java基础
-- [HashMap底层实现与扩容机制](interview/hashmap.md) 🔥高频TOP1
-- [ArrayList与LinkedList区别深度剖析](interview/arraylist-vs-linkedlist.md)
-- [JVM内存模型与GC算法](interview/jvm-memory-gc.md) ⚡大厂必考
-- [synchronized与ReentrantLock对比](interview/synchronized-reentrantlock.md)
-
-### 并发编程
-- [线程池七大参数与工作流程](interview/thread-pool.md) 💯真题解析
-- [volatile关键字与内存可见性](interview/volatile.md)
-- [CAS原理与ABA问题解决方案](interview/cas-aba.md)
-
-### 框架源码
-- [Spring循环依赖解决机制](interview/spring-circular-dependency.md) 🌟源码级解析
-- [MyBatis一级缓存与二级缓存](interview/mybatis-cache.md)
-- [SpringBoot自动配置原理](interview/springboot-autoconfig.md)
-
-### 数据库
-- [MySQL索引失效的10种场景](interview/mysql-index-failure.md) 🚨避坑指南
-- [Redis持久化RDB与AOF对比](interview/redis-persistence.md)
-- [分库分表实战方案详解](interview/sharding.md) 📈阿里P7级
+无论你是应届生、跳槽党，还是技术进阶者，面对Java面试的“灵魂拷问”，是否总被这些问题困扰？  
+❓ **技术点太杂，复习找不到重点？**  
+❓ **项目经验单薄，不知如何包装？**  
+❓ **分布式、高并发等硬核问题屡战屡败？**  
+**👉 别慌！「Java八股文网」来了！史上最全Java面试题库+实战指南，助你斩获Offer！**
 
 ---
 
-## 📈 大厂真题专区
+### **🔥 为什么选择「Java八股文网」？**
+1. **全网最全题库**：覆盖Java全技术栈，从基础到分布式，从源码到调优，一网打尽！
+2. **结构化分类**：清晰划分**面试流程**、**技术考点**、**项目实战**，精准定位薄弱环节！
+3. **答案深度解析**：拒绝“死记硬背”，结合源码、场景、设计思想，直击面试官考察逻辑！
+4. **持续更新迭代**：紧跟技术趋势（如Cola架构、Pulsar等），拒绝过时内容！
+5. **完全免费开放**：无套路，无付费墙，技术人的纯粹分享社区！
 
-- [2023阿里Java岗150道真题汇总](interview/ali-2023.md) 🏆含金量MAX
-- [美团优选事业部三面真题复盘](interview/meituan-3round.md)
-- [字节跳动火山引擎Java开发面经](interview/bytedance-volcengine.md)
-- [腾讯TEG事业部Java高频考点](interview/tencent-teg.md)
+---
+
+### **🚀 网站核心内容一览**
+
+#### **📌 一、面试流程全攻略**
+- **简历突围**：STAR法则写项目经验，技术栈量化技巧，避开“已读不回”雷区！
+- **自我介绍模板**：3分钟征服面试官的万能公式（附案例）！
+- **高频非技术问题**：离职原因、职业规划、团队协作案例应答策略！
+- **谈薪秘籍**：从薪资谈判到Offer选择，教你争取最优待遇！
+
+#### **📌 二、Java技术八股文**
+- **基础篇**：HashMap源码、JVM内存模型、并发编程（AQS/CAS）等必考硬核知识点！
+- **框架篇**：Spring循环依赖、MyBatis缓存、SpringBoot自动配置原理源码级解析！
+- **分布式篇**：
+  - **中间件**：Redis分布式锁、Kafka高吞吐原理、RocketMQ事务消息！
+  - **架构设计**：DDD领域驱动、Seata分布式事务、Sentinel熔断限流实战！
+  - **性能优化**：MySQL索引优化、ES写入调优、ShardingJDBC分库分表策略！
+- **算法与设计模式**：LeetCode高频题精讲、单例模式的双重校验锁陷阱剖析！
+
+#### **📌 三、项目经历包装指南**
+- **项目复盘方法论**：如何将“CRUD项目”讲出高并发架构设计？
+- **难点突破案例库**：
+  - 秒杀系统如何抗住10万QPS？
+  - 分布式事务导致数据不一致的终极解决方案！
+  - 从Full GC频发到JVM调优实战记录！
+- **STAR法则实战**：用“背景-难点-行动-结果”量化项目价值，让面试官眼前一亮！
 
 ---
 
-## 🛠 面试工具箱
 
-<div class="grid cards" markdown>
-
-- **简历优化**  
-  ![简历图标](https://cdn.java-baguwen.com/resume-icon.png)  
-  [STAR法则实战指南](/tools/resume)  
-  [GitHub热门简历模板](/tools/resume-templates)
-
-- **模拟面试**  
-  ![模拟面试](https://cdn.java-baguwen.com/mock-interview.png)  
-  [AI模拟面试系统](/ai-interview)  
-  [压力面试应对技巧](/stress-interview)
-
-- **薪资谈判**  
-  ![薪资](https://cdn.java-baguwen.com/salary.png)  
-  [2023届薪资行情报告](/salary-report)  
-  [HR谈判话术大全](/salary-negotiation)
-
-</div>
+### **🎯 适合人群**
+- **应届生**：快速构建Java知识体系，摆脱“项目空白”焦虑！
+- **1-10年工程师**：突破技术瓶颈，冲刺P6/P7级高薪岗位！
+- **转行者**：从零到Offer，系统性攻克Java面试难关！
 
 ---
+
+### **📢 立即访问**
+🔗 **网站地址**：Java八股文网（此处替换为你的网站链接）  
+📅 **每日更新**：关注官网公告，获取最新面试动态与技术解析！
+
+---
+
+**💬 用户评价**
+> “刷完‘分布式事务’专题，终于搞懂了Seata的AT和TCC模式区别，面试直接拿下30%涨幅！” —— 某大厂后端工程师  
+> “项目复盘模板太实用了！把之前的小项目包装成高并发案例，成功上岸阿里！” —— 应届生用户
+
+---
+
+**📌 温馨提示**：技术八股文是敲门砖，但真正的实力还需实践积累！建议结合网站内容+动手编码，双管齐下，成为Offer收割机！ 🚀
 
 
 ## 📌 友情提示
