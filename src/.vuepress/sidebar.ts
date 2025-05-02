@@ -578,6 +578,66 @@ export default sidebar({
                             link: "mybatis-framework",
                         },
                     ]
+                }, {
+                    text: "nacos",
+                    collapsible: true,
+                    prefix: "nacos/",
+                    children: [
+                        {
+                            text: "Nacos架构设计",
+                            link: "nacos-framework",
+                        },
+                    ]
+                }, {
+                    text: "pulsar",
+                    collapsible: true,
+                    prefix: "pulsar/",
+                    children: [
+                        {
+                            text: "Pulsar架构设计",
+                            link: "pulsar-framework",
+                        },
+                    ]
+                }, {
+                    text: "grpc",
+                    collapsible: true,
+                    prefix: "grpc/",
+                    children: [
+                        {
+                            text: "Grpc架构设计",
+                            link: "grpc-framework",
+                        },
+                    ]
+                }, {
+                    text: "disruptor",
+                    collapsible: true,
+                    prefix: "disruptor/",
+                    children: [
+                        {
+                            text: "Disruptor架构设计",
+                            link: "disruptor-framework",
+                        },
+                    ]
+                }, {
+                    text: "elasticsearch",
+                    collapsible: true,
+                    prefix: "elasticsearch/",
+                    children: [
+                        {
+                            text: "Elasticsearch架构设计",
+                            link: "elasticsearch-framework",
+                        },
+                    ]
+                }, {
+                    text: "ddd",
+                    collapsible: true,
+                    prefix: "ddd/",
+                    children: [
+                        {
+                            text: "DDD架构设计",
+                            link: "ddd-framework",
+                        },
+                    ]
                 }
             ]
         },
