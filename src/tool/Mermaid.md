@@ -32,13 +32,12 @@
 
 Mermaid图表定义通常包含在一个特定的代码块中，以 `mermaid` 或 `mmd` 标识。基本结构如下：
 
-```markdown
 ```mermaid
 graph TD;
     A --> B;
     B --> C;
 ```
-```
+
 
 * **`graph TD;`**: 声明这是一个图表（`graph`），并指定方向为从上到下（`TD`，Top Down）。常见的方向还有 `LR` (Left Right)、`TB` (Top Bottom)、`RL` (Right Left)、`BT` (Bottom Top)。流程图通常使用 `graph` 关键字。
 * **`sequenceDiagram`**: 声明这是一个时序图。
