@@ -80,15 +80,11 @@ export default sidebar({
             ]
         },
     ],
-    "/eq/": [
+    "/interview/": [
         {
-            text: "程序员的情商课",
-            collapsible: false,
+            text: "面试流程",
+            collapsible: true,
             children: [
-                {
-                    text: "摒弃学生思维",
-                    link: "eq-student",
-                },
                 {
                     text: "面试流程",
                     link: "flow",
@@ -113,9 +109,17 @@ export default sidebar({
                     text: "如何升职加薪",
                     link: "upgrade",
                 },
+            ]
+        },
+    ],
+    "/eq/": [
+        {
+            text: "程序员的情商课",
+            collapsible: false,
+            children: [
                 {
-                    text: "工作中常见问题",
-                    link: "work-question",
+                    text: "摒弃学生思维",
+                    link: "eq-student",
                 },
                 {
                     text: "需求问题",
