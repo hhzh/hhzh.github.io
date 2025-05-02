@@ -101,14 +101,6 @@ export default sidebar({
                     text: "如何跟HR谈薪",
                     link: "salary",
                 },
-                {
-                    text: "如何做年终总结",
-                    link: "summary",
-                },
-                {
-                    text: "如何升职加薪",
-                    link: "upgrade",
-                },
             ]
         },
     ],
@@ -120,6 +112,14 @@ export default sidebar({
                 {
                     text: "摒弃学生思维",
                     link: "eq-student",
+                },
+                {
+                    text: "如何做年终总结",
+                    link: "summary",
+                },
+                {
+                    text: "如何升职加薪",
+                    link: "upgrade",
                 },
                 {
                     text: "需求问题",
