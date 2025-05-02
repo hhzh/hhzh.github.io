@@ -55,23 +55,23 @@ export default sidebar({
                     link: "GuavaCache",
                 },
                 {
-                    text: "Arthas",
-                    link: "Arthas",
+                    text: "Linux常用命令",
+                    link: "linux",
+                },{
+                    text: "Maven用法",
+                    link: "Maven",
+                },{
+                    text: "JUnit用法",
+                    link: "JUnit",
+                },{
+                    text: "Nginx架构设计",
+                    link: "nginx",
                 },
             ]
         },
-
-        // "Linux",
-        // "Maven",
-        // "Arthas",
-        // "Nginx",
-        // "JUnit",
-        // "TestNG",
-        // "Mockito",
     ],
     "/about/": [
-        "README.md",
-        "map",
+        "about-me",
     ],
     "/": [
         {
@@ -403,11 +403,14 @@ export default sidebar({
         {
             text: "五、JVM",
             collapsible: true,
-            prefix: "mysql/",
+            prefix: "jvm/",
             children: [
                 {
-                    text: "紧张写作中",
-                    link: "updating",
+                    text: "JVM内存模型",
+                    link: "jvm-framework",
+                },{
+                    text: "JVM性能调优",
+                    link: "jvm-optimize",
                 },
             ]
         },
