@@ -66,6 +66,12 @@ export default sidebar({
                 },{
                     text: "Nginx架构设计",
                     link: "nginx",
+                },{
+                    text: "Intellij IDEA高效使用教程",
+                    link: "intellij-idea",
+                },{
+                    text: "Cursor IDE使用教程",
+                    link: "cursor-ide",
                 },
             ]
         },

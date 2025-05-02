@@ -19,7 +19,7 @@
 2. 空间复杂度O(n)
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 层序遍历法（BFS）：
@@ -217,7 +217,7 @@ BFS过程：
 3. 空间复杂度O(n)
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心操作：
@@ -229,7 +229,7 @@ BFS过程：
 2. 迭代法（栈/队列）：避免递归栈溢出
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -255,7 +255,7 @@ class Solution {
 空间复杂度：O(h) - 递归栈深度，h为树高
 ```
 
-## 迭代实现（栈）
+迭代实现（栈）
 
 ```java
 import java.util.Stack;
@@ -401,7 +401,7 @@ class TreeNode {
   5   4   7
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心操作：
@@ -414,7 +414,7 @@ class TreeNode {
 2. 迭代法（队列）：避免递归栈溢出
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -437,7 +437,7 @@ class Solution {
 空间复杂度：O(min(m,n)) - 递归栈深度
 ```
 
-## 迭代实现（队列）
+迭代实现（队列）
 
 ```java
 import java.util.LinkedList;
@@ -597,7 +597,7 @@ class TreeNode {
  4   5
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 递归法：
@@ -611,7 +611,7 @@ class TreeNode {
 3. 确保所有叶子节点在同一层
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -780,7 +780,7 @@ class TreeNode {
 2. 空间复杂度O(n)
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心思想：
@@ -794,7 +794,7 @@ class TreeNode {
 2. 迭代法（队列）：避免递归栈溢出
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -819,7 +819,7 @@ class Solution {
 空间复杂度：O(h) - 递归栈深度，h为树高
 ```
 
-## 迭代实现（队列）
+迭代实现（队列）
 
 ```java
 import java.util.LinkedList;
@@ -963,7 +963,7 @@ class TreeNode {
 输出: 12
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 利用BST性质：
@@ -976,7 +976,7 @@ class TreeNode {
 2. 迭代法：空间效率更高
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -998,7 +998,7 @@ class Solution {
 空间复杂度：O(h) - 递归栈深度
 ```
 
-## 迭代实现
+迭代实现
 
 ```java
 class Solution {
@@ -1135,7 +1135,7 @@ sum = 22
 3. 空间复杂度O(h)，h为树高
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心思想：
@@ -1148,7 +1148,7 @@ sum = 22
 2. 迭代法（栈）：避免递归栈溢出
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -1173,7 +1173,7 @@ class Solution {
 空间复杂度：O(h) - 递归栈深度，h为树高
 ```
 
-## 迭代实现（栈）
+迭代实现（栈）
 
 ```java
 import java.util.Stack;
@@ -1318,7 +1318,7 @@ class TreeNode {
 2. 空间复杂度O(h)，h为树高
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心思想：
@@ -1331,7 +1331,7 @@ class TreeNode {
 2. 迭代法（层序遍历）：避免递归栈溢出
 ```
 
-## 标准实现（递归法）
+标准实现（递归法）
 
 ```java
 class Solution {
@@ -1348,7 +1348,7 @@ class Solution {
 空间复杂度：O(h) - 递归栈深度，h为树高
 ```
 
-## 迭代实现（层序遍历）
+迭代实现（层序遍历）
 
 ```java
 import java.util.Queue;
@@ -1491,7 +1491,7 @@ class TreeNode {
 2. 空间复杂度O(n)
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心思想：
@@ -1691,7 +1691,7 @@ class TreeNode {
 2. 空间复杂度O(n)
 ```
 
-### 解题思路
+解题思路
 
 ```markdown
 核心思想：
