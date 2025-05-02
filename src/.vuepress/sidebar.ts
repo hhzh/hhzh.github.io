@@ -76,6 +76,12 @@ export default sidebar({
                 },{
                     text: "Cursor IDE使用教程",
                     link: "cursor-ide",
+                },{
+                    text: "Markdown使用教程",
+                    link: "markdown",
+                },{
+                    text: "Mermaid使用教程",
+                    link: "Mermaid",
                 },
             ]
         },
