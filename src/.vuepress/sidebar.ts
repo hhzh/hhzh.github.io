@@ -90,6 +90,34 @@ export default sidebar({
                     link: "eq-student",
                 },
                 {
+                    text: "面试流程",
+                    link: "flow",
+                },
+                {
+                    text: "制作简历",
+                    link: "profile",
+                },
+                {
+                    text: "面试常见问题",
+                    link: "question",
+                },
+                {
+                    text: "如何跟HR谈薪",
+                    link: "salary",
+                },
+                {
+                    text: "如何做年终总结",
+                    link: "summary",
+                },
+                {
+                    text: "如何升职加薪",
+                    link: "upgrade",
+                },
+                {
+                    text: "工作中常见问题",
+                    link: "work-question",
+                },
+                {
                     text: "需求问题",
                     link: "eq-product",
                 },
