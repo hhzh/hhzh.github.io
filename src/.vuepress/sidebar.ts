@@ -77,25 +77,25 @@ export default sidebar({
             children: [
                 {
                     text: "摒弃学生思维",
-                    link: "student",
+                    link: "eq-student",
                 },
                 {
                     text: "需求问题",
-                    link: "product",
+                    link: "eq-product",
                 },
                 {
                     text: "沟通协作问题",
-                    link: "talk",
+                    link: "eq-talk",
                 },
                 {
                     text: "战略规划问题",
-                    link: "plan",
+                    link: "eq-plan",
                 },{
                     text: "个人成长问题",
-                    link: "person",
+                    link: "eq-person",
                 },{
                     text: "用户与市场问题",
-                    link: "user",
+                    link: "eq-user",
                 }
             ]
         },
