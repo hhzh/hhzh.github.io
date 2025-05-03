@@ -379,59 +379,59 @@ stateDiagram-v2
 
 * **节点样式:** 为特定节点定义样式，例如改变颜色或形状，突出关键节点。
 ```markdown
-    graph LR
-        A[重要步骤] --> B(下一步);
-        style A fill:#f9f,stroke:#333,stroke-width:2px;
+graph LR
+    A[重要步骤] --> B(下一步);
+    style A fill:#f9f,stroke:#333,stroke-width:2px;
 ```
 
-    ```mermaid
-    graph LR
-        A[重要步骤] --> B(下一步);
-        style A fill:#f9f,stroke:#333,stroke-width:2px;
-    ```
+```mermaid
+graph LR
+    A[重要步骤] --> B(下一步);
+    style A fill:#f9f,stroke:#333,stroke-width:2px;
+```
 
 * **连接线样式:** 改变连接线的粗细或颜色。
 ```markdown
-    graph LR
-        A --> B;
-        C -.- D; %% 虚线
-        E === F; %% 粗线
-        linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
+graph LR
+    A --> B;
+    C -.- D; %% 虚线
+    E === F; %% 粗线
+    linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
 ```
 
-    ```mermaid
-    graph LR
-        A --> B;
-        C -.- D; %% 虚线
-        E === F; %% 粗线
-        linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
-    ```
+```mermaid
+graph LR
+    A --> B;
+    C -.- D; %% 虚线
+    E === F; %% 粗线
+    linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
+```
 
 * **添加注释:** 使用 `%%` 添加单行注释，不会被渲染到图表中。
 ```markdown
-    graph TD
-        A --> B; %% 这是注释
+graph TD
+    A --> B; %% 这是注释
 ```
 
-    ```mermaid
-    graph TD
-        A --> B; %% 这是注释
-    ```
+```mermaid
+graph TD
+    A --> B; %% 这是注释
+```
 
 * **设置点击链接:** 让图表中的节点可以点击跳转到其他URL或执行JavaScript（在支持的环境中）。
 ```markdown
-    graph LR
-        A[GitHub] --> B[Mermaid];
-        click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
-        click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
+graph LR
+    A[GitHub] --> B[Mermaid];
+    click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
+    click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
 ```
 
-    ```mermaid
-    graph LR
-        A[GitHub] --> B[Mermaid];
-        click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
-        click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
-    ```
+```mermaid
+graph LR
+    A[GitHub] --> B[Mermaid];
+    click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
+    click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
+```
 
 ### 第五章：Mermaid的集成与工作流
 
