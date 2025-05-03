@@ -169,7 +169,7 @@ private static void printList(ListNode head) {
 每次递归调用都需要保存当前函数栈帧，递归深度为n/2，故空间复杂度O(n)
 ```
 
-### 可视化示例
+可视化示例
 
 ```
 初始链表：dummy -> 1 -> 2 -> 3 -> 4
@@ -265,7 +265,7 @@ class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法：计算长度法
+替代解法：计算长度法
 
 ```java
 class Solution {
@@ -698,7 +698,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法（计算长度法）
+替代解法（计算长度法）
 
 ```java
 public class Solution {
@@ -918,7 +918,7 @@ class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法（标记法）
+替代解法（标记法）
 
 ```java
 class Solution {
@@ -1111,7 +1111,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法（递归实现）
+替代解法（递归实现）
 
 ```java
 public class Solution {
@@ -1312,7 +1312,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法（使用栈）
+替代解法（使用栈）
 
 ```java
 public class Solution {
@@ -1495,7 +1495,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用两个指针
 ```
 
-## 替代解法（哈希表法）
+替代解法（哈希表法）
 
 ```java
 import java.util.HashSet;
@@ -1679,7 +1679,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用两个指针
 ```
 
-## 替代解法（长度差法）
+替代解法（长度差法）
 
 ```java
 public class Solution {
@@ -1875,7 +1875,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 替代解法（头插法）
+替代解法（头插法）
 
 ```java
 public class Solution {

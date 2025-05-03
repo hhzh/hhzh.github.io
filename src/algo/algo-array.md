@@ -106,7 +106,7 @@ public class BinarySearchRecursive {
 缺点：递归调用栈消耗额外空间
 ```
 
-### 边界情况测试
+边界情况测试
 
 ```java
 public static void main(String[] args) {
@@ -134,7 +134,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 常见问题解答
+**常见问题解答**
 
 **Q1：为什么循环条件是 left <= right？**
 ```markdown
@@ -1455,7 +1455,8 @@ class Solution {
 // 实现较复杂，适用于高级场景
 ```
 
-### 解法4：线段树优化
+解法4：线段树优化
+
 **核心思路**
 ```markdown
 1. 类似树状数组思路
@@ -1581,7 +1582,8 @@ class Solution {
 空间复杂度: O(1) - 原地排序
 ```
 
-### 解法4：随机抽样法
+解法4：随机抽样法
+
 **核心思路**
 ```markdown
 1. 随机选取一个元素
@@ -1868,7 +1870,8 @@ class Solution {
 空间复杂度: O(mlogn) - 递归栈空间
 ```
 
-### 解法4：二分查找法
+解法4：二分查找法
+
 **核心思路**
 ```markdown
 1. 对最短字符串长度进行二分
@@ -2041,7 +2044,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 方法比较
+**方法比较**
 
 | 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
 |-------------|------------|------------|------------------------|
@@ -2260,7 +2263,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 方法比较
+方法比较
 
 | 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
 |-------------|------------|------------|------------------------|
@@ -2414,7 +2417,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 方法比较
+方法比较
 
 | 方法            | 时间复杂度 | 空间复杂度 | 优势                     |
 |-----------------|------------|------------|--------------------------|
@@ -2622,7 +2625,7 @@ private static String getSubarrayString(int[] arr, Result result) {
 }
 ```
 
-### 方法比较
+方法比较
 
 | 方法        | 时间复杂度 | 空间复杂度 | 适用场景               |
 |-------------|------------|------------|------------------------|
@@ -2802,7 +2805,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 常见问题解答
+**_常见问题解答_**
 
 **Q1：为什么要先排序数组？**
 ```markdown
@@ -3014,7 +3017,7 @@ private static void testRotation(int[][] matrix) {
 }
 ```
 
-### 数学原理
+数学原理
 
 ```
 旋转前坐标：(i,j)
@@ -3025,7 +3028,7 @@ private static void testRotation(int[][] matrix) {
 2. 垂直翻转：(j,i) → (j, n-1-i)
 ```
 
-### 常见问题解答
+**常见问题解答**
 
 **Q1：如何实现顺时针旋转？**
 ```markdown
@@ -3044,7 +3047,7 @@ private static void testRotation(int[][] matrix) {
 对于方阵可使用原地旋转，非方阵必须使用额外空间
 ```
 
-### 扩展应用
+扩展应用
 
 ```markdown
 1. 图像处理中的旋转操作

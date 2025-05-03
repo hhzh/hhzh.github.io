@@ -548,7 +548,7 @@ B
 
 ---
 
-### 解法分析
+解法分析
 
 #### 核心思路
 1. **构建菜单树结构**：使用HashMap建立父菜单ID到子菜单列表的映射
@@ -1003,7 +1003,7 @@ public class ABCReentrantLock {
 }
 ```
 
-### 解法4：Lock+Condition实现
+解法4：Lock+Condition实现
 
 **实现思路**
 为每个线程创建Condition条件：
