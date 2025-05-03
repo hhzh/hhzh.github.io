@@ -77,7 +77,7 @@ class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 递归实现
+递归实现
 
 ```java
 class Solution {
@@ -2060,7 +2060,7 @@ class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 递归实现
+递归实现
 
 ```java
 class Solution {
@@ -2643,7 +2643,7 @@ public class Solution {
 空间复杂度：O(1) - 只使用常数空间
 ```
 
-## 递归实现
+递归实现
 
 ```java
 public class Solution {

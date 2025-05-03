@@ -89,6 +89,4 @@
 1. `DelayQueue`底层采用组合的方式，复用`PriorityQueue`的按照延迟时间排序任务的功能，实现了延迟队列。
 2. `DelayQueue`是线程安全的，内部使用`ReentrantLock`加锁。
 ## 总结
-这5种阻塞队列的特性各不相同，在使用的时候该怎么选择呢？我做了一张图，供大家参考。
-![image.png](https://javabaguwen.com/img/BlockingQueue2.png)
-关注我，咱们一起接着剖析Java源码。
+这5种阻塞队列的特性各不相同，在使用的时候该怎么选择呢？我做了一张图，供大家参考。 咱们一起接着剖析Java源码。

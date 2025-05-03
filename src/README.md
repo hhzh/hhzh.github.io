@@ -25,7 +25,7 @@ head:
   <!-- 文字右侧容器 -->
   <div style="flex: 1;">
     <p style="font-size: 1.3em; line-height: 1.7; margin: 0; padding-left: 20px; border-left: 3px solid #42b983;">
-      Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、MySQL、Redis、MyBatis、Spring、SpringBoot、SpringCloud、RocketMQ、Netty、Dubbo、Maven、设计模式、分布式、微服务、消息队列、缓存、、数据结构、算法等高频考点，助力斩获大厂Offer！
+      Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、MySQL、Redis、MyBatis、Spring、SpringBoot、SpringCloud、RocketMQ、Netty、Dubbo、Maven、设计模式、分布式、微服务、消息队列、缓存、数据结构、算法等高频考点，助力斩获大厂Offer！<br>更多优质内容，持续更新中，敬请期待…… 
     </p>
   </div>
 </div>

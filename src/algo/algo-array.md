@@ -74,7 +74,7 @@ public class BinarySearch {
 空间复杂度：O(1) - 仅使用常数空间
 ```
 
-## 变体实现：递归版本
+变体实现：递归版本
 
 ```java
 public class BinarySearchRecursive {
@@ -166,7 +166,7 @@ public static void main(String[] args) {
        找到目标，返回4
 ```
 
-### 实际应用场景
+实际应用场景
 
 ```markdown
 1. 数据库索引查找
