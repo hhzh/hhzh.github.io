@@ -34,6 +34,10 @@ export default sidebar({
                     text: "其他",
                     link: "algo-other",
                 },
+                {
+                    text: "智力问题",
+                    link: "brain",
+                },
             ]
         },
     ],
