@@ -32,12 +32,11 @@
 
 Mermaid图表定义通常包含在一个特定的代码块中，以 `mermaid` 或 `mmd` 标识。基本结构如下：
 ```markdown
-```mermaid
 graph TD;
     A --> B;
     B --> C;
 ```
-```
+
 ```mermaid
 graph TD;
     A --> B;
@@ -57,14 +56,13 @@ graph TD;
 
 你可以为节点定义更具描述性的文本标签和不同的形状。
 ```markdown
-```mermaid
 graph LR;
     A[这是节点A的文本] --> B(这是节点B);
     B -- 这是一条带文本的连接线 --> C{这是节点C};
     C -- 是 --> D([节点D]);
     C -- 否 --> E{节点E?};
 ```
-```
+
 ```mermaid
 graph LR;
     A[这是节点A的文本] --> B(这是节点B);
@@ -90,7 +88,6 @@ graph LR;
 
 **示例：用户注册流程**
 ```markdown
-```mermaid
 graph TD
     A[用户访问注册页] --> B{填写注册信息?};
     B -- 否 --> A;
@@ -109,7 +106,7 @@ graph TD
         J -- 验证失败 --> L[激活失败提示];
     end
 ```
-```
+
 ```mermaid
 graph TD
     A[用户访问注册页] --> B{填写注册信息?};
@@ -146,7 +143,6 @@ graph TD
 
 模拟用户调用订单服务下单，订单服务调用库存服务检查库存，然后返回结果。
 ```markdown
-```mermaid
 sequenceDiagram
     participant User
     participant OrderService
@@ -161,7 +157,7 @@ sequenceDiagram
     OrderService-->>User: 返回下单结果
     deactivate OrderService
 ```
-```
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -184,7 +180,6 @@ sequenceDiagram
 * **激活框 (Activation):** 使用 `activate` 和 `deactivate` 表示参与者在一段时间内处于活动状态，这有助于理解控制流和方法调用栈。
 * **分组结构 (Alt/Loop/Par):** 使用 `alt/else` 表示选择分支，`loop` 表示循环，`par` 表示并行处理。这些结构对于表达复杂的控制逻辑至关重要。
 ```markdown
-```mermaid
 sequenceDiagram
     participant Client
     participant AuthServer
@@ -212,7 +207,7 @@ sequenceDiagram
         deactivate ResourceServer
     end
 ```
-```
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -250,7 +245,6 @@ sequenceDiagram
 
 **示例：简单的订单相关类结构**
 ```markdown
-```mermaid
 classDiagram
     class OrderService {
         - OrderRepository orderRepository
@@ -286,7 +280,7 @@ classDiagram
 
     class JDBCRepository
 ```
-```
+
 ```mermaid
 classDiagram
     class OrderService {
@@ -344,7 +338,6 @@ classDiagram
 
 **示例：简单的订单状态机**
 ```markdown
-```mermaid
 stateDiagram-v2
     [*] --> 已创建
     已创建 --> 已支付 : 用户完成支付
@@ -358,7 +351,7 @@ stateDiagram-v2
     已支付 --> 已退款 : 用户申请退款
     已退款 --> 已取消 : 退款处理完成
 ```
-```
+
 ```mermaid
 stateDiagram-v2
     [*] --> 已创建
@@ -386,12 +379,11 @@ stateDiagram-v2
 
 * **节点样式:** 为特定节点定义样式，例如改变颜色或形状，突出关键节点。
 ```markdown
-    ```mermaid
     graph LR
         A[重要步骤] --> B(下一步);
         style A fill:#f9f,stroke:#333,stroke-width:2px;
-    ```
 ```
+
     ```mermaid
     graph LR
         A[重要步骤] --> B(下一步);
@@ -400,14 +392,13 @@ stateDiagram-v2
 
 * **连接线样式:** 改变连接线的粗细或颜色。
 ```markdown
-    ```mermaid
     graph LR
         A --> B;
         C -.- D; %% 虚线
         E === F; %% 粗线
         linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
-    ```
 ```
+
     ```mermaid
     graph LR
         A --> B;
@@ -418,11 +409,10 @@ stateDiagram-v2
 
 * **添加注释:** 使用 `%%` 添加单行注释，不会被渲染到图表中。
 ```markdown
-    ```mermaid
     graph TD
         A --> B; %% 这是注释
-    ```
 ```
+
     ```mermaid
     graph TD
         A --> B; %% 这是注释
@@ -430,13 +420,12 @@ stateDiagram-v2
 
 * **设置点击链接:** 让图表中的节点可以点击跳转到其他URL或执行JavaScript（在支持的环境中）。
 ```markdown
-    ```mermaid
     graph LR
         A[GitHub] --> B[Mermaid];
         click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
         click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
-    ```
 ```
+
     ```mermaid
     graph LR
         A[GitHub] --> B[Mermaid];
