@@ -35,7 +35,7 @@ export default sidebar({
                     link: "algo-other",
                 },
                 {
-                    text: "智力问题",
+                    text: "智力题",
                     link: "brain",
                 },
             ]
@@ -130,6 +130,10 @@ export default sidebar({
                 {
                     text: "如何升职加薪",
                     link: "upgrade",
+                },
+                {
+                    text: "新人管理者注意事项",
+                    link: "manager",
                 },
                 {
                     text: "需求问题",

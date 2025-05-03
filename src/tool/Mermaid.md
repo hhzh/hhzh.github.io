@@ -31,7 +31,13 @@
 ### 第二章：Mermaid基础语法与结构
 
 Mermaid图表定义通常包含在一个特定的代码块中，以 `mermaid` 或 `mmd` 标识。基本结构如下：
-
+```markdown
+```mermaid
+graph TD;
+    A --> B;
+    B --> C;
+```
+```
 ```mermaid
 graph TD;
     A --> B;
@@ -50,7 +56,15 @@ graph TD;
 **节点形状和文本标签：**
 
 你可以为节点定义更具描述性的文本标签和不同的形状。
-
+```markdown
+```mermaid
+graph LR;
+    A[这是节点A的文本] --> B(这是节点B);
+    B -- 这是一条带文本的连接线 --> C{这是节点C};
+    C -- 是 --> D([节点D]);
+    C -- 否 --> E{节点E?};
+```
+```
 ```mermaid
 graph LR;
     A[这是节点A的文本] --> B(这是节点B);
@@ -75,7 +89,27 @@ graph LR;
 **核心元素:** 节点、连接线、方向控制、子图。
 
 **示例：用户注册流程**
+```markdown
+```mermaid
+graph TD
+    A[用户访问注册页] --> B{填写注册信息?};
+    B -- 否 --> A;
+    B -- 是 --> C[提交注册请求];
+    C --> D(校验用户信息);
+    D -- 校验通过 --> E[创建用户记录];
+    D -- 校验失败 --> F[返回错误提示];
+    E --> G[发送激活邮件];
+    G --> H[注册成功];
+    F --> A;
 
+    subgraph 子流程：激活邮件
+        G --> I[用户点击激活链接];
+        I --> J(验证激活码);
+        J -- 验证通过 --> K[激活用户账号];
+        J -- 验证失败 --> L[激活失败提示];
+    end
+```
+```
 ```mermaid
 graph TD
     A[用户访问注册页] --> B{填写注册信息?};
@@ -111,7 +145,23 @@ graph TD
 **示例：简单的服务调用时序**
 
 模拟用户调用订单服务下单，订单服务调用库存服务检查库存，然后返回结果。
+```markdown
+```mermaid
+sequenceDiagram
+    participant User
+    participant OrderService
+    participant InventoryService
 
+    User->>OrderService: 发起下单请求(createOrder)
+    activate OrderService
+    OrderService->>InventoryService: 检查库存(checkStock)
+    activate InventoryService
+    InventoryService-->>OrderService: 返回库存结果
+    deactivate InventoryService
+    OrderService-->>User: 返回下单结果
+    deactivate OrderService
+```
+```
 ```mermaid
 sequenceDiagram
     participant User
@@ -133,7 +183,36 @@ sequenceDiagram
 * **消息类型:** `->>` 表示同步调用（有返回），`->` 表示异步调用（无返回），`-->>` 和 `-->` 表示返回消息。正确使用这些箭头能准确反映通信模式。
 * **激活框 (Activation):** 使用 `activate` 和 `deactivate` 表示参与者在一段时间内处于活动状态，这有助于理解控制流和方法调用栈。
 * **分组结构 (Alt/Loop/Par):** 使用 `alt/else` 表示选择分支，`loop` 表示循环，`par` 表示并行处理。这些结构对于表达复杂的控制逻辑至关重要。
+```markdown
+```mermaid
+sequenceDiagram
+    participant Client
+    participant AuthServer
+    participant ResourceServer
 
+    Client->>AuthServer: 发送认证请求
+    activate AuthServer
+    AuthServer-->>Client: 返回Access Token
+    deactivate AuthServer
+
+    Client->>ResourceServer: 发送请求(携带Access Token)
+    activate ResourceServer
+    alt Valid Token
+        ResourceServer->>Client: 返回资源数据
+    else Invalid Token
+        ResourceServer-->>Client: 返回错误码(401)
+    end
+    deactivate ResourceServer
+
+    Client->>ResourceServer: 再次请求 (携带 Access Token)
+    loop Retry up to 3 times
+        Client->>ResourceServer: 发送请求
+        activate ResourceServer
+        ResourceServer-->>Client: 返回数据或错误
+        deactivate ResourceServer
+    end
+```
+```
 ```mermaid
 sequenceDiagram
     participant Client
@@ -170,7 +249,44 @@ sequenceDiagram
 **核心元素:** 类、属性、方法、可见性、类间关系。
 
 **示例：简单的订单相关类结构**
+```markdown
+```mermaid
+classDiagram
+    class OrderService {
+        - OrderRepository orderRepository
+        + createOrder(Order order) : boolean
+        + getOrderById(String orderId) : Order
+    }
 
+    class OrderRepository {
+        <<Interface>>
+        + save(Order order)
+        + findById(String id) : Order
+    }
+
+    class Order {
+        - String orderId
+        - double amount
+        - List<OrderItem> items
+        + getOrderId() : String
+        + getAmount() : double
+    }
+
+    class OrderItem {
+        - String productId
+        - int quantity
+        - double price
+    }
+
+    OrderService --> OrderRepository : 使用 (依赖)
+    OrderService ..> Order : 创建/操作 (依赖)
+    OrderRepository <|.. JDBCRepository : 实现
+    Order *-- OrderItem : 包含 (组合)
+    OrderService "1" -- "*" Order : 管理 (关联)
+
+    class JDBCRepository
+```
+```
 ```mermaid
 classDiagram
     class OrderService {
@@ -227,7 +343,22 @@ classDiagram
 **核心元素:** 状态、转换、初始状态、事件触发。
 
 **示例：简单的订单状态机**
-
+```markdown
+```mermaid
+stateDiagram-v2
+    [*] --> 已创建
+    已创建 --> 已支付 : 用户完成支付
+    已创建 --> 已取消 : 用户取消订单
+    已支付 --> 待发货 : 支付成功处理
+    待发货 --> 已发货 : 仓库发货
+    已发货 --> 已完成 : 用户确认收货
+    已发货 --> 已退回 : 用户申请退货
+    已完成 --> 已归档 : 达到归档条件
+    已退回 --> 已取消 : 退货处理完成
+    已支付 --> 已退款 : 用户申请退款
+    已退款 --> 已取消 : 退款处理完成
+```
+```
 ```mermaid
 stateDiagram-v2
     [*] --> 已创建
@@ -254,7 +385,13 @@ stateDiagram-v2
 除了基本图表语法，Mermaid还提供一些功能让你的图表更清晰、更易读。
 
 * **节点样式:** 为特定节点定义样式，例如改变颜色或形状，突出关键节点。
-
+```markdown
+    ```mermaid
+    graph LR
+        A[重要步骤] --> B(下一步);
+        style A fill:#f9f,stroke:#333,stroke-width:2px;
+    ```
+```
     ```mermaid
     graph LR
         A[重要步骤] --> B(下一步);
@@ -262,7 +399,15 @@ stateDiagram-v2
     ```
 
 * **连接线样式:** 改变连接线的粗细或颜色。
-
+```markdown
+    ```mermaid
+    graph LR
+        A --> B;
+        C -.- D; %% 虚线
+        E === F; %% 粗线
+        linkStyle 0 stroke:#f00,stroke-width:2px; %% 给第一条连接线（索引0）加样式
+    ```
+```
     ```mermaid
     graph LR
         A --> B;
@@ -272,14 +417,26 @@ stateDiagram-v2
     ```
 
 * **添加注释:** 使用 `%%` 添加单行注释，不会被渲染到图表中。
-
+```markdown
+    ```mermaid
+    graph TD
+        A --> B; %% 这是注释
+    ```
+```
     ```mermaid
     graph TD
         A --> B; %% 这是注释
     ```
 
 * **设置点击链接:** 让图表中的节点可以点击跳转到其他URL或执行JavaScript（在支持的环境中）。
-
+```markdown
+    ```mermaid
+    graph LR
+        A[GitHub] --> B[Mermaid];
+        click A "https://github.com/" "前往GitHub"; %% 点击A跳转GitHub
+        click B "https://mermaid.js.org/" _blank; %% 点击B跳转Mermaid官网，在新窗口打开
+    ```
+```
     ```mermaid
     graph LR
         A[GitHub] --> B[Mermaid];
