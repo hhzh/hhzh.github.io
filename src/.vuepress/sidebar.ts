@@ -104,6 +104,10 @@ export default sidebar({
                     link: "profile",
                 },
                 {
+                    text: "项目难点",
+                    link: "project",
+                },
+                {
                     text: "面试常见问题",
                     link: "question",
                 },
