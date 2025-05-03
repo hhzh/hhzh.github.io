@@ -13,7 +13,7 @@
 
 ---
 
-### 解法1：动态规划
+解法1：动态规划
 
 **思路**
 1. 预处理每个位置左右两侧的最大高度
@@ -58,7 +58,7 @@ public int trap(int[] height) {
 
 ---
 
-### 解法2：单调栈
+解法2：单调栈
 
 **思路**
 1. 维护高度递减的栈
@@ -96,7 +96,7 @@ public int trap(int[] height) {
 
 ---
 
-### 解法3：双指针
+解法3：双指针
 
 **思路**
 1. 左右指针向中间移动
@@ -141,7 +141,7 @@ public int trap(int[] height) {
 
 ---
 
-### 测试用例
+测试用例
 
 ```java
 public static void main(String[] args) {
@@ -187,7 +187,7 @@ public static void main(String[] args) {
 
 ---
 
-### 解法1：深度优先搜索(DFS)
+解法1：深度优先搜索(DFS)
 
 **思路**
 1. 使用访问数组标记已访问城市
@@ -227,7 +227,7 @@ class Solution {
 
 ---
 
-### 解法2：广度优先搜索(BFS)
+解法2：广度优先搜索(BFS)
 
 **思路**
 1. 使用队列实现BFS遍历
@@ -268,7 +268,7 @@ class Solution {
 
 ---
 
-### 解法3：并查集(Union-Find)
+解法3：并查集(Union-Find)
 
 **思路**
 1. 初始化每个城市为独立集合
@@ -316,7 +316,7 @@ class Solution {
 
 ---
 
-### 测试用例
+测试用例
 
 ```java
 public static void main(String[] args) {
@@ -372,7 +372,7 @@ n = 3, m = 3, x = 5
 
 ---
 
-### 解法1：行列双指针法
+解法1：行列双指针法
 
 **思路**
 1. 从矩阵右上角开始查找
@@ -403,7 +403,7 @@ public int[] findElement(int[][] mat, int n, int m, int x) {
 
 ---
 
-### 解法2：逐行二分查找
+解法2：逐行二分查找
 
 **思路**
 1. 遍历每一行
@@ -435,7 +435,7 @@ public int[] findElement(int[][] mat, int n, int m, int x) {
 
 ---
 
-### 解法3：分治法（针对更大矩阵）
+解法3：分治法（针对更大矩阵）
 
 **思路**
 1. 将矩阵分为四个象限
@@ -477,7 +477,7 @@ private int[] search(int[][] mat, int rowStart, int rowEnd, int colStart, int co
 
 ---
 
-### 测试用例
+测试用例
 
 ```java
 public static void main(String[] args) {
@@ -560,13 +560,14 @@ B
 2. 递归打印：深度优先遍历菜单树
 3. 缩进处理：每深入一层增加一个"+"前缀
 
-#### 复杂度分析
+**复杂度分析**
+
 - 时间复杂度：O(n)，每个菜单项被处理一次
 - 空间复杂度：O(n)，存储菜单树结构
 
 ---
 
-### 优化后的实现代码
+**优化后的实现代码**
 
 ```java
 import java.util.ArrayList;
@@ -641,7 +642,7 @@ public class MenuPrinter {
 
 ---
 
-### 代码改进说明
+**代码改进说明**
 
 1. **命名优化**：
     - 将`menu_text`改为更符合Java规范的`text`
@@ -659,7 +660,7 @@ public class MenuPrinter {
 
 ---
 
-### 测试用例
+测试用例
 
 ```java
 // 测试空菜单
@@ -691,7 +692,7 @@ printMenuHierarchy(deepHierarchy);
 
 ---
 
-### 扩展思考
+**扩展思考**
 
 1. **性能优化**：对于超大型菜单，可以考虑迭代替代递归来避免栈溢出
 2. **排序需求**：如果需要按特定顺序打印菜单，可以在构建树时对子菜单列表排序
@@ -711,7 +712,7 @@ printMenuHierarchy(deepHierarchy);
 
 **实现思路**
 
-### 解法1：双栈倒换法（基础版）
+解法1：双栈倒换法（基础版）
 
 ```java
 import java.util.Stack;
@@ -748,7 +749,7 @@ public class QueueWithTwoStacks {
 2. 采用惰性转移策略，只有在outStack为空时才进行元素转移
 3. 通过摊还分析，pop操作的平均时间复杂度为O(1)
 
-### 解法2：改进版（减少元素移动）
+解法2：改进版（减少元素移动）
 
 ```java
 import java.util.Stack;
@@ -782,7 +783,7 @@ public class OptimizedQueue {
 2. 更清晰的逻辑分离，提高代码可读性
 3. 保持相同的性能特征但更易于维护
 
-### 测试用例
+测试用例
 
 ```java
 public static void main(String[] args) {
@@ -811,13 +812,13 @@ public static void main(String[] args) {
 }
 ```
 
-### 不同实现的选择建议
+**不同实现的选择建议**
 
 1. **面试推荐**：基础版（易于解释实现原理）
 2. **实际应用**：改进版（代码更清晰，易于维护）
 3. **性能关键**：可以考虑进一步优化transfer逻辑
 
-### 常见问题解答
+**常见问题解答**
 
 **Q: 为什么pop操作的时间复杂度是O(1)？**
 A: 虽然最坏情况下需要O(n)时间转移元素，但每个元素最多被转移两次（从inStack到outStack一次，然后被pop一次），因此平均时间复杂度为O(1)。
@@ -837,7 +838,7 @@ A: 不适合需要频繁随机访问的场景，且连续pop/push操作可能导
 
 创建三个线程A、B、C，分别打印字母A、B、C各10次，要求三个线程交替执行，按照ABCABC...的顺序打印。
 
-### 解法1：信号量(Semaphore)实现
+解法1：信号量(Semaphore)实现
 
 **实现思路**
 使用三个信号量控制线程执行顺序，形成循环依赖链：
@@ -892,7 +893,7 @@ public class ABCSemaphore {
 - 时间复杂度：O(n)
 - 空间复杂度：O(1)
 
-### 解法2：同步锁(synchronized)实现
+解法2：同步锁(synchronized)实现
 
 **实现思路**
 使用对象锁和wait/notify机制控制执行顺序：
@@ -951,7 +952,7 @@ public class ABCSynchronized {
 }
 ```
 
-### 解法3：可重入锁(ReentrantLock)实现
+解法3：可重入锁(ReentrantLock)实现
 
 **实现思路**
 使用全局状态变量和条件判断：
@@ -1063,7 +1064,7 @@ public class ABCCondition {
 }
 ```
 
-### 方案对比
+方案对比
 
 | 方案 | 优点 | 缺点 | 适用场景 |
 |------|------|------|---------|
@@ -1084,7 +1085,7 @@ public class ABCCondition {
 
 LRU（Least Recently Used）是一种常见的缓存淘汰策略，它会优先淘汰最近最少使用的数据，保留热点数据。
 
-### 解法1：双向链表+哈希表
+解法1：双向链表+哈希表
 
 **实现思路**
 1. 使用双向链表维护数据访问顺序
@@ -1182,7 +1183,7 @@ public class LRUCache<K, V> {
 - 时间复杂度：get和put操作均为O(1)
 - 空间复杂度：O(capacity)
 
-### 解法2：LinkedHashMap实现
+解法2：LinkedHashMap实现
 
 **实现思路**
 利用Java内置的LinkedHashMap，它本身就维护了访问顺序
@@ -1210,7 +1211,7 @@ public class LRUCache<K, V> extends LinkedHashMap<K, V> {
 - 时间复杂度：与LinkedHashMap实现相同，get和put操作均为O(1)
 - 空间复杂度：O(capacity)
 
-### 方案对比
+方案对比
 
 | 方案 | 优点 | 缺点 | 适用场景 |
 |------|------|------|---------|
