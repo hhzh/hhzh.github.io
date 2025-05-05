@@ -2,6 +2,7 @@
 home: true
 title: 首页
 icon: home
+heroImage: ./img/javaLogo.png
 isOriginal: true
 headerDepth: 1
 description: Java面试八股文大全，涵盖Java基础、并发、JVM、Spring、数据库等高频考点，助力斩获大厂Offer！
