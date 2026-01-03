@@ -86,6 +86,9 @@ export default sidebar({
                 },{
                     text: "Mermaid使用教程",
                     link: "Mermaid",
+                },{
+                    text: "MySQL常用命令",
+                    link: "mysql",
                 },
             ]
         },
