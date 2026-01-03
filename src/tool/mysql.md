@@ -1,5 +1,14 @@
 MySQL工作中常用SQL语句
 
+## 0. 查询语句
+```sql
+select * from user order by id desc;
+select * from user where status = 0 order by id desc;
+select age, count(*) from user group by age order by age;
+select * from user where status = 0 and create_time >= '2026-01-01' order by id desc;
+select DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as ct from user group by ct order by ct;
+```
+
 ## 1. 建表
 
 ```sql
@@ -8,17 +17,17 @@ CREATE TABLE `user` (
   `name` varchar(100) NOT NULL DEFAULT '' COMMENT '姓名',
   `salary` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '薪水',
   `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态，-1:已删除 0:正常 1:冻结',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `modify_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `modify_time` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 ```
 
 ## 2. 添加字段
 
 ```sql
-ALTER TABLE `user` ADD `age` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '年龄' after `name`;
+ALTER TABLE `user` ADD COLUMN `age` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '年龄' after `name`;
 ```
 
 ## 3. 修改字段
