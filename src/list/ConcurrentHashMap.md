@@ -5,6 +5,35 @@
 带着这些我们一起来深度剖析ConcurrentHashMap的源码。
 ## 简介
 ConcurrentHashMap跟HashMap一样的底层数据结构由数组、链表和红黑树组成，核心是基于数组实现的，为了解决哈希冲突，采用拉链法，于是引入了链表结构。为了解决链表过长，造成的查询性能下降，又引入了红黑树结构。
+
+ConcurrentHashMap 的核心工作原理可以用下面的流程图概括：
+
+```mermaid
+flowchart TD
+    Init["putVal: 计算哈希 spread(key.hashCode())"] --> CheckTable{"table 为空?"}
+    CheckTable -->|是| InitTable["initTable(): CAS 竞争 sizeCtl\n赢者初始化 table, 输者 yield"]
+    CheckTable -->|否| HashPos{"tabAt(i) 为空?"}
+    HashPos -->|是| CASInsert["CAS 插入新节点"]
+    HashPos -->|否| MovedCheck{"fh == MOVED?\n(正在扩容)"}
+    MovedCheck -->|是| HelpTransfer["helpTransfer(): 帮忙迁移元素到新数组"]
+    MovedCheck -->|否| SyncLock["synchronized(f) 锁住桶头节点"]
+    SyncLock --> TypeCheck{"fh >= 0?\n(链表)"}
+    TypeCheck -->|是| ChainLoop["遍历链表: 找到key则更新value\n否则尾插新节点"]
+    TypeCheck -->|否| TreeInsert["TreeBin.putTreeVal(): 红黑树插入"]
+    ChainLoop --> TreeifyCheck{"链表长度 >= 8?"}
+    TreeInsert --> TreeifyCheck
+    TreeifyCheck -->|是, 且 table >= 64| Treeify["treeifyBin: 链表转红黑树"]
+    TreeifyCheck -->|否| AddCount
+    Treeify --> AddCount["addCount: 更新 CounterCell\n判断是否触发扩容"]
+    AddCount --> NeedResize{"size > sizeCtl?"}
+    NeedResize -->|是| Transfer["transfer(): 分段扩容\n原数组 2 倍, 多线程并发迁移\n按 hash & n 拆分为高低位"]
+    NeedResize -->|否| Done["返回"]
+    Transfer --> Done
+    HelpTransfer --> HashPos
+    InitTable --> HashPos
+    CASInsert --> AddCount
+```
+
 ![图片.png](https://javabaguwen.com/img/ConcurrentHashMap1.png)
 ## 类结构
 看一下`ConcurrentHashMap`类结构是什么样的：
@@ -27,7 +56,7 @@ public class ConcurrentHashMap<K, V>
     private static final int DEFAULT_CAPACITY = 16;
     
     /**
-     * 负载系数（超过就要扩容）
+     * 负载系数（保留常量，Java 8 实际使用 sizeCtl 控制扩容阈值）
      */
     private static final float LOAD_FACTOR = 0.75f;
 
@@ -65,19 +94,22 @@ public class ConcurrentHashMap<K, V>
     private transient volatile Node<K, V>[] nextTable;
 
     /**
-     * 元素个数（没有统计并发的操作）
+     * 元素个数的基准值（无并发竞争时使用）
      */
     private transient volatile long baseCount;
 
     /**
-     * 并发的元素个数（想要统计总数量，需要加上baseCount）
+     * 并发计数单元数组（多线程竞争时使用，类似 LongAdder 的分段累加思想）
+     * 总元素个数 = baseCount + 所有 counterCells 元素的累加和
      */
     private transient volatile CounterCell[] counterCells;
 
     /**
-     * 表大小调整的控件
-     * 1. 是负数时，表示正在调整初始化或者扩容，值为 -(1 + 并发线程数)
-     * 2. 是正数时，表示扩容的阈值（第一次是12）
+     * 表大小调整的控制变量
+     * 1. -1：表示正在初始化
+     * 2. 负数（非 -1）：表示正在扩容，值为 -(1 + 并发扩容的线程数)
+     * 3. 0：默认值，表示尚未初始化
+     * 4. 正数：表示扩容阈值（初始化为 0 时，第一次 put 后为 16）
      */
     private transient volatile int sizeCtl;
 
@@ -85,11 +117,11 @@ public class ConcurrentHashMap<K, V>
 ```
 `ConcurrentHashMap`类里面的属性跟HashMap类似，但也有一些不同。
 
-1. 链表与红黑树的相互转换，当链表大于等于TREEIFY_THRESHOLD（树化阈值，默认是8），并且元素个数大于MIN_TREEIFY_CAPACITY（默认是64），就会把链表转换成红黑树。当红黑树节点个数小于等于UNTREEIFY_THRESHOLD（反树化阈值，默认是6），就会把红黑树转换成链表。
+1. 链表与红黑树的相互转换，当链表长度大于等于TREEIFY_THRESHOLD（树化阈值，默认是8），并且数组大小大于等于MIN_TREEIFY_CAPACITY（默认是64），就会把链表转换成红黑树。当红黑树节点个数小于等于UNTREEIFY_THRESHOLD（反树化阈值，默认是6），就会把红黑树转换成链表。
 2. 比如特殊节点的哈希值，MOVED(-1)、TREEBIN(-2)、RESERVED(-3)，都是负数。一般key的哈希值都是正数，`ConcurrentHashMap`把这些节点的哈希值设置成负数，表示这些节点正处于某种状态，相当于复用了节点的哈希值。
 3. table数组用于存储元素节点，nextTable数组用在扩容期间临时存储元素。
-4. `ConcurrentHashMap`并没有用于记录元素个数的size变量，而是使用baseCount和counterCells相加之和，计算元素数量。baseCount用于记录正常情况下的元素个数，counterCells用于记录多个线程并发的元素个数。
-5. 另外还有一个sizeCtl变量，负数时表示`ConcurrentHashMap`正在初始化或者扩容，正数时表示扩容的阈值，也是一值多用，大家在做架构时也可以参考这种设计。
+4. `ConcurrentHashMap`并没有用于记录元素个数的size变量，而是使用baseCount和counterCells相加之和，计算元素数量。无竞争时通过CAS更新baseCount，有竞争时每个线程通过哈希映射到不同的CounterCell单元进行CAS累加。
+5. 另外还有一个sizeCtl变量，负数时表示`ConcurrentHashMap`正在初始化或者扩容，正数时表示扩容的阈值，也是一物多用，大家在做架构时也可以参考这种设计。
 
 除了这些基本属性外，`ConcurrentHashMap`还定义了4个节点内部类，分别是链表节点Node、红黑树节点TreeNode、管理红黑树的容器TreeBin、扩容时的临时转移节点ForwardingNode。
 ```java
@@ -155,6 +187,41 @@ public class ConcurrentHashMap<K, V>
 
 }
 ```
+
+### 关键机制补充
+
+**spread() 哈希预处理方法：**
+
+`ConcurrentHashMap` 没有直接使用 key 的 `hashCode()`，而是通过 `spread()` 方法预处理：
+
+```java
+static final int spread(int h) {
+    return (h ^ (h >>> 16)) & HASH_BITS;
+}
+```
+
+这个方法做了两件事：
+1. **高位参与运算**：将哈希值右移 16 位后与原值异或，让高 16 位也参与下标计算。由于数组长度通常较小（如 16、32），`(n-1) & hash` 只用到 hash 的低位。如果高位差异大但低位相同，容易冲突。spread() 让高位信息也混入低位。
+2. **掩码过滤**：`& HASH_BITS`（0x7fffffff）确保结果为正数，排除负数哈希值（负数用于表示特殊节点）。
+
+**CounterCell 并发计数机制：**
+
+`ConcurrentHashMap` 没有使用传统的 `size` 变量，而是采用类似 `LongAdder` 的分段累加思想：
+
+```java
+private transient volatile long baseCount;
+private transient volatile CounterCell[] counterCells;
+```
+
+- **无竞争时**：直接通过 CAS 更新 `baseCount`。
+- **有竞争时**：CAS 更新 `baseCount` 失败，则创建 `CounterCell[]` 数组，每个线程通过哈希映射到不同的 `CounterCell` 单元进行 CAS 累加，最后 `size()` 返回 `baseCount + 所有 CounterCell 的 value 之和`。
+
+这种设计大幅减少了多线程下的 CAS 竞争，提升了高并发场景下 `put()` 和 `size()` 的性能。
+
+**为什么有两个空数组？**
+
+跟 `ArrayList` 类似，`ConcurrentHashMap` 也使用懒加载：初始化时不创建数组，第一次 `put()` 时才通过 `initTable()` 初始化。`table` 初始为 `null`，通过 `sizeCtl` 控制初始容量。
+
 ## 初始化
 `ConcurrentHashMap`常见的构造方法有四个：
 
@@ -392,9 +459,9 @@ private final Node<K, V>[] initTable() {
 ### 扩容
 再看一下put源码中核心逻辑 —— 扩容。
 首先吐槽一下扩容的源码设计，扩容方法非常长，100多行，看得人头都大了。没有任何注释，而且变量名起的非常随意，非常简化，简化的让人不知道啥意思，比如tab、nexttn、fwd、ln、hn等，无法见文知意。
-但是再难，咱们也要把源码这块硬骨头啃下来，记得有位名人曾经说过：当你感到痛苦的时候，就是你痛苦的时候。
+但是再难，咱们也要把源码这块硬骨头啃下来。阅读源码的技巧就是：
 阅读源码的技巧就是，先整体后局部，先理论后细节。不要一上来就陷入细节中不能自拔，有些细枝末节可以跳过。
-阅读扩容源码的过程就是这样，掌握大致流程即可，部分细节可以跳过，感兴趣的再话私下研究。
+阅读扩容源码的过程就是这样，掌握大致流程即可，部分细节可以跳过，感兴趣的再私下研究。
 **扩容的流程用一句话概括就是：**先创建一个新数组，然后遍历原数组，拷贝元素到新数组中，最后把新数组直接赋值给原数组。
 **扩容具体流程如下：**
 
@@ -594,6 +661,14 @@ public V get(Object key) {
     return null;
 }
 ```
+
+**为什么 get() 不需要加锁？**
+
+`ConcurrentHashMap` 的 `get()` 方法全程无锁，原因在于：
+1. `table` 数组引用使用 `volatile` 修饰，保证扩容时新数组对所有线程立即可见。
+2. 链表节点的 `val` 和 `next` 字段也使用 `volatile` 修饰（见 Node 内部类定义），保证其他线程的修改可见。
+3. `get()` 读取的是某个时刻的快照，即使读取过程中其他线程正在修改，也不会导致数据不一致——这是弱一致性语义的体现，以性能换强一致性。
+
 ## remove源码
 再看一下remove方法源码，大致跟HashMap差不多，就是遍历链表和红黑树。
 ```java
@@ -708,7 +783,7 @@ final V replaceNode(Object key, V value, Object cv) {
 3. **ConcurrentHashMap的分段锁有哪些缺点？**
 
 如果你没看过源码，肯定无法回答这个问题。
-**答案：** ConcurrentHashMap的分段锁不全是优点。首先，ConcurrentHashMap分段锁的设计非常复杂，增加了理解难度和维护成本。由于ConcurrentHashMap使用的是分段锁，而不是整体加锁，导致需要需要访问所有元素的方法无法保证强一致性，比如containsKey()、size()方法等。
+**答案：** ConcurrentHashMap的分段锁不全是优点。首先，ConcurrentHashMap分段锁的设计非常复杂，增加了理解难度和维护成本。由于ConcurrentHashMap使用的是分段锁，而不是整体加锁，导致需要访问所有元素的方法无法保证强一致性，比如containsKey()、size()方法等。
 
 4. **ConcurrentHashMap的扩容流程是什么样的？**
 
@@ -720,4 +795,21 @@ final V replaceNode(Object key, V value, Object cv) {
    4. 遍历完成后，直接把新数组赋值给原数组。
 
 ![图片.png](https://javabaguwen.com/img/ConcurrentHashMap2.png)
-下篇文章我们将学习Java的阻塞队列BlockingQueue，学习了阻塞队列，可以更好的学习线程池、消息队列等，期待关注一下。
+
+### 关键操作时间复杂度对比
+
+| 操作 | 方法 | 时间复杂度 | 说明 |
+| --- | --- | --- | --- |
+| 读取 | `get(key)` | O(1) ~ O(log n) | 平均O(1)，链表退化时O(log n)（红黑树） |
+| 写入 | `put(key, value)` | O(1) ~ O(log n) | 平均O(1)，触发扩容时O(n) |
+| 删除 | `remove(key)` | O(1) ~ O(log n) | 同get，遍历链表或红黑树查找 |
+| 扩容 | `transfer()` | O(n) | 创建2倍新数组 + 分段迁移元素 |
+| 大小 | `size()` | O(n) | 需要累加 baseCount + 所有 CounterCell |
+| 判空 | `isEmpty()` | O(1) | 调用 `mappingCount() > 0`，快速判断 |
+
+### 使用建议
+
+1. **替代 HashTable 和同步 Map**：在多线程场景下，优先使用 `ConcurrentHashMap` 替代 `Hashtable` 或 `Collections.synchronizedMap()`。`ConcurrentHashMap` 使用分段锁（Java 8 细化到桶级锁），读操作几乎无锁，写操作只锁单个桶，并发性能远优于全局加锁。
+2. **key 和 value 都不能为 null**：与 `HashMap` 允许 null key/value 不同，`ConcurrentHashMap` 的 `put()` 方法会直接抛出 `NullPointerException`。这是因为 null 值在并发场景下存在歧义——无法区分"key不存在"和"值为null"。
+3. **size() 是弱一致性的近似值**：`ConcurrentHashMap` 的 `size()` 和 `mappingCount()` 返回的是调用时刻的近似值，在并发修改场景下可能不准确。如果需要精确的大小判断，应该使用 `isEmpty()` 或在业务层自行维护计数器。
+4. **注意树化条件和初始化时机**：链表转红黑树需要满足两个条件——链表长度 >= 8 且数组大小 >= 64。如果数组较小（< 64），即使链表很长也会优先触发扩容而非树化。另外，`ConcurrentHashMap` 采用懒加载，只有第一次 `put()` 时才初始化数组，构造方法的参数只是预设值。

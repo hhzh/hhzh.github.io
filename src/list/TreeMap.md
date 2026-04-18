@@ -1,22 +1,57 @@
 《解读Java源码专栏》，在这个系列中，我将手把手带着大家剖析Java核心组件的源码，内容包含集合、线程、线程池、并发、队列等，深入了解其背后的设计思想和实现细节，轻松应对工作面试。
-这是解读Java源码系列的第六篇，将跟大家一起学习Java中比较特殊的数据结构 - `TreeMap`。
+这是解读Java源码系列的第六篇，将跟大家一起学习Java中比较特殊的数据结构 —— `TreeMap`。
+
 ## 引言
-上篇文章讲到`LinkedHashMap`可以保证元素的插入顺序或者访问顺序，而`TreeMap`也能保证元素顺序，不过按照键的顺序进行排序。插入到`TreeMap`中的键值对，会自动按照键的顺序进行排序。
+上篇文章讲到 `LinkedHashMap` 可以保证元素的插入顺序或者访问顺序，而 `TreeMap` 也能保证元素顺序，不过是按照键的大小进行排序。插入到 `TreeMap` 中的键值对，会自动按照键的顺序进行排列。
+
 ## 简介
-`HashMap`底层结构是基于数组实现的，而`TreeMap`底层结构是基于红黑树实现的。`TreeMap`利用红黑树的特性实现对键的排序。
-额外介绍一下红黑树的特性：
+`HashMap` 底层结构是基于数组 + 链表/红黑树实现的，而 `TreeMap` 底层结构是**纯粹的红黑树**，没有数组。`TreeMap` 利用红黑树的特性实现对键的排序。
+
+额外介绍一下红黑树的 5 条特性：
 
 1. 节点是红色或者黑色
 2. 根节点是黑色
-3. 所有叶子节点是黑色
-4. 每个红色结点的两个子结点都是黑色。（从每个叶子到根的所有路径上不能有两个连续的红色结点）
-5. 从任一结点到其每个叶子的所有路径都包含相同数目的黑色结点。
+3. 所有叶子节点（NIL 节点）是黑色
+4. 每个红色节点的两个子节点都是黑色（从每个叶子到根的所有路径上不能有两个连续的红色节点）
+5. 从任一节点到其每个叶子的所有路径都包含相同数目的黑色节点
 
-红黑树是基于平衡二叉树的改进，而平衡二叉树是为了解决二叉搜索树在特殊情况下，退化成链表，查找、插入效率退化成 O(n)，规定左右子树高度差不超过1，但是插入、删除节点的时候，所做的平衡操作比较复杂。
-而红黑树的特性，保证了平衡操作实现相对简单，树的高度仅比平衡二叉树高了一倍，查找、插入、删除的时间复杂度是 O(log n)。
-![图片.png](https://javabaguwen.com/img/TreeMap1.png)
+红黑树是基于平衡二叉树的改进。平衡二叉树是为了解决二叉搜索树在特殊情况下退化成链表、查找/插入效率退化到 O(n) 的问题，规定左右子树高度差不超过 1，但插入、删除节点时所做的平衡操作比较复杂。而红黑树通过上述 5 条特性，保证了平衡操作实现相对简单，树的高度仅比平衡二叉树略高，查找、插入、删除的时间复杂度都是 O(log n)。
+
+![TreeMap红黑树示意图](https://javabaguwen.com/img/TreeMap1.png)
+
+`TreeMap` 的核心工作原理可以用下面的流程图概括：
+
+```mermaid
+flowchart TD
+    Start["初始化: root=null, size=0, comparator=null"] --> Put["put(key, value)"]
+    Put --> CheckRoot{"root == null?"}
+    CheckRoot -->|是| CreateRoot["compare(key, key) 校验 null\n创建根节点 Entry(key, value, null)\nsize=1, modCount++, 返回null"]
+    CheckRoot -->|否| CheckCmp{"comparator != null?"}
+    CheckCmp -->|是| CmpCompare["cmp = comparator.compare(key, t.key)"]
+    CheckCmp -->|否| DefaultCompare["key 强转 Comparable\ncmp = key.compareTo(t.key)"]
+    CmpCompare --> Traverse
+    DefaultCompare --> Traverse["do-while 遍历红黑树:\ncmp<0: t=t.left\ncmp>0: t=t.right\ncmp==0: 覆盖旧值, 返回"]
+    Traverse --> Found{"找到相同 key?"}
+    Found -->|是| Overwrite["t.setValue(value) 覆盖\n返回旧值"]
+    Found -->|否| NewNode["创建新节点 Entry(key, value, parent)\n根据 cmp 决定挂在 left 还是 right"]
+    NewNode --> FixAfterInsert["fixAfterInsertion(e):\n1. 新节点标记为 RED\n2. 如果父节点是 RED, 违反红黑树规则\n3. 根据叔叔节点颜色分 3 种 case:\n   - 叔叔 RED: 变色(父/叔变黑, 祖父变红), 上移检查\n   - 叔叔 BLACK + LL/RR: 单旋转 + 变色\n   - 叔叔 BLACK + LR/RL: 双旋转 + 变色\n4. 根节点强制变黑"]
+    FixAfterInsert --> Done["size++, modCount++, 返回null"]
+    Overwrite --> Done
+    CreateRoot --> Done
+    Get["get(key)"] --> GetEntry["getEntry(key):\n根据 comparator 或 Comparable\n从 root 开始左小右大遍历"]
+    GetEntry --> FoundGet{"找到?"}
+    FoundGet -->|是| RetVal["返回 p.value"]
+    FoundGet -->|否| RetNull["返回 null"]
+    Remove["remove(key)"] --> FindNode["getEntry(key) 查找节点"]
+    FindNode --> FoundRm{"找到?"}
+    FoundRm -->|否| RetNullRm["返回 null"]
+    FoundRm -->|是| DeleteNode["deleteEntry(p):\n如果 p 有两个非 NIL 子节点:\n  找后继节点 successor(p) 替换\n否则直接用唯一子节点或 NIL 替换\nfixAfterDeletion(被删除节点):\n  根据兄弟节点颜色分 4 种 case\n  通过旋转和变色恢复红黑树性质"]
+    DeleteNode --> DoneRm["size--, modCount++, 返回旧值"]
+```
+
 ## 使用示例
-利用`TreeMap`可以自动对键进行排序的特性，比较适用一些需要排序的场景，比如排行榜、商品列表等。
+利用 `TreeMap` 可以自动对键进行排序的特性，比较适用一些需要排序的场景，比如排行榜、商品列表等。
+
 ```java
 Map<Integer, String> map = new TreeMap<>();
 map.put(1, "One");
@@ -24,11 +59,12 @@ map.put(3, "Three");
 map.put(2, "Two");
 System.out.println(map); // 输出：{1=One, 2=Two, 3=Three}
 ```
+
 实现一个简单的热词排行榜功能：
+
 ```java
 /**
- * @author 一灯架构
- * @apiNote 热词
+ * 热词
  **/
 public class HotWord {
 
@@ -48,13 +84,13 @@ public class HotWord {
 
 }
 ```
+
 ```java
 import java.util.Comparator;
 import java.util.TreeMap;
 
 /**
- * @author 一灯架构
- * @apiNote 热词排行榜
+ * 热词排行榜
  **/
 public class Leaderboard {
 
@@ -68,7 +104,7 @@ public class Leaderboard {
         }
     };
 
-    // 使用TreeMap存储排行榜数据，key是热词对象，value是热词标题
+    // 使用 TreeMap 存储排行榜数据，key 是热词对象，value 是热词标题
     private TreeMap<HotWord, String> rankMap = new TreeMap<>(HOT_WORD_COMPARATOR);
 
     // 添加成绩
@@ -99,22 +135,27 @@ public class Leaderboard {
 
 }
 ```
+
 输出结果：
-```java
+
+```
 热词排行榜:
 #1 HotWord(word=淘宝崩了, count=95)
 #2 HotWord(word=闲鱼崩了, count=90)
 #3 HotWord(word=闲鱼崩了, count=85)
 #4 HotWord(word=钉钉崩了, count=80)
 ```
+
 ## 类属性
-看一下TreeMap的类属性，包含哪些字段？
+看一下 TreeMap 的类属性，包含哪些字段：
+
 ```java
 public class TreeMap<K, V>
         extends AbstractMap<K, V>
         implements NavigableMap<K, V>, Cloneable, java.io.Serializable {
+
     /**
-     * 排序方式
+     * 排序方式（comparator 为 null 时使用 key 的自然排序）
      */
     private final Comparator<? super K> comparator;
 
@@ -129,7 +170,8 @@ public class TreeMap<K, V>
     private transient int size = 0;
 
     /**
-     * 红黑树的红黑节点表示
+     * 红黑树的颜色常量
+     * RED = false, BLACK = true
      */
     private static final boolean RED = false;
     private static final boolean BLACK = true;
@@ -140,10 +182,10 @@ public class TreeMap<K, V>
     static final class Entry<K, V> implements Map.Entry<K, V> {
         K key;
         V value;
-        Entry<K, V> left;
-        Entry<K, V> right;
-        Entry<K, V> parent;
-        boolean color = BLACK;
+        Entry<K, V> left;    // 左子节点
+        Entry<K, V> right;   // 右子节点
+        Entry<K, V> parent;  // 父节点
+        boolean color = BLACK;  // 颜色标记，默认为黑色
 
         /**
          * 构造方法
@@ -157,13 +199,18 @@ public class TreeMap<K, V>
 
 }
 ```
-TreeMap类属性比较简单，包含排序方式comparator、红黑树根节点root、节点个数size等。自定义了一个红黑树节点类Entry，内部属性包括键值对、左右子树、父节点、红黑标记值等。
-## 初始化
-TreeMap常用的初始化方式有下面三个：
 
-1. 无参初始化，使用默认的排序方式。
-2. 指定排序方式的初始化
-3. 将普通Map转换为TreeMap，使用默认的排序方式。
+TreeMap 的类属性比较简单，包含排序方式 `comparator`、红黑树根节点 `root`、节点个数 `size` 等。自定义了一个红黑树节点类 `Entry`，内部属性包括键值对、左右子节点、父节点、颜色标记等。
+
+关于颜色常量的设计：`RED = false`、`BLACK = true`，使用 `boolean` 类型而不是 `int` 或 `enum`，节省内存。新创建的 `Entry` 节点默认是 `BLACK`，但实际插入时 `fixAfterInsertion` 方法会先将新节点标记为 `RED`，再进行红黑树调整。
+
+## 初始化
+TreeMap 常用的初始化方式有下面三个：
+
+1. 无参初始化，使用默认的排序方式（key 的自然排序）。
+2. 指定排序方式的初始化。
+3. 将普通 Map 转换为 TreeMap，使用默认的排序方式。
+
 ```java
 /**
  * 无参初始化
@@ -181,11 +228,13 @@ Map<Integer, Integer> map2 = new TreeMap<>(new Comparator<Integer>() {
 });
 
 /**
- * 将普通Map转换为TreeMap
+ * 将普通 Map 转换为 TreeMap
  */
 Map<Integer, Integer> map3 = new TreeMap<>(new HashMap<>());
 ```
+
 再看一下对应的源码实现：
+
 ```java
 /**
  * 无参初始化
@@ -202,28 +251,31 @@ public TreeMap(Comparator<? super K> comparator) {
 }
 
 /**
- * 将普通Map转换为TreeMap
+ * 将普通 Map 转换为 TreeMap
  */
 public TreeMap(Map<? extends K, ? extends V> m) {
     comparator = null;
     putAll(m);
 }
 ```
+
+TreeMap 的构造方法非常简单，只是设置 `comparator`。注意 TreeMap 采用了**懒初始化**策略，创建时不会初始化红黑树，红黑树在第一次 `put` 时才构建。
+
 ## 方法列表
-由于TreeMap存储是按照键的顺序排列的，所以还可以进行范围查询，下面举一些示例。
+由于 TreeMap 存储是按照键的顺序排列的，所以还可以进行范围查询，下面举一些示例。
+
 ```java
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * @author 一灯架构
- * @apiNote TreeMap方法测试
+ * TreeMap 方法测试
  */
 public class TreeMapTest {
 
     public static void main(String[] args) {
-        // 1. 创建一个热词排行榜（按热度倒序），key是热度，value是热词内容
+        // 1. 创建一个热词排行榜（按热度倒序），key 是热度，value 是热词内容
         TreeMap<Integer, String> rankMap = new TreeMap<>(Collections.reverseOrder());
         rankMap.put(80, "阿里云崩了");
         rankMap.put(100, "淘宝崩了");
@@ -264,8 +316,10 @@ public class TreeMapTest {
 
 }
 ```
+
 输出结果：
-```java
+
+```
 热词排行榜：
 #100 淘宝崩了
 #90 钉钉崩了
@@ -280,41 +334,45 @@ lowerEntry: 80=阿里云崩了
 ceilingEntry: 70=支付宝崩了
 floorEntry: 70=支付宝崩了
 ```
-其他方法的还包括：
+
+其他方法还包括：
 
 | 作用 | 方法签名 |
 | --- | --- |
-| 获取第一个键 | K firstKey() |
-| 获取最后一个键 | K lastKey() |
-| 获取大于指定键的最小键 | K higherKey(K key) |
-| 获取小于指定键的最大键 | K lowerKey(K key) |
-| 获取大于等于指定键的最小键 | K ceilingKey(K key) |
-| 获取小于等于指定键的最大键 | K floorKey(K key) |
-| 获取第一个键值对 | Map.Entry<K,V> firstEntry() |
-| 获取最后一个键值对 | Map.Entry<K,V> lastEntry() |
-| 获取并删除第一个键值对 | Map.Entry<K,V> pollFirstEntry() |
-| 获取并删除最后一个键值对 | Map.Entry<K,V> pollLastEntry() |
-| 获取大于指定键的最小键值对 | Map.Entry<K,V> higherEntry(K key) |
-| 获取小于指定键的最大键值对 | Map.Entry<K,V> lowerEntry(K key) |
-| 获取大于等于指定键的最小键值对 | Map.Entry<K,V> ceilingEntry(K key) |
-| 获取小于等于指定键的最大键值对 | Map.Entry<K,V> floorEntry(K key) |
-| 获取子map，左闭右开 | SortedMap<K,V> subMap(K fromKey, K toKey) |
-| 获取前几个子map，不包含指定键 | SortedMap<K,V> headMap(K toKey) |
-| 获取前几个子map | NavigableMap<K,V> headMap(K toKey, boolean inclusive) |
-| 获取后几个子map，不包含指定键 | SortedMap<K,V> tailMap(K fromKey) |
-| 获取后几个子map | NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) |
-| 获取其中一段子map | NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive, K toKey,   boolean toInclusive) |
+| 获取第一个键 | `K firstKey()` |
+| 获取最后一个键 | `K lastKey()` |
+| 获取大于指定键的最小键 | `K higherKey(K key)` |
+| 获取小于指定键的最大键 | `K lowerKey(K key)` |
+| 获取大于等于指定键的最小键 | `K ceilingKey(K key)` |
+| 获取小于等于指定键的最大键 | `K floorKey(K key)` |
+| 获取第一个键值对 | `Map.Entry<K,V> firstEntry()` |
+| 获取最后一个键值对 | `Map.Entry<K,V> lastEntry()` |
+| 获取并删除第一个键值对 | `Map.Entry<K,V> pollFirstEntry()` |
+| 获取并删除最后一个键值对 | `Map.Entry<K,V> pollLastEntry()` |
+| 获取大于指定键的最小键值对 | `Map.Entry<K,V> higherEntry(K key)` |
+| 获取小于指定键的最大键值对 | `Map.Entry<K,V> lowerEntry(K key)` |
+| 获取大于等于指定键的最小键值对 | `Map.Entry<K,V> ceilingEntry(K key)` |
+| 获取小于等于指定键的最大键值对 | `Map.Entry<K,V> floorEntry(K key)` |
+| 获取子 map，左闭右开 | `SortedMap<K,V> subMap(K fromKey, K toKey)` |
+| 获取前几个子 map，不包含指定键 | `SortedMap<K,V> headMap(K toKey)` |
+| 获取前几个子 map | `NavigableMap<K,V> headMap(K toKey, boolean inclusive)` |
+| 获取后几个子 map，不包含指定键 | `SortedMap<K,V> tailMap(K fromKey)` |
+| 获取后几个子 map | `NavigableMap<K,V> tailMap(K fromKey, boolean inclusive)` |
+| 获取其中一段子 map | `NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive)` |
 
-## put源码
-再看一下`TreeMap`的put源码：
+## put 源码
+
+再看一下 `TreeMap` 的 put 源码：
+
 ```java
 /**
- * put源码入口
+ * put 源码入口
  */
 public V put(K key, V value) {
     Entry<K,V> t = root;
     // 1. 如果根节点为空，则创建根节点
     if (t == null) {
+        // compare(key, key) 用于校验 key 不能为 null
         compare(key, key);
         root = new Entry<>(key, value, null);
         size = 1;
@@ -323,10 +381,10 @@ public V put(K key, V value) {
     }
     int cmp;
     Entry<K,V> parent;
-    // 2. 判断是否传入了排序方式，如果没有则使用默认
+    // 2. 判断是否传入了比较器，如果没有则使用 key 的自然排序
     Comparator<? super K> cpr = comparator;
     if (cpr != null) {
-        // 3. 如果传入了排序方式，使用do-while循环，找到目标值所在位置，并赋值
+        // 3. 如果传入了比较器，使用 do-while 循环找到目标位置
         do {
             parent = t;
             cmp = cpr.compare(key, t.key);
@@ -336,17 +394,19 @@ public V put(K key, V value) {
             } else if (cmp > 0) {
                 t = t.right;
             } else {
+                // key 已存在，覆盖旧值
                 return t.setValue(value);
             }
         } while (t != null);
     } else {
-        // 5. TreeMap不允许key为null
+        // 5. 没有比较器时，TreeMap 不允许 key 为 null
         if (key == null) {
             throw new NullPointerException();
         }
-        // 6. 如果没有传入排序方式，则使用Comparable进行比较
+        // 6. 使用 Comparable 进行比较
+        @SuppressWarnings("unchecked")
         Comparable<? super K> k = (Comparable<? super K>) key;
-        // 7. 跟上面一致，使用do-while循环，利用红黑树节点左小右大的特性，查找目标值所在位置，并赋值
+        // 7. 逻辑同上，使用 do-while 循环查找目标位置
         do {
             parent = t;
             cmp = k.compareTo(t.key);
@@ -359,32 +419,50 @@ public V put(K key, V value) {
             }
         } while (t != null);
     }
-    // 8. 如果没有找到，则创建新节点
+    // 8. 没有找到相同 key，创建新节点挂在父节点下
     Entry<K,V> e = new Entry<>(key, value, parent);
     if (cmp < 0) {
         parent.left = e;
     } else {
         parent.right = e;
     }
-    // 9. 插入新节点后，需要调整红黑树节点位置，保持红黑树的特性
+    // 9. 插入新节点后，调整红黑树结构
     fixAfterInsertion(e);
     size++;
     modCount++;
     return null;
 }
 ```
-put源码逻辑比较简单：
 
-1. 判断红黑树根节点是否为空，如果为空，则创建根节点。
-2. 判断是否传入了排序方式，如果没有则使用默认，否则使用自定义排序。
-3. 循环遍历红黑树，利用红黑树节点左小右大的特性，进行查找。
-4. 如果找到，就覆盖。如果没找到，就插入新节点。
-5. 插入新节点后，调整红黑树节点位置，保持红黑树的特性。
-## get源码
-再看一下get源码：
+put 源码逻辑：
+
+1. 判断红黑树根节点是否为空，如果为空则创建根节点。
+2. 判断是否传入了比较器，如果没有则使用 key 的自然排序（`Comparable`）。
+3. 循环遍历红黑树，利用左小右大的特性查找。
+4. 如果找到相同 key，就覆盖旧值。如果没找到，就插入新节点。
+5. 插入新节点后，调用 `fixAfterInsertion` 调整红黑树结构。
+
+有两个关键细节值得单独说明：
+
+**`compare(key, key)` 的作用**：在创建根节点时，调用了 `compare(key, key)`。这个方法内部会检查 key 是否为 null。如果 key 为 null 且没有自定义比较器，会抛出 `NullPointerException`。这个设计很巧妙：通过 `compare(key, key)` 在第一次插入时就校验 key 的合法性，而不是等到后续操作才暴露问题。
+
+**`fixAfterInsertion` 红黑树调整**：插入新节点后，可能违反红黑树的规则（连续两个红色节点）。`fixAfterInsertion` 方法的核心逻辑是：
+
+1. 先将新节点标记为 **RED**（如果标记为 BLACK 会违反规则 5）
+2. 如果父节点是 BLACK，不需要调整（没有违反任何规则）
+3. 如果父节点是 RED，需要分情况处理：
+   - **叔叔节点是 RED**：将父节点和叔叔节点变黑，祖父节点变红，然后继续向上检查祖父节点
+   - **叔叔节点是 BLACK + LL/RR 型**：对祖父节点进行单旋转（右旋/左旋），然后变色
+   - **叔叔节点是 BLACK + LR/RL 型**：先对父节点旋转，再对祖父节点旋转（双旋转），然后变色
+4. 最后将根节点强制设为 BLACK
+
+## get 源码
+
+再看一下 get 源码：
+
 ```java
 /**
- * get源码入口
+ * get 源码入口
  */
 public V get(Object key) {
     // 调用查找节点的方法
@@ -396,17 +474,18 @@ public V get(Object key) {
  * 查找节点方法
  */
 final Entry<K, V> getEntry(Object key) {
-    // 1. 判断如果传入了排序方式，则使用排序方式查找节点
+    // 1. 如果传入了比较器，则使用比较器查找
     if (comparator != null) {
         return getEntryUsingComparator(key);
     }
     if (key == null) {
         throw new NullPointerException();
     }
-    // 2. 否则使用默认方式查找
+    // 2. 否则使用 key 的自然排序查找
+    @SuppressWarnings("unchecked")
     Comparable<? super K> k = (Comparable<? super K>) key;
     Entry<K, V> p = root;
-    // 3. 利用红黑树节点左小右大的特性，循环查找
+    // 3. 利用红黑树左小右大的特性，循环查找
     while (p != null) {
         int cmp = k.compareTo(p.key);
         if (cmp < 0) {
@@ -421,14 +500,14 @@ final Entry<K, V> getEntry(Object key) {
 }
 
 /**
- * 使用传入的排序方式，查找节点方法
+ * 使用传入的比较器查找节点方法
  */
 final Entry<K, V> getEntryUsingComparator(Object key) {
     K k = (K) key;
     Comparator<? super K> cpr = comparator;
     if (cpr != null) {
         Entry<K, V> p = root;
-        // 3. 跟上面类似，利用红黑树节点左小右大的特性，循环查找
+        // 逻辑同上，利用红黑树左小右大的特性循环查找
         while (p != null) {
             int cmp = cpr.compare(k, p.key);
             if (cmp < 0) {
@@ -443,12 +522,125 @@ final Entry<K, V> getEntryUsingComparator(Object key) {
     return null;
 }
 ```
-get方法源码与put方法逻辑类似，都是利用红黑树的特性遍历红黑树。
-## 总结
-`TreeMap`是一种有序Map集合，具有以下特性：
 
-1. 保证以键的顺序进行排列
-2. 具有一些以键的顺序进行范围查询的方法，比如firstEntry()、lastEntry()、higherEntry(K key)、 lowerEntry(K key) 等。
-3. 可以自定义排序方式，初始化的时候，可以指定是正序、倒序或者自定义排序。
-4. 不允许key为null，因为null值无法比较大小。
-5. 底层基于红黑树实现，查找、插入、删除的时间复杂度是O(log n)，而HashMap的时间复杂度是O(1)。
+get 方法与 put 方法逻辑类似，都是从根节点开始，利用红黑树左小右大的特性遍历查找。根据是否有自定义比较器，分别调用 `getEntryUsingComparator` 和默认查找逻辑。
+
+## remove 源码
+
+再看一下 remove 方法的源码实现：
+
+```java
+/**
+ * remove 方法入口
+ */
+public V remove(Object key) {
+    Entry<K, V> p = getEntry(key);
+    if (p == null) {
+        return null;
+    }
+    V oldValue = p.value;
+    deleteEntry(p);
+    return oldValue;
+}
+```
+
+`remove` 方法分为两步：先用 `getEntry` 查找目标节点，再调用 `deleteEntry` 删除并调整红黑树。
+
+```java
+/**
+ * 删除节点并调整红黑树
+ */
+private void deleteEntry(Entry<K, V> p) {
+    modCount++;
+    size--;
+
+    // 1. 如果被删除节点有两个非 NIL 子节点，找到后继节点（右子树的最左节点）
+    if (p.left != null && p.right != null) {
+        Entry<K, V> s = successor(p);
+        // 用后继节点的 key 和 value 替换当前节点
+        p.key = s.key;
+        p.value = s.value;
+        p = s; // 实际要删除的是后继节点
+    }
+
+    // 2. 此时 p 最多只有一个非 NIL 子节点
+    Entry<K, V> replacement = (p.left != null) ? p.left : p.right;
+
+    if (replacement != null) {
+        // 3. 用子节点替换 p
+        replacement.parent = p.parent;
+        if (p.parent == null) {
+            root = replacement;
+        } else if (p == p.parent.left) {
+            p.parent.left = replacement;
+        } else {
+            p.parent.right = replacement;
+        }
+        // 清空 p 的引用，帮助 GC
+        p.left = p.right = p.parent = null;
+        // 4. 如果被删除节点是黑色，需要调整红黑树
+        if (p.color == BLACK) {
+            fixAfterDeletion(replacement);
+        }
+    } else if (p.parent == null) {
+        // 5. 删除的是根节点且无子节点，直接置空
+        root = null;
+    } else {
+        // 6. 删除的是叶子节点
+        if (p.color == BLACK) {
+            fixAfterDeletion(p);
+        }
+        // 从父节点断开
+        if (p.parent != null) {
+            if (p == p.parent.left) {
+                p.parent.left = null;
+            } else {
+                p.parent.right = null;
+            }
+            p.parent = null;
+        }
+    }
+}
+```
+
+删除操作比插入更复杂，核心思路是：
+
+1. 如果节点有两个子节点，找到**中序后继节点**（右子树的最左节点），用后继节点的值替换当前节点，然后转为删除后继节点。这样就把"删除有两个子节点的节点"简化为"删除最多一个子节点的节点"。
+2. 用子节点（或 NIL）替换被删除节点的位置。
+3. 如果被删除的节点是**黑色**，则调用 `fixAfterDeletion` 调整红黑树，因为删除黑色节点会违反规则 5（路径黑色节点数不一致）。
+
+`fixAfterDeletion` 的调整逻辑比 `fixAfterInsertion` 更复杂，分为 4 种 case，核心思想是通过**兄弟节点**的颜色和兄弟子节点的颜色，来决定是旋转还是变色：
+
+1. **兄弟节点是 RED**：将兄弟变黑、父变红，然后对父节点左旋，更新兄弟，转化为兄弟是 BLACK 的情况
+2. **兄弟是 BLACK，兄弟的两个子节点都是 BLACK**：将兄弟变红，向上检查父节点
+3. **兄弟是 BLACK，兄弟的右子节点是 BLACK**：将兄弟的左子节点变黑，对兄弟右旋，转化为 case 4
+4. **兄弟是 BLACK，兄弟的右子节点是 RED**：将兄弟设为父节点的颜色，父和兄弟右子变黑，对父左旋，最后将 root 设为 BLACK，完成调整
+
+## 总结
+
+`TreeMap` 是一种有序 Map 集合，具有以下特性：
+
+1. 保证以键的顺序进行排列，支持正向和反向遍历。
+2. 提供丰富的范围查询方法，比如 `firstEntry()`、`lastEntry()`、`higherEntry()`、`lowerEntry()`、`ceilingEntry()`、`floorEntry()`、`subMap()` 等。
+3. 可以自定义排序方式，初始化时可以指定正序、倒序或自定义 Comparator。
+4. **不允许 key 为 null**（使用自然排序时），因为 null 无法参与比较。如果传入了自定义 Comparator 且 Comparator 支持 null，则可以使用 null key。
+5. 底层基于红黑树实现，查找、插入、删除的时间复杂度是 O(log n)。
+
+### 关键操作时间复杂度对比
+
+| 操作 | 方法 | 时间复杂度 | 说明 |
+| --- | --- | --- | --- |
+| 插入 | put | O(log n) | 红黑树查找 + fixAfterInsertion 调整 |
+| 查询 | get | O(log n) | 红黑树遍历查找 |
+| 删除 | remove | O(log n) | 查找 + fixAfterDeletion 调整 |
+| 查询最小/最大 | firstEntry/lastEntry | O(log n) | 从根节点一路向左/向右 |
+| 范围查询 | higher/lower/ceiling/floor | O(log n) | 查找 + 后继/前驱 |
+| 子 map | subMap/headMap/tailMap | O(log n) | 创建视图，不复制数据 |
+| 遍历 | forEach/entrySet | O(n) | 中序遍历，按键升序返回 |
+
+### 使用建议
+
+1. **key 必须可比较**：使用自然排序时，key 必须实现 `Comparable` 接口，否则插入时会抛出 `ClassCastException`。如果使用自定义 Comparator，要确保比较逻辑是**一致的、自反的**，否则红黑树的结构会被破坏。
+2. **不要修改已作为 key 的对象的属性**：如果 key 是自定义对象，插入后修改了影响比较结果的字段，会导致红黑树结构错乱，后续的 get、remove 操作返回错误结果。
+3. **优先用 HashMap 除非需要排序**：`TreeMap` 的 O(log n) 性能比 `HashMap` 的 O(1) 差，如果没有排序或范围查询需求，优先使用 `HashMap`。
+4. **SubMap 是视图，不是副本**：`subMap()`、`headMap()`、`tailMap()` 返回的是原 TreeMap 的视图，对 SubMap 的修改会反映到原 Map，反之亦然。如果需要独立的副本，应使用 `new TreeMap<>(treeMap.subMap(...))`。

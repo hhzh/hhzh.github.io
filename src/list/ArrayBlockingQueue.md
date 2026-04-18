@@ -1,55 +1,73 @@
 欢迎学习《解读Java源码专栏》，在这个系列中，我将手把手带着大家剖析Java核心组件的源码，内容包含集合、线程、线程池、并发、队列等，深入了解其背后的设计思想和实现细节，轻松应对工作面试。
-这是解读Java源码系列的第9篇，将跟大家一起学习Java中的阻塞队列 - BlockingQueue。
-# 引言
-在日常开发中，我们好像很少用到`BlockingQueue（阻塞队列）`，`BlockingQueue`到底有什么作用？应用场景是什么样的？
-如果使用过线程池或者阅读过线程池源码，就会知道线程池的核心功能都是基于`BlockingQueue`实现的。
-大家用过消息队列（MessageQueue），就知道消息队列作用是解耦、异步、削峰。同样`BlockingQueue`的作用也是这三种，区别是`BlockingQueue`只作用于本机器，而消息队列相当于分布式`BlockingQueue`。
-`BlockingQueue`作为阻塞队列，主要应用于生产者-消费者模式的场景，在并发多线程中尤其常用。
+这是解读Java源码系列的第9篇，将跟大家一起学习Java中的阻塞队列 —— `ArrayBlockingQueue`。
 
-1. 比如像线程池中的任务调度场景，提交任务和拉取并执行任务。
-2. 生产者与消费者解耦的场景，生产者把数据放到队列中，消费者从队列中取数据进行消费。两者进行解耦，不用感知对方的存在。
-3. 应对突发流量的场景，业务高峰期突然来了很多请求，可以放到队列中缓存起来，消费者以正常的频率从队列中拉取并消费数据，起到削峰的作用。
+## 引言
+在日常开发中，我们好像很少直接用到 `BlockingQueue（阻塞队列）`，`BlockingQueue` 到底有什么作用？应用场景是什么样的？
 
-`BlockingQueue`是个接口，定义了几组放数据和取数据的方法，来满足不同的场景。
+如果使用过线程池或者阅读过线程池源码，就会知道线程池的核心功能都是基于 `BlockingQueue` 实现的。
+
+大家用过消息队列（MessageQueue），就知道消息队列的作用是解耦、异步、削峰。同样 `BlockingQueue` 的作用也是这三种，区别是 `BlockingQueue` 只作用于本机器，而消息队列相当于分布式 `BlockingQueue`。
+
+`BlockingQueue` 作为阻塞队列，主要应用于生产者-消费者模式的场景，在并发多线程中尤其常用。
+
+1. 比如线程池中的任务调度场景：提交任务和拉取并执行任务。
+2. 生产者与消费者解耦的场景：生产者把数据放到队列中，消费者从队列中取数据进行消费。两者进行解耦，不用感知对方的存在。
+3. 应对突发流量的场景：业务高峰期突然来了很多请求，可以放到队列中缓存起来，消费者以正常的频率从队列中拉取并消费数据，起到削峰的作用。
+
+`BlockingQueue` 是个接口，定义了几组放数据和取数据的方法，来满足不同的场景。
 
 | 操作 | 抛出异常 | 返回特定值 | 阻塞 | 阻塞一段时间 |
 | --- | --- | --- | --- | --- |
 | 放数据 | add() | offer() | put() | offer(e, time, unit) |
-| 取数据（同时删除数据） | remove() | poll() | take() | poll(time, unit) |
-| 取数据（不删除） | element()	 | peek()	 | 不支持 | 不支持 |
+| 取数据（同时删除） | remove() | poll() | take() | poll(time, unit) |
+| 查看数据（不删除） | element() | peek() | 不支持 | 不支持 |
 
-`BlockingQueue`有5个常见的实现类，应用场景不同。
+`BlockingQueue` 有 5 个常见的实现类，应用场景不同：
 
-- ArrayBlockingQueue
+- **ArrayBlockingQueue**：基于数组实现的阻塞队列，创建时需指定容量大小，是有界队列。
+- **LinkedBlockingQueue**：基于链表实现的阻塞队列，默认是无界队列，创建时可以指定容量大小。
+- **SynchronousQueue**：一种没有缓冲的阻塞队列，生产出的数据需要立刻被消费。
+- **PriorityBlockingQueue**：实现了优先级的阻塞队列，基于堆（PriorityQueue）实现，是无界队列。
+- **DelayQueue**：实现了延迟功能的阻塞队列，基于 PriorityQueue 实现，是无界队列。
 
-基于数组实现的阻塞队列，创建队列时需指定容量大小，是有界队列。
+今天重点讲一下 `ArrayBlockingQueue` 的底层实现原理。
 
-- LinkedBlockingQueue
+`ArrayBlockingQueue` 的核心工作原理可以用下面的流程图概括：
 
-基于链表实现的阻塞队列，默认是无界队列，创建可以指定容量大小
+```mermaid
+flowchart TD
+    Start["初始化: items=new Object[capacity]\ntakeIndex=0, putIndex=0, count=0\nlock=ReentrantLock, notEmpty, notFull"] --> Offer["offer(e): 判空 → 加锁"]
+    Offer --> CheckFull{"count == items.length?"}
+    CheckFull -->|是| RetFalse["返回false"]
+    CheckFull -->|否| Enqueue["enqueue(e):\nitems[putIndex] = x\nputIndex = (putIndex + 1) % capacity\ncount++\nnotEmpty.signal() 唤醒取数据线程"]
+    Enqueue --> Unlock["释放锁, 返回true"]
+    Put["put(e): 判空 → 加可中断锁"] --> CheckFullPut{"count == items.length?"}
+    CheckFullPut -->|是| WaitFull["notFull.await()\n阻塞等待消费者腾出空间"]
+    WaitFull --> CheckFullPut
+    CheckFullPut -->|否| EnqueuePut["enqueue(e)"]
+    EnqueuePut --> UnlockPut["释放锁"]
+    Poll["poll(): 加锁"] --> CheckEmpty{"count == 0?"}
+    CheckEmpty -->|是| RetNull["返回null"]
+    CheckEmpty -->|否| Dequeue["dequeue():\nx = items[takeIndex]\nitems[takeIndex] = null\n  (置null, 帮助GC回收)\ntakeIndex = (takeIndex + 1) % capacity\ncount--\nnotFull.signal() 唤醒放数据线程"]
+    Dequeue --> UnlockPoll["释放锁, 返回x"]
+    Take["take(): 加可中断锁"] --> CheckEmptyTake{"count == 0?"}
+    CheckEmptyTake -->|是| WaitEmpty["notEmpty.await()\n阻塞等待生产者放入元素"]
+    WaitEmpty --> CheckEmptyTake
+    CheckEmptyTake -->|否| DequeueTake["dequeue()"]
+    DequeueTake --> UnlockTake["释放锁"]
+```
 
-- SynchronousQueue
+## ArrayBlockingQueue 类结构
 
-一种没有缓冲的阻塞队列，生产出的数据需要立刻被消费
+先看一下 `ArrayBlockingQueue` 类里面有哪些属性：
 
-- PriorityBlockingQueue
-
-实现了优先级的阻塞队列，基于数据显示，是无界队列
-
-- DelayQueue
-
-实现了延迟功能的阻塞队列，基于PriorityQueue实现的，是无界队列
-
-今天重点讲一下`ArrayBlockingQueue`的底层实现原理，在接下来的文章中再讲一下其他队列实现。
-# ArrayBlockingQueue类结构
-先看一下`ArrayBlockingQueue`类里面有哪些属性：
 ```java
 public class ArrayBlockingQueue<E>
         extends AbstractQueue<E>
         implements BlockingQueue<E>, java.io.Serializable {
 
     /**
-     * 用来存放数据的数组
+     * 用来存放元素的数组
      */
     final Object[] items;
 
@@ -69,48 +87,60 @@ public class ArrayBlockingQueue<E>
     int count;
 
     /**
-     * 独占锁，用来保证存取数据安全
+     * 独占锁，用来保证存取数据的线程安全
      */
     final ReentrantLock lock;
 
     /**
-     * 取数据的条件（数组非空）
+     * 取数据的条件队列：当数组非空时唤醒消费者
      */
     private final Condition notEmpty;
 
     /**
-     * 放数据的条件（数组不满）
+     * 放数据的条件队列：当数组不满时唤醒生产者
      */
     private final Condition notFull;
 
 }
 ```
-可以看出`ArrayBlockingQueue`底层是基于数组实现的，使用对象数组items存储元素。为了实现队列特性（一端插入，另一端删除），定义了两个指针，takeIndex表示下次取数据的位置，putIndex表示下次放数据的位置。
-另外`ArrayBlockingQueue`还使用`ReentrantLock`保证线程安全，并且定义了两个条件，当条件满足的时候才允许放数据或者取数据，下面会详细讲。
-# 初始化
-`ArrayBlockingQueue`常用的初始化方法有两个：
 
-1. 指定容量大小
+可以看出 `ArrayBlockingQueue` 底层是基于数组实现的，使用 `Object[]` 数组 `items` 存储元素。为了实现循环队列特性（一端插入，另一端删除），定义了两个指针：`takeIndex` 表示下次取数据的位置，`putIndex` 表示下次放数据的位置。
+
+另外 `ArrayBlockingQueue` 使用 `ReentrantLock` 保证线程安全，并且定义了两个**条件变量**：
+
+- **`notEmpty`**：当队列中有元素时（非空），生产者调用 `notEmpty.signal()` 唤醒等待的消费者线程
+- **`notFull`**：当队列中有空位时（不满），消费者调用 `notFull.signal()` 唤醒等待的生产者线程
+
+生产者-消费者通过这两个条件变量实现协调：队列满时生产者等待在 `notFull` 上，队列空时消费者等待在 `notEmpty` 上。
+
+## 初始化
+
+`ArrayBlockingQueue` 常用的初始化方法有两个：
+
+1. 指定容量大小（默认非公平锁）
 2. 指定容量大小和是否是公平锁
+
 ```java
 /**
- * 指定容量大小的构造方法
+ * 指定容量大小的构造方法（默认非公平锁）
  */
-BlockingQueue<Integer> blockingDeque1 = new ArrayBlockingQueue<>(10);
+BlockingQueue<Integer> queue1 = new ArrayBlockingQueue<>(10);
+
 /**
- * 指定容量大小、公平锁的构造方法
+ * 指定容量大小和公平锁的构造方法
  */
-BlockingQueue<Integer> blockingDeque1 = new ArrayBlockingQueue<>(10, true);
+BlockingQueue<Integer> queue2 = new ArrayBlockingQueue<>(10, true);
 ```
+
 再看一下对应的源码实现：
+
 ```java
 /**
- * 指定容量大小的构造方法（默认是非公平锁）
+ * 指定容量大小的构造方法（默认非公平锁）
  */
 public ArrayBlockingQueue(int capacity) {
     this(capacity, false);
 }
-
 
 /**
  * 指定容量大小、公平锁的构造方法
@@ -128,36 +158,40 @@ public ArrayBlockingQueue(int capacity, boolean fair) {
     notFull = lock.newCondition();
 }
 ```
-# 放数据源码
+
+`ArrayBlockingQueue` 在初始化时就一次性创建好指定容量的数组，并在构造方法中初始化锁和两个条件变量。公平锁的选择取决于业务场景：公平锁按照线程请求锁的顺序分配，避免线程饥饿，但吞吐量较低；非公平锁吞吐量更高，但某些线程可能长期等待。
+
+## 放数据源码
+
 放数据的方法有四个：
 
 | 操作 | 抛出异常 | 返回特定值 | 阻塞 | 阻塞一段时间 |
 | --- | --- | --- | --- | --- |
 | 放数据 | add() | offer() | put() | offer(e, time, unit) |
 
-## offer方法源码
-先看一下offer()方法源码，其他方法逻辑也是大同小异。
-无论是放数据还是取数据，都是从队头开始，向队尾移动。
-![图片.png](https://javabaguwen.com/img/ArrayBlockingQueue1.png)
+### offer 方法源码
+
+先看一下 `offer()` 方法源码：
+
 ```java
 /**
- * offer方法入口
+ * offer 方法入口
  *
  * @param e 元素
  * @return 是否插入成功
  */
 public boolean offer(E e) {
-    // 1. 判空，传参不允许为null
+    // 1. 判空，传参不允许为 null
     checkNotNull(e);
     // 2. 加锁
     final ReentrantLock lock = this.lock;
     lock.lock();
     try {
-        // 3. 判断数组是否已满，如果满了就直接返回false结束
+        // 3. 判断数组是否已满，如果满了就直接返回 false
         if (count == items.length) {
             return false;
         } else {
-            // 4. 否则就插入
+            // 4. 否则执行入队
             enqueue(e);
             return true;
         }
@@ -175,27 +209,30 @@ public boolean offer(E e) {
 private void enqueue(E x) {
     // 1. 获取数组
     final Object[] items = this.items;
-    // 2. 直接放入数组
+    // 2. 放入 putIndex 位置
     items[putIndex] = x;
-    // 3. 移动putIndex位置，如果到达数组的末尾就从头开始
+    // 3. putIndex 向后移动一位，到达数组末尾时回到 0（循环队列）
     if (++putIndex == items.length) {
         putIndex = 0;
     }
-    // 4. 计数
+    // 4. 元素计数加一
     count++;
-    // 5. 唤醒因为队列为空，等待取数据的线程
+    // 5. 唤醒因为队列为空而在 notEmpty 上等待的消费者线程
     notEmpty.signal();
 }
 ```
-offer()在数组满的时候，会返回false，表示添加失败。
- 为了循环利用数组，添加元素的时候如果已经到了队尾，就从队头重新开始，相当于一个循环队列，像下面这样：
-![图片.png](https://javabaguwen.com/img/ArrayBlockingQueue2.png)
-再看一下另外三个添加元素方法源码：
-## add方法源码
-add()方法在数组满的时候，会抛出异常，底层基于offer()实现。
+
+`offer()` 的逻辑：判空 → 加锁 → 检查队列是否已满（`count == items.length`） → 满了返回 `false`，否则调用 `enqueue` 入队 → 释放锁。
+
+`enqueue` 方法中有一个关键设计：`putIndex` 到达数组末尾后会回到 0，这就是**循环队列**的实现方式。数组空间可以被循环利用，不会像普通数组那样因为头部出队而浪费空间。
+
+### add 方法源码
+
+`add()` 方法在队列满的时候会抛出异常，底层基于 `offer()` 实现：
+
 ```java
 /**
- * add方法入口
+ * add 方法入口
  *
  * @param e 元素
  * @return 是否添加成功
@@ -208,26 +245,29 @@ public boolean add(E e) {
     }
 }
 ```
-## put方法源码
-put()方法在数组满的时候，会一直阻塞，直到有其他线程取走数据，空出位置，才能添加成功。
+
+### put 方法源码
+
+`put()` 方法在队列满的时候会一直阻塞，直到有其他线程取走数据、空出位置，才能添加成功。
+
 ```java
 /**
- * put方法入口
+ * put 方法入口
  *
  * @param e 元素
  */
 public void put(E e) throws InterruptedException {
-    // 1. 判空，传参不允许为null
+    // 1. 判空，传参不允许为 null
     checkNotNull(e);
-    // 2. 加可中断的锁，防止一直阻塞
+    // 2. 加可中断的锁，防止线程无法被唤醒
     final ReentrantLock lock = this.lock;
     lock.lockInterruptibly();
     try {
-        // 3. 如果队列已满，就一直阻塞，直到被唤醒
+        // 3. 如果队列已满，就一直阻塞在 notFull 条件上
         while (count == items.length) {
             notFull.await();
         }
-        // 4. 如果队列未满，直接入队
+        // 4. 队列未满，执行入队
         enqueue(e);
     } finally {
         // 5. 释放锁
@@ -235,11 +275,16 @@ public void put(E e) throws InterruptedException {
     }
 }
 ```
-## offer(e, time, unit)源码
-再看一下offer(e, time, unit)方法源码，在数组满的时候， offer(e, time, unit)方法会阻塞一段时间。
+
+注意这里使用 `while` 循环而不是 `if` 判断，是因为存在**虚假唤醒**的可能——线程可能在没有被 `signal()` 的情况下被唤醒。用 `while` 可以在唤醒后重新检查条件是否真的满足。
+
+### offer(e, time, unit) 源码
+
+`offer(e, time, unit)` 方法在队列满的时候会阻塞指定时间，超时后返回 `false`。
+
 ```java
 /**
- * offer方法入口
+ * offer 方法入口
  *
  * @param e       元素
  * @param timeout 超时时间
@@ -247,24 +292,24 @@ public void put(E e) throws InterruptedException {
  * @return 是否添加成功
  */
 public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
-    // 1. 判空，传参不允许为null
+    // 1. 判空，传参不允许为 null
     checkNotNull(e);
     // 2. 把超时时间转换为纳秒
     long nanos = unit.toNanos(timeout);
-    // 3. 加可中断的锁，防止一直阻塞
+    // 3. 加可中断的锁
     final ReentrantLock lock = this.lock;
     lock.lockInterruptibly();
     try {
         // 4. 循环判断队列是否已满
         while (count == items.length) {
             if (nanos <= 0) {
-                // 6. 如果队列已满，且超时时间已过，则返回false
+                // 5. 如果超时时间已过，返回 false
                 return false;
             }
-            // 5. 如果队列已满，则等待指定时间
+            // 6. 在 notFull 条件上等待指定纳秒数
             nanos = notFull.awaitNanos(nanos);
         }
-        // 7. 如果队列未满，则入队
+        // 7. 队列未满，执行入队
         enqueue(e);
         return true;
     } finally {
@@ -273,26 +318,29 @@ public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedExcepti
     }
 }
 ```
-# 弹出数据源码
-弹出数据（取出数据并删除）的方法有四个：
+
+## 取数据源码
+
+取数据（取出并删除）的方法有四个：
 
 | 操作 | 抛出异常 | 返回特定值 | 阻塞 | 阻塞一段时间 |
 | --- | --- | --- | --- | --- |
-| 取数据（同时删除数据） | remove() | poll() | take() | poll(time, unit) |
+| 取数据（同时删除） | remove() | poll() | take() | poll(time, unit) |
 
-## poll方法源码
-看一下poll()方法源码，其他方法逻辑大同小异。
-poll()方法在弹出元素的时候，如果数组为空，则返回null，表示弹出失败。
+### poll 方法源码
+
+看一下 `poll()` 方法源码：
+
 ```java
 /**
- * poll方法入口
+ * poll 方法入口
  */
 public E poll() {
     // 1. 加锁
     final ReentrantLock lock = this.lock;
     lock.lock();
     try {
-        // 2. 如果数组为空，则返回null，否则返回队列头部元素
+        // 2. 如果队列为空，返回 null，否则从队头取出元素
         return (count == 0) ? null : dequeue();
     } finally {
         // 3. 释放锁
@@ -301,37 +349,40 @@ public E poll() {
 }
 
 /**
- * 出列
+ * 出队
  */
 private E dequeue() {
-    // 1. 取出队列头部元素
+    // 1. 获取队头元素
     final Object[] items = this.items;
     E x = (E) items[takeIndex];
-    // 2. 取出元素后，把该位置置空
+    // 2. 取出元素后，将该位置置 null（帮助 GC 回收）
     items[takeIndex] = null;
-    // 3. 移动takeIndex位置，如果到达数组的末尾就从头开始
+    // 3. takeIndex 向后移动一位，到达数组末尾时回到 0（循环队列）
     if (++takeIndex == items.length) {
         takeIndex = 0;
     }
-    // 4. 元素个数减一
+    // 4. 元素计数减一
     count--;
-    if (itrs != null) {
-        itrs.elementDequeued();
-    }
-    // 5. 唤醒因为队列已满，等待放数据的线程
+    // 5. 唤醒因为队列已满而在 notFull 条件上等待的生产者线程
     notFull.signal();
     return x;
 }
 ```
-可见取数据跟放数据一样，都是循环遍历数组。
-## remove方法源码
-再看一下remove()方法源码，如果数组为空，remove()会抛出异常。
+
+`dequeue` 方法中，取出元素后把 `items[takeIndex]` 置为 `null`，这是一个**GC 友好**的设计。因为循环数组会不断复用，如果不置为 `null`，已经被取走的元素的引用仍然存在，可能导致对象无法被 GC 回收（类似内存泄漏）。
+
+`takeIndex` 同样在到达数组末尾后回到 0，实现循环队列的循环利用。
+
+### remove 方法源码
+
+`remove()` 方法在队列为空时会抛出异常：
+
 ```java
 /**
- * remove方法入口
+ * remove 方法入口
  */
 public E remove() {
-    // 1. 直接调用poll方法
+    // 1. 直接调用 poll 方法
     E x = poll();
     // 2. 如果取到数据，直接返回，否则抛出异常
     if (x != null) {
@@ -341,22 +392,53 @@ public E remove() {
     }
 }
 ```
-## take方法源码
-再看一下take()方法源码，如果数组为空，take()方法就一直阻塞，直到被唤醒。
+
+除了从队头删除元素外，`ArrayBlockingQueue` 还提供了删除指定元素的方法 `remove(Object o)`：
+
 ```java
 /**
- * take方法入口
+ * 删除指定元素
+ */
+public boolean remove(Object o) {
+    if (o == null) return false;
+    final Object[] items = this.items;
+    final ReentrantLock lock = this.lock;
+    lock.lock();
+    try {
+        // 从 takeIndex 开始线性遍历查找
+        for (int i = takeIndex, k = count; k > 0; i = inc(i), k--) {
+            if (o.equals(items[i])) {
+                removeAt(i);
+                return true;
+            }
+        }
+        return false;
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+`remove(Object o)` 需要从 `takeIndex` 开始线性遍历查找目标元素（O(n)），找到后调用 `removeAt(i)` 删除。`removeAt` 的逻辑比较复杂：如果被删除的元素在队头或队尾，直接 dequeue 或调整 putIndex 即可；如果在中间位置，需要将后面的元素逐个向前移动一位。
+
+### take 方法源码
+
+`take()` 方法在队列为空时会一直阻塞，直到被唤醒：
+
+```java
+/**
+ * take 方法入口
  */
 public E take() throws InterruptedException {
-    // 1. 加可中断的锁，防止一直阻塞
+    // 1. 加可中断的锁
     final ReentrantLock lock = this.lock;
     lock.lockInterruptibly();
     try {
-        // 2. 如果数组为空，就一直阻塞，直到被唤醒
+        // 2. 如果队列为空，就一直阻塞在 notEmpty 条件上
         while (count == 0) {
             notEmpty.await();
         }
-        // 3. 如果数组不为空，就从数组中取数据
+        // 3. 队列不为空，执行出队
         return dequeue();
     } finally {
         // 4. 释放锁
@@ -364,11 +446,14 @@ public E take() throws InterruptedException {
     }
 }
 ```
-## poll(time, unit)源码
-再看一下poll(time, unit)方法源码，在数组满的时候， poll(time, unit)方法会阻塞一段时间。
+
+### poll(time, unit) 源码
+
+`poll(time, unit)` 方法在队列为空时会阻塞指定时间，超时后返回 `null`。
+
 ```java
 /**
- * poll方法入口
+ * poll 方法入口
  *
  * @param timeout 超时时间
  * @param unit    时间单位
@@ -377,20 +462,20 @@ public E take() throws InterruptedException {
 public E poll(long timeout, TimeUnit unit) throws InterruptedException {
     // 1. 把超时时间转换成纳秒
     long nanos = unit.toNanos(timeout);
-    // 2. 加可中断的锁，防止一直阻塞
+    // 2. 加可中断的锁
     final ReentrantLock lock = this.lock;
     lock.lockInterruptibly();
     try {
-        // 3. 如果数组为空，就开始阻塞
+        // 3. 循环判断队列是否为空
         while (count == 0) {
             if (nanos <= 0) {
-                // 5. 如果数组为空，且超时时间已过，则返回null
+                // 4. 如果超时时间已过，返回 null
                 return null;
             }
-            // 4. 阻塞到到指定时间
+            // 5. 在 notEmpty 条件上等待指定纳秒数
             nanos = notEmpty.awaitNanos(nanos);
         }
-        // 6. 如果数组不为空，则出列
+        // 6. 队列不为空，执行出队
         return dequeue();
     } finally {
         // 7. 释放锁
@@ -398,25 +483,31 @@ public E poll(long timeout, TimeUnit unit) throws InterruptedException {
     }
 }
 ```
-# 查看数据源码
-再看一下查看数据源码，查看数据，并不删除数据。
+
+`poll(time, unit)` 与 `take()` 方法逻辑类似，区别在于 `take()` 在队列为空时会一直阻塞，而 `poll(time, unit)` 只会阻塞指定的超时时间。
+
+## 查看数据源码
+
+查看数据，并不删除。
 
 | 操作 | 抛出异常 | 返回特定值 | 阻塞 | 阻塞一段时间 |
 | --- | --- | --- | --- | --- |
-| 取数据（不删除） | element()	 | peek()	 | 不支持 | 不支持 |
+| 查看数据（不删除） | element() | peek() | 不支持 | 不支持 |
 
-## peek方法源码
-先看一下peek()方法源码，如果数组为空，就返回null。
+### peek 方法源码
+
+`peek()` 方法在队列为空时返回 `null`：
+
 ```java
 /**
- * peek方法入口
+ * peek 方法入口
  */
 public E peek() {
     // 1. 加锁
     final ReentrantLock lock = this.lock;
     lock.lock();
     try {
-        // 2. 返回数组头部元素，如果数组为空，则返回null
+        // 2. 返回队头元素，如果队列为空则返回 null
         return itemAt(takeIndex);
     } finally {
         // 3. 释放锁
@@ -425,20 +516,23 @@ public E peek() {
 }
 
 /**
- * 返回当前位置元素
+ * 返回指定位置的元素
  */
 final E itemAt(int i) {
     return (E) items[i];
 }
 ```
-## element方法源码
-再看一下element()方法源码，如果数组为空，则抛出异常。
+
+### element 方法源码
+
+`element()` 方法在队列为空时抛出异常：
+
 ```java
 /**
- * element方法入口
+ * element 方法入口
  */
 public E element() {
-    // 1. 调用peek方法查询数据
+    // 1. 调用 peek 方法查询数据
     E x = peek();
     // 2. 如果查到数据，直接返回
     if (x != null) {
@@ -449,12 +543,30 @@ public E element() {
     }
 }
 ```
-# 总结
-这篇文章讲解了`ArrayBlockingQueue`队列的核心源码，了解到`ArrayBlockingQueue`队列具有以下特点：
 
-1. ArrayBlockingQueue实现了BlockingQueue接口，提供了四组放数据和读数据的方法，来满足不同的场景。
-2. ArrayBlockingQueue底层基于数组实现，采用循环数组，提升了数组的空间利用率。
-3. ArrayBlockingQueue初始化的时候，必须指定队列长度，是有界的阻塞队列，所以要预估好队列长度，保证生产者和消费者速率相匹配。
-4. ArrayBlockingQueue的方法是线程安全的，使用ReentrantLock在操作前后加锁来保证线程安全。
+## 总结
 
-今天一起分析了`ArrayBlockingQueue`队列的源码，可以看到`ArrayBlockingQueue`的源码非常简单，没有什么神秘复杂的东西，下篇文章再一起接着分析其他的阻塞队列源码。
+这篇文章讲解了 `ArrayBlockingQueue` 阻塞队列的核心源码，了解到 `ArrayBlockingQueue` 具有以下特点：
+
+1. `ArrayBlockingQueue` 实现了 `BlockingQueue` 接口，提供了四组放数据和取数据的方法，满足不同场景需求。
+2. 底层基于数组实现，采用**循环队列**设计，`takeIndex` 和 `putIndex` 到达数组末尾后回到 0，实现空间复用。
+3. 初始化时必须指定容量大小，是**有界的阻塞队列**，需要预估好队列长度，保证生产者和消费者的速率相匹配。
+4. 使用 `ReentrantLock` + 两个 `Condition`（`notEmpty` 和 `notFull`）实现线程安全和生产者-消费者协调机制。
+5. 取数据后将出队位置**置为 null**，避免循环数组中残留无用引用导致 GC 无法回收对象。
+
+### 关键操作时间复杂度对比
+
+| 操作 | 方法 | 时间复杂度 | 说明 |
+| --- | --- | --- | --- |
+| 入队 | offer/put/add | O(1) | 直接写入 putIndex 位置 |
+| 出队 | poll/take/remove() | O(1) | 直接读取 takeIndex 位置 |
+| 查看队头 | peek/element | O(1) | 直接读取 takeIndex 位置 |
+| 删除指定元素 | remove(Object) | O(n) | 需从 takeIndex 开始线性遍历查找 |
+| 剩余容量 | remainingCapacity | O(1) | 返回 items.length - count |
+
+### 使用建议
+
+1. **有界队列需合理设置容量**：`ArrayBlockingQueue` 是有界队列，创建时必须指定容量。容量过小会导致生产者频繁阻塞，容量过大会占用过多内存。应根据生产者和消费者的速率差异来设置合理的大小。
+2. **公平锁 vs 非公平锁**：默认使用非公平锁（`fair=false`），吞吐量更高。只有在需要严格保证线程公平性（防止饥饿）的场景下才使用公平锁。
+3. **选择正确的阻塞方法**：如果生产者可以丢弃数据，使用 `offer()` 或 `offer(e, time, unit)`；如果生产者必须等待，使用 `put()`。消费者同理：可以超时返回的用 `poll(time, unit)`，必须等待的用 `take()`。
+4. **删除任意元素成本高**：`remove(Object)` 需要 O(n) 线性遍历查找，在循环数组中还可能涉及元素前移。如果需要频繁按值删除元素，应考虑其他数据结构。
