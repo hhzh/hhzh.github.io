@@ -31,7 +31,7 @@ export default sidebar({
                     link: "algo-sort",
                 },
                 {
-                    text: "其他",
+                    text: "综合题",
                     link: "algo-other",
                 },
                 {
