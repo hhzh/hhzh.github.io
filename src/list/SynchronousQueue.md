@@ -870,7 +870,7 @@ public E element() {
 | **匹配方式** | 多个生产者 ↔ 多个消费者 | N/A | 严格一对一配对（仅两个线程） |
 | **数据结构** | TransferStack 或 TransferQueue | 循环数组 + ReentrantLock | 基于槽位（Slot）的原子操作 |
 | **公平性** | 可选（公平/非公平） | 固定公平 | 不公平 |
-| **API 接口** | BlockingQueue | BlockingQueue | Exchanger<V> |
+| **API 接口** | BlockingQueue | BlockingQueue | `Exchanger<V>` |
 | **典型场景** | newCachedThreadPool 任务队列 | 不适用（容量不能为0） | 遗传算法、管道双向通信 |
 | **数据方向** | 单向传递（生产者 → 消费者） | N/A | 双向交换（A给B，B也给A） |
 | **等待线程数** | 可无限排队等待 | 受容量限制 | 最多两个线程 |
