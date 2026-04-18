@@ -1,12 +1,15 @@
-欢迎学习《解读Java源码专栏》，在这个系列中，我将手把手带着大家剖析Java核心组件的源码，内容包含集合、线程、线程池、并发、队列等，深入了解其背后的设计思想和实现细节，轻松应对工作面试。
-这是解读Java源码系列的第10篇，将跟大家一起学习Java中的阻塞队列 —— `LinkedBlockingQueue`。
-
 ## 引言
-上篇文章我们讲解了 `ArrayBlockingQueue` 源码，这篇文章开始讲解 `LinkedBlockingQueue` 源码。从名字上就能看到，`ArrayBlockingQueue` 是基于数组实现的，而 `LinkedBlockingQueue` 是基于链表实现的。
 
-那么，`LinkedBlockingQueue` 底层源码实现是什么样的？跟 `ArrayBlockingQueue` 有何不同？
-`LinkedBlockingQueue` 的应用场景跟 `ArrayBlockingQueue` 有什么不一样？
-看完这篇文章，可以轻松解答这些问题。
+为什么 `Executors.newFixedThreadPool()` 和 `newSingleThreadExecutor()` 都默认选择 `LinkedBlockingQueue`？
+
+因为它在生产者和消费者之间存在一个精妙的平衡：两把独立的锁（`putLock` 和 `takeLock`）让入队和出队可以完全并行执行，相比 `ArrayBlockingQueue` 的单锁方案在高并发下有显著的性能优势。但代价是每个元素需要额外分配一个 Node 对象，以及跨锁信号传递带来的微小开销。
+
+本文将从源码级别深入剖析 LinkedBlockingQueue 的核心设计，带你理解：
+
+1. 双锁设计如何实现读写完全并发（putLock + takeLock 的操作域分离）
+2. 哨兵节点（Dummy Node）的精妙作用与角色转换
+3. `AtomicInteger count` 为什么不用两把锁各自的计数？
+4. 默认 `Integer.MAX_VALUE` 容量的 OOM 风险
 
 由于 `LinkedBlockingQueue` 实现了 `BlockingQueue` 接口，而 `BlockingQueue` 接口中定义了几组放数据和取数据的方法，来满足不同的场景。
 
@@ -20,6 +23,9 @@
 
 1. 当队列满的时候，再次添加数据：`add()` 会抛出异常，`offer()` 会返回 `false`，`put()` 会一直阻塞，`offer(e, time, unit)` 会阻塞指定时间后返回 `false`。
 2. 当队列为空的时候，再次取数据：`remove()` 会抛出异常，`poll()` 会返回 `null`，`take()` 会一直阻塞，`poll(time, unit)` 会阻塞指定时间后返回 `null`。
+
+> [!TIP] 💡 核心提示
+> `LinkedBlockingQueue` 是 Java 线程池（`Executors.newFixedThreadPool` 和 `newSingleThreadExecutor`）的默认任务队列，理解它等于理解了线程池的任务调度基石。
 
 Java 线程池中的固定大小线程池就是基于 `LinkedBlockingQueue` 实现的：
 
@@ -63,6 +69,7 @@ flowchart TD
 ```
 
 ## 类结构
+
 先看一下 `LinkedBlockingQueue` 类里面有哪些属性：
 
 ```java
@@ -132,9 +139,77 @@ public class LinkedBlockingQueue<E>
 }
 ```
 
-![LinkedBlockingQueue类图](https://javabaguwen.com/img/LinkedBlockingQueue1.png)
-
 可以看出 `LinkedBlockingQueue` 底层是基于链表实现的，定义了头节点 `head` 和尾节点 `last`，由链表节点类 `Node` 可以看出是个单链表。
+
+### Mermaid 类图
+
+```mermaid
+classDiagram
+    class AbstractQueue~E~ {
+    }
+    class BlockingQueue~E~ {
+        <<interface>>
+        +add(E) boolean
+        +offer(E) boolean
+        +put(E) void
+        +offer(E, long, TimeUnit) boolean
+        +remove() E
+        +poll() E
+        +take() E
+        +poll(long, TimeUnit) E
+        +element() E
+        +peek() E
+    }
+    class Serializable {
+        <<interface>>
+    }
+    class LinkedBlockingQueue~E~ {
+        -int capacity
+        -AtomicInteger count
+        -Node~E~ head
+        -Node~E~ last
+        -ReentrantLock takeLock
+        -Condition notEmpty
+        -ReentrantLock putLock
+        -Condition notFull
+        +LinkedBlockingQueue()
+        +LinkedBlockingQueue(int)
+        +offer(E) boolean
+        +offer(E, long, TimeUnit) boolean
+        +put(E) void
+        +poll() E
+        +poll(long, TimeUnit) E
+        +take() E
+        +peek() E
+        +remainingCapacity() int
+        -enqueue(Node~E~) void
+        -dequeue() E
+        -signalNotEmpty() void
+        -signalNotFull() void
+    }
+    class Node~E~ {
+        E item
+        Node~E~ next
+        +Node(E)
+    }
+    class AtomicInteger {
+        <<java.util.concurrent.atomic>>
+    }
+    class ReentrantLock {
+        <<java.util.concurrent.locks>>
+    }
+    class Condition {
+        <<java.util.concurrent.locks>>
+    }
+
+    AbstractQueue <|-- LinkedBlockingQueue
+    BlockingQueue <|.. LinkedBlockingQueue
+    Serializable <|.. LinkedBlockingQueue
+    LinkedBlockingQueue *-- Node : contains
+    LinkedBlockingQueue --> AtomicInteger : uses
+    LinkedBlockingQueue --> ReentrantLock : uses (x2)
+    ReentrantLock --> Condition : creates (x2)
+```
 
 `LinkedBlockingQueue` 最核心的设计是**两把独立的锁**：`takeLock` 用于保护出队操作，`putLock` 用于保护入队操作。这意味着生产者和消费者可以**并发执行**，互不阻塞。而 `ArrayBlockingQueue` 只使用了一把锁，入队出队操作共用这把锁。
 
@@ -142,7 +217,62 @@ public class LinkedBlockingQueue<E>
 
 `count` 使用 `AtomicInteger` 而不是普通 `int`，是因为生产者和消费者各自持有不同的锁，需要一个跨锁的原子变量来同步元素个数。
 
+## 为什么用两把锁
+
+这是 `LinkedBlockingQueue` 最值得深入理解的设计决策。
+
+### ArrayBlockingQueue 单锁模型的局限
+
+`ArrayBlockingQueue` 使用一把 `ReentrantLock` 同时保护入队和出队：
+
+```
+[生产者A] ──┐
+[生产者B] ──┤── 争用同一把 lock ──→ [数组 + putIndex/takeIndex]
+[消费者C] ──┤
+[消费者D] ──┘
+```
+
+任何时刻，只有一个线程能执行入队 **或** 出队。即使队列既有空位又有元素，生产者和消费者也不能同时工作。
+
+### LinkedBlockingQueue 双锁模型的突破
+
+```
+[生产者A] ──┐                     ┌── [链表尾部 last]
+[生产者B] ──┤── putLock ──────────┤
+            │                     │
+            │    [count: AtomicInteger]  ← 跨锁共享
+            │                     │
+[消费者C] ──┤── takeLock ─────────┤
+[消费者D] ──┘                     └── [链表头部 head]
+```
+
+生产者只在 `putLock` 上竞争，消费者只在 `takeLock` 上竞争。两条流水线并行运转，只要队列非空非满，生产和消费可以**同时进行**。
+
+### 性能对比
+
+| 维度 | ArrayBlockingQueue（单锁） | LinkedBlockingQueue（双锁） |
+| --- | --- | --- |
+| 入队并发 | 串行（互斥） | 串行（putLock 内互斥） |
+| 出队并发 | 串行（互斥） | 串行（takeLock 内互斥） |
+| **入队 + 出队并发** | 串行（同一把锁） | **并行（不同锁）** |
+| 吞吐量（多生产多消费） | 较低 | 较高 |
+| 内存开销 | 低（数组预分配） | 高（每元素一个 Node 对象） |
+
+> [!TIP] 💡 核心提示
+> 双锁设计的精髓在于**操作区域分离**——入队只操作尾部（`last`），出队只操作头部（`head`），两个操作不共享任何可变对象。`count` 虽然是共享的，但它是原子操作，不需要锁保护。
+
+### 为什么 ArrayBlockingQueue 不能用双锁
+
+根本原因是**数据存储单元的共享**。数组是一个连续内存块，`putIndex` 写入和 `takeIndex` 读取虽然位置不同，但它们：
+
+1. **共享同一个数组对象**，修改 `array[putIndex]` 和读取 `array[takeIndex]` 涉及同一块内存；
+2. **环形索引相互依赖**，`putIndex` 和 `takeIndex` 都在循环移动，需要强一致性保证不会覆盖未消费的元素；
+3. **内存可见性**，即使将入队和出队分开上锁，对数组元素的写入和读取之间仍然需要 happens-before 关系来保证可见性。
+
+而 `LinkedBlockingQueue` 的链表天然解耦：每个 `Node` 是独立对象，`last.next = newNode` 和 `head = head.next` 操作的是不同的引用，不存在内存可见性冲突。
+
 ## 初始化
+
 `LinkedBlockingQueue` 常用的初始化方法有两个：
 
 1. 无参构造方法
@@ -184,6 +314,15 @@ public LinkedBlockingQueue(int capacity) {
 ```
 
 可以看出 `LinkedBlockingQueue` 的无参构造方法使用的容量是 `Integer.MAX_VALUE`（约 21 亿），存储大量数据的时候，会有内存溢出的风险，**建议使用有参构造方法，指定容量大小**。
+
+> [!IMPORTANT] 💡 核心提示：哨兵节点的设计精妙之处
+>
+> `last = head = new Node<E>(null)` 这一行创建了一个**哨兵节点**（dummy node），这是整个队列设计最巧妙的地方：
+>
+> 1. **统一出队逻辑**：哨兵节点的 `item` 始终为 `null`，真正的第一个元素是 `head.next`。出队时只需删除 `head.next`，无需判断队列是否为空——空队列时 `head.next` 就是 `null`，逻辑天然成立。
+> 2. **优雅的角色转换**：每次 `dequeue` 时，原 `head.next` 变成新的 `head`，其 `item` 被取出并置为 `null`，它就变成了新的哨兵节点。节点在"数据节点"和"哨兵节点"之间无缝切换。
+> 3. **初始状态简洁**：空队列时 `head == last`，判断队列是否为空只需 `head == last` 或 `count == 0`，不需要额外的边界条件。
+> 4. **避免 null 元素歧义**：哨兵节点的 `item` 为 `null`，但这是实现细节而非用户数据（`LinkedBlockingQueue` 不允许插入 `null`），所以不会产生歧义。
 
 有参构造方法还会初始化头尾节点，节点值为 `null`。这里创建的是一个**哨兵节点**（dummy node），`head` 和 `last` 指向同一个节点，节点的 `item` 为 `null`。后续插入元素时，哨兵节点始终是 `head`，真正的第一个元素是 `head.next`。这种设计的好处是 `dequeue` 方法可以统一处理：始终删除 `head.next`，不需要特殊判断队列是否为空。
 
@@ -274,6 +413,9 @@ private void signalNotEmpty() {
 **为什么要两次检查 `count`？** 第一次检查（无锁）是为了快速失败，如果队列已满就不需要加锁了。第二次检查（加锁后）是因为在等待锁的过程中，可能有消费者取走了元素，导致队列不再满，所以需要加锁后再次确认。
 
 `signalNotEmpty()` 方法中为什么要获取 `takeLock`？因为 `notEmpty` 条件变量是基于 `takeLock` 创建的，调用 `signal()` 之前必须先持有对应的锁。
+
+> [!TIP] 💡 核心提示
+> 注意 `signalNotEmpty()` 是在**释放 putLock 之后**才调用的。这是因为 `notEmpty` 关联的是 `takeLock`，必须在 `putLock` 外获取 `takeLock`。虽然多了一次锁获取，但避免了在持有 `putLock` 时再获取 `takeLock` 造成的锁嵌套。
 
 ### add 方法源码
 
@@ -479,6 +621,9 @@ private void signalNotFull() {
 
 `dequeue` 方法中有个巧妙的设计：`h.next = h`，让旧哨兵节点的 `next` 指向自己。这使得旧的哨兵节点形成了一个自引用环，与链表断开连接，帮助 GC 回收。然后 `head` 移动到原来第一个元素的位置，该元素的 `item` 被取出返回，同时 `item` 被置为 `null`——新的哨兵节点不持有数据引用，这是 **GC 友好** 的设计。
 
+> [!TIP] 💡 核心提示
+> `dequeue` 中的 `h.next = h` 自引用是 JDK 中经典的 GC 辅助技巧。自引用形成一个孤岛环，GC 的可达性分析会将整个环标记为不可达（因为没有外部引用指向它），从而一次性回收。如果不这样做，旧哨兵节点通过 `next` 仍然指向后续节点，可能导致整条旧链表无法被回收。
+
 ### remove 方法源码
 
 `remove()` 方法在队列为空时会抛出异常：
@@ -534,6 +679,9 @@ public boolean remove(Object o) {
 ```
 
 `remove(Object o)` 需要**同时获取两把锁**，因为删除操作既影响队列的尾部（可能需要通知生产者）又影响头部（可能需要通知消费者）。从 `head.next` 开始线性遍历查找（O(n)），找到后调用 `unlink` 断开节点。
+
+> [!WARNING] 💡 核心提示
+> `remove(Object o)` 是性能杀手：O(n) 遍历 + 双锁竞争。在高并发场景下频繁调用会导致严重的锁竞争和遍历开销。如果需要按值删除，应优先在业务层面设计，避免依赖队列的 `remove(Object)`。
 
 ### take 方法源码
 
@@ -690,6 +838,19 @@ public E element() {
 }
 ```
 
+## 生产环境避坑指南
+
+在实际项目中使用 `LinkedBlockingQueue`，以下陷阱最容易踩到：
+
+| 坑点 | 现象 | 根因 | 解决方案 |
+| --- | --- | --- | --- |
+| **无参构造默认 Integer.MAX_VALUE** | 生产环境 OOM，堆内存被打满 | 生产者速率 > 消费者速率，队列无限增长，每个元素都是一个 Node 对象 | **始终使用有参构造**指定合理容量，如 `new LinkedBlockingQueue<>(1000)` |
+| **remove(Object) 性能杀手** | 频繁调用导致 CPU 飙升、线程阻塞 | O(n) 遍历 + 同时获取两把锁，遍历期间其他线程的入队出队全部阻塞 | 业务层避免调用，改为在消费端做逻辑过滤 |
+| **signalNotEmpty/signalNotFull 跨锁获取** | 偶发死锁或性能抖动 | `signalNotEmpty` 在持有 `takeLock` 时调用，如果此时有其他线程也尝试同时获取两把锁 | JDK 已保证不会死锁（先释放再获取），但高并发下频繁跨锁会影响吞吐，**合理控制队列容量可减少跨锁频率** |
+| **Node 对象 GC 压力** | Full GC 频繁，停顿时间长 | 每个入队元素都创建一个 Node 对象，高吞吐场景下年轻代快速填满 | 控制队列容量上限；监控 GC 日志；必要时切换到 `ArrayBlockingQueue` |
+| **单生产者单消费者场景选错队列** | 性能不如 ArrayBlockingQueue | 双锁优势只在多线程并发时体现，1:1 场景两把锁反而增加了额外开销 | 单生产单消费场景优先选 `ArrayBlockingQueue` 或 `SynchronousQueue` |
+| **迭代器弱一致性** | 遍历时看不到最新插入的元素 | `iterator()` 快照只反映创建时刻的状态，后续修改不反映 | 不要在遍历时依赖实时一致性，需要强一致性时先 `drainTo` 到集合 |
+
 ## 总结
 
 这篇文章讲解了 `LinkedBlockingQueue` 阻塞队列的核心源码，了解到 `LinkedBlockingQueue` 具有以下特点：
@@ -698,8 +859,9 @@ public E element() {
 2. 底层基于链表实现，支持从头部弹出数据，从尾部添加数据。
 3. 如果不指定队列长度，默认容量是 `Integer.MAX_VALUE`（约 21 亿），有内存溢出风险，**建议初始化时指定队列长度**。
 4. 使用**两把独立的锁**（`takeLock` 和 `putLock`），生产者和消费者可以并发执行，比 `ArrayBlockingQueue` 的单锁设计性能更好。
+5. 采用**哨兵节点**设计，统一了入队出队的边界处理，同时保证 GC 友好。
 
-`ArrayBlockingQueue` 与 `LinkedBlockingQueue` 区别是什么？
+### ArrayBlockingQueue 与 LinkedBlockingQueue 对比
 
 **相同点：**
 
@@ -707,11 +869,14 @@ public E element() {
 
 **不同点：**
 
-1. **底层结构不同**：`ArrayBlockingQueue` 基于数组实现，初始化时必须指定长度，无法扩容。`LinkedBlockingQueue` 基于链表实现，默认最大容量是 `Integer.MAX_VALUE`。
-2. **占用内存不同**：`ArrayBlockingQueue` 初始化时就分配了固定大小的数组空间，不随元素数量变化。`LinkedBlockingQueue` 每插入一个元素就创建一个 `Node` 对象，元素越多占用内存越大。
-3. **锁的设计不同**：`ArrayBlockingQueue` 的入队和出队共用一把锁。`LinkedBlockingQueue` 入队和出队使用两把独立的锁，生产者-消费者可以并发执行，吞吐量更高。
-4. **公平锁选项不同**：`ArrayBlockingQueue` 初始化时可以指定公平锁或非公平锁。`LinkedBlockingQueue` 只支持非公平锁。
-5. **适用场景不同**：`ArrayBlockingQueue` 适用于明确限制队列大小的场景，防止生产速度大于消费速度造成内存溢出。`LinkedBlockingQueue` 适用于生产者-消费者并发度高、需要更高吞吐量的场景。
+| 对比维度 | ArrayBlockingQueue | LinkedBlockingQueue |
+| --- | --- | --- |
+| **底层结构** | 数组 | 链表（Node） |
+| **容量** | 必须指定，固定大小 | 默认 Integer.MAX_VALUE，建议指定 |
+| **内存开销** | 低（预分配数组） | 高（每元素一个 Node 对象） |
+| **锁设计** | 单把锁，入队出队互斥 | 两把锁，入队出队可并行 |
+| **公平锁** | 支持指定 | 仅支持非公平锁 |
+| **适用场景** | 明确限制队列大小，防止 OOM | 高并发生产者-消费者，追求高吞吐 |
 
 ### 关键操作时间复杂度对比
 
@@ -729,3 +894,14 @@ public E element() {
 2. **高并发场景优先选择 LinkedBlockingQueue**：如果生产者和消费者都是多线程并发执行，`LinkedBlockingQueue` 的两锁设计可以让生产和消费互不干扰，吞吐量显著高于 `ArrayBlockingQueue`。但如果只有一个生产者和一个消费者，两把锁的优势不明显。
 3. **注意每个 Node 对象的额外开销**：每个链表节点都是一个 `Node` 对象，除了存储元素本身的数据外，还需要额外的对象头（~12-16 字节）和 `next` 引用（~4-8 字节）。在元素量大的场景下，内存开销会比 `ArrayBlockingQueue` 的数组高不少。
 4. **删除任意元素成本高**：`remove(Object)` 需要同时获取两把锁并线性遍历整个链表，在并发场景下性能很差。如果需要频繁按值删除元素，应考虑其他数据结构。
+
+## 行动清单
+
+读完本文后，建议按照以下清单逐项实践，真正把知识转化为能力：
+
+1. **检查现有代码**：搜索项目中的 `new LinkedBlockingQueue<>()`（无参构造），全部替换为 `new LinkedBlockingQueue<>(合理容量)`，避免线上 OOM 风险。
+2. **基准测试对比**：在自己的业务场景中，分别用 `ArrayBlockingQueue` 和 `LinkedBlockingQueue` 做压测，对比多线程生产者-消费者场景下的吞吐量差异，用数据说话。
+3. **画出内存布局图**：动手画出 `LinkedBlockingQueue` 从空队列到插入 3 个元素后的内存状态（哨兵节点、head/last 的指向变化），加深理解。
+4. **阅读 unlink 源码**：本文未展开的 `unlink(Node<E>, Node<E>)` 方法处理了中间节点删除的逻辑，阅读它并理解为什么需要同时获取两把锁。
+5. **监控队列深度**：在生产环境中通过 JMX 或 Micrometer 监控队列的 `size()` 和 `remainingCapacity()`，设置告警阈值，提前发现消费瓶颈。
+6. **对比 SynchronousQueue**：阅读 `SynchronousQueue` 源码，理解它和 `LinkedBlockingQueue` 在 `newCachedThreadPool` 中的应用差异，建立完整的线程池队列选型知识体系。

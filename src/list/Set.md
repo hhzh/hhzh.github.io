@@ -1,8 +1,16 @@
-大家期待的《解读Java源码专栏》不能停止更新，在这个系列中，我将手把手带着大家剖析Java核心组件的源码，内容包含集合、线程、线程池、并发、队列等，深入了解其背后的设计思想和实现细节，轻松应对工作面试。
-这是解读Java源码系列的第七篇，将跟大家一起学习 Java 中的 Set 集合。
-
 ## 引言
-当我们需要对元素去重的时候，会使用 Set 集合。可选的 Set 集合有三个，分别是 `HashSet`、`LinkedHashSet`、`TreeSet`。这三个常用的 Set 集合有什么区别？底层实现原理是什么？这篇文章一起来深度剖析。
+
+HashSet 去重的底层原理，90% 的人说不清楚。
+
+HashSet 去重的底层原理，90% 的人说不清楚。
+
+当你调用 `set.add(element)` 时，JDK 内部究竟发生了什么？为什么自定义对象不重写 `hashCode` 和 `equals` 就会导致去重失效？三个 Set 实现（HashSet、LinkedHashSet、TreeSet）底层分别依赖什么数据结构？
+
+本文将从源码级别剖析 Set 集合的核心机制，带你理解：
+
+1. HashSet 如何用 HashMap 实现去重（PRESENT 对象的设计意图）
+2. LinkedHashSet 如何保证插入顺序（访问顺序 LRU 的实现原理）
+3. TreeSet 的红黑树排序机制与 Comparator 陷阱
 
 **共同点**
 
@@ -17,12 +25,60 @@
 **底层实现**
 
 1. `HashSet` 基于 `HashMap` 实现，采用组合方式（内部持有 HashMap），并非继承。
-2. `LinkedHashSet` 继承自 `HashSet`，但内部持有的是 `LinkedHashMap`。听起来有点绕，看完源码就明白了。
+2. `LinkedHashSet` 继承自 `HashSet`，但内部持有的是 `LinkedHashMap`。
 3. `TreeSet` 基于 `TreeMap` 实现，同样采用组合方式，与上面两个 Set 没有直接关系。
 
-![Set集合类图](https://javabaguwen.com/img/Set1.png)
+### 类图架构
 
-三个 Set 集合的核心工作原理可以用下面的流程图概括：
+```mermaid
+classDiagram
+    class Set~E~ {
+        <<interface>>
+        +add(E e) boolean
+        +remove(Object o) boolean
+        +contains(Object o) boolean
+        +iterator() Iterator~E~
+    }
+    class AbstractSet~E~ {
+        <<abstract>>
+        #AbstractSet()
+    }
+    class HashSet~E~ {
+        -transient HashMap~E, Object~ map
+        -static final Object PRESENT
+        +HashSet()
+        +add(E e) boolean
+        +remove(Object o) boolean
+    }
+    class LinkedHashSet~E~ {
+        <<extends HashSet>>
+        +LinkedHashSet()
+    }
+    class TreeSet~E~ {
+        -transient NavigableMap~E, Object~ m
+        -static final Object PRESENT
+        +TreeSet()
+        +TreeSet(Comparator)
+        +add(E e) boolean
+        +first() E
+        +last() E
+    }
+    class NavigableSet~E~ {
+        <<interface>>
+        +higher(E e) E
+        +lower(E e) E
+        +ceiling(E e) E
+        +floor(E e) E
+    }
+
+    Set <|-- AbstractSet
+    AbstractSet <|-- HashSet
+    AbstractSet <|-- TreeSet
+    HashSet <|-- LinkedHashSet
+    NavigableSet <|-- TreeSet
+```
+
+### 核心工作原理
 
 ```mermaid
 flowchart TD
@@ -39,8 +95,10 @@ flowchart TD
     LHSPattern --> LHSBehavior["复用 HashSet 的 add/remove/contains\n实际底层是 LinkedHashMap 实现\n支持按插入/访问顺序迭代"]
     LHSBehavior --> TSStart["TreeSet: m = new TreeMap()"]
     TSStart --> TSAdd["add(e): m.put(e, PRESENT)\nTreeMap 基于红黑树\n元素按 Comparator 排序"]
-    TSAdd --> TSQuery["额外支持范围查询方法:\nfirst/last/higher/lower\nceiling/floor/pollFirst/pollLast\nheadSet/tailSet/subSet"]
+    TSAdd --> TSQuery["额外支持范围查询方法:\nfirst/last/higher/lower\nceiling/floor/pollFirst/pollLast"]
 ```
+
+三个 Set 集合的核心工作原理如上。
 
 ## HashSet 源码实现
 
@@ -65,6 +123,8 @@ public class HashSet<E>
 ```
 
 `HashSet` 内部采用 `HashMap` 存储元素，利用 `HashMap` 的 key 不能重复的特性实现元素去重。value 统一使用一个静态空对象 `PRESENT` 占位，不存储任何实际数据。所有 key 共用同一个 value 对象，避免了为每个元素创建额外的 value 实例，节省内存。
+
+> **💡 核心提示**：为什么 `PRESENT` 不使用 `null`？因为 `HashMap.put(key, null)` 是合法操作，返回的是旧值 `null`，这样 `add()` 方法就无法区分"元素已存在且value为null"和"元素不存在添加成功"两种情况。使用一个非null的占位对象，保证了语义的清晰。
 
 ### 初始化
 
@@ -216,6 +276,8 @@ HashSet(int initialCapacity, float loadFactor, boolean dummy) {
 }
 ```
 
+> **💡 核心提示**：这是 JDK 源码中一个经典的**设计模式**——通过包级私有构造方法 + 占位参数，让子类能控制父类内部实现的选择。JDK 开发者不想让外部开发者直接调用这个构造方法创建出"基于 LinkedHashMap 的 HashSet"，但又需要让同包下的 `LinkedHashSet` 使用它。
+
 `LinkedHashSet` 的其他方法（`add`、`remove`、`contains`、`iterator`）全部继承自 `HashSet`，无需重写。它的有序迭代特性完全由底层的 `LinkedHashMap` 实现保证。
 
 ## TreeSet 源码实现
@@ -323,7 +385,7 @@ public Iterator<E> iterator() {
 **其他方法列表：**
 
 | 作用 | 方法签名 |
-| --- | --- |
+| :--- | :--- |
 | 获取第一个（最小）元素 | `E first()` |
 | 获取最后一个（最大）元素 | `E last()` |
 | 获取大于指定元素的最小元素 | `E higher(E e)` |
@@ -336,8 +398,19 @@ public Iterator<E> iterator() {
 | 获取大于 fromElement 的子集合 | `NavigableSet<E> tailSet(E fromElement, boolean inclusive)` |
 | 获取指定范围的子集合（精确控制包含关系） | `NavigableSet<E> subSet(E from, boolean fromInc, E to, boolean toInc)` |
 | 获取指定范围的子集合（左闭右开） | `SortedSet<E> subSet(E fromElement, E toElement)` |
-| 获取小于 toElement 的子集合（不包含） | `SortedSet<E> headSet(E toElement)` |
-| 获取大于 fromElement 的子集合（不包含） | `SortedSet<E> tailSet(E fromElement)` |
+
+## 生产环境避坑指南
+
+基于上述源码分析，以下是 Set 集合在生产环境中常见的陷阱：
+
+| 陷阱 | 现象 | 解决方案 |
+| :--- | :--- | :--- |
+| 自定义对象未重写 equals/hashCode | `HashSet` 去重失效，相同对象被重复添加 | 自定义类必须正确重写 `equals()` 和 `hashCode()` |
+| HashSet 遍历时删除元素 | `ConcurrentModificationException` | 使用 `Iterator.remove()` 或 `removeIf()` |
+| TreeSet 的 key 不可比较 | `ClassCastException` | key 必须实现 `Comparable` 或提供 `Comparator` |
+| 修改了已加入 TreeSet 的 key | 红黑树结构错乱，get/remove 返回错误 | 不要用可变对象作为 TreeSet 的 key，或修改后重新 add |
+| LinkedHashSet 内存膨胀 | 每个节点多了 before/after 两个引用 | 数据量大时评估内存，不需要有序时用 `HashSet` |
+| HashSet 的初始容量设置不当 | 频繁扩容或空间浪费 | 预估元素数量 n，设置容量为 `n / 0.75 + 1` |
 
 ## 总结
 
@@ -365,19 +438,24 @@ public Iterator<E> iterator() {
 
 ### 三种 Set 集合对比
 
-| 特性 | HashSet | LinkedHashSet | TreeSet |
-| --- | --- | --- | --- |
+| 特性 | `HashSet` | `LinkedHashSet` | `TreeSet` |
+| :--- | :--- | :--- | :--- |
 | 底层实现 | HashMap | LinkedHashMap | TreeMap |
+| 底层结构 | 数组 + 链表/红黑树 | 数组 + 链表/红黑树 + 双向链表 | 纯红黑树 |
 | 元素顺序 | 无序 | 插入/访问顺序 | 大小排序 |
 | 是否允许 null | 是（1个） | 是（1个） | 否（自然排序不允许） |
 | add 时间复杂度 | O(1) | O(1) | O(log n) |
 | contains 时间复杂度 | O(1) | O(1) | O(log n) |
-| 遍历时间复杂度 | O(n) | O(n) | O(n) |
+| 遍历时间复杂度 | O(capacity) | O(size) | O(n) |
 | 额外内存开销 | 无 | 每个节点多 2 个引用 | 红黑树节点额外引用 |
+| 线程安全 | ❌ | ❌ | ❌ |
+| 推荐场景 | 通用去重 | 需要保持插入顺序 | 需要排序/范围查询 |
 
-### 使用建议
+### 行动清单
 
-1. **去重首选 HashSet**：如果只需要元素去重功能，不需要有序遍历，优先使用 `HashSet`，性能最好。
-2. **需要有序迭代用 LinkedHashSet**：如果遍历时需要保持元素的插入顺序，使用 `LinkedHashSet`。代价是每个元素多出两个引用的内存开销。
-3. **需要排序或范围查询用 TreeSet**：如果元素需要按大小排序、或者需要查询大于/小于某个元素的值，使用 `TreeSet`。注意 `TreeSet` 中的元素必须实现 `Comparable` 接口或提供 `Comparator`。
-4. **TreeSet 不支持 null 元素**：使用自然排序（无参构造）时，`TreeSet` 不允许添加 `null` 元素，因为 `compareTo` 方法无法处理 `null`。如果自定义 `Comparator` 且允许 `null`，则可以添加。
+1. **检查点**：确认自定义类作为 HashSet 元素时，是否同时重写了 `equals()` 和 `hashCode()`，且两者逻辑一致。
+2. **优化建议**：HashSet 创建时预估元素数量 n，初始容量设置为 `n / 0.75f + 1`，避免扩容。
+3. **避坑**：LinkedHashSet 遍历时删除元素要用 `Iterator.remove()` 或 `removeIf()`，避免 `ConcurrentModificationException`。
+4. **避坑**：TreeSet 不允许 null 元素（自然排序），自定义 Comparator 需保证**自反性、传递性、对称性**，否则红黑树行为未定义。
+5. **避坑**：不要修改已加入 TreeSet 的元素的比较字段，会导致查找失败。应先 remove 再 add 重新插入。
+6. **扩展阅读**：推荐阅读《Effective Java》第3版第14条（覆盖 equals 时总要覆盖 hashCode）、第40条（坚持使用注解@Override）。

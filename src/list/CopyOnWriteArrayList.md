@@ -1,16 +1,75 @@
 ## 引言
-上篇文章提到 `ArrayList` 不是线程安全的，而 `CopyOnWriteArrayList` 是线程安全的。此刻就会产生几个问题：
 
-1. `CopyOnWriteArrayList` 初始容量是多少？
-2. `CopyOnWriteArrayList` 是怎么进行扩容的？
-3. `CopyOnWriteArrayList` 是怎么保证线程安全的？
+一个读多写少的 List，用 synchronized 加锁就完了？
 
-带着这几个问题，一起分析一下 `CopyOnWriteArrayList` 的源码。
+加锁确实能保证线程安全，但代价是所有操作都串行化——读操作也要排队等待写操作释放锁。在读远多于写的场景下（如配置列表、白名单、路由表），这是不必要的性能浪费。
+
+`CopyOnWriteArrayList` 提供了一种更优雅的思路：**写时复制**。读操作完全无锁、零等待，写操作在副本上进行、完成后原子替换引用。这意味着读操作的性能等同于普通 ArrayList，唯一的代价是写操作需要额外分配内存。
+
+本文将从源码级别剖析 CopyOnWriteArrayList 的核心设计，带你理解：
+
+1. CopyOnWriteArrayList 的写时复制机制（ReentrantLock + 数组拷贝 + volatile 引用替换）
+2. 为什么读操作完全无锁？弱一致性的迭代器设计
+3. 适用场景与性能陷阱（大数组写操作、内存峰值）
 
 ## 简介
+
 `CopyOnWriteArrayList` 是一种线程安全的 `ArrayList`，底层基于数组实现，该数组使用了 `volatile` 关键字修饰。
 
 实现线程安全的原理是"人如其名"——**Copy On Write（写时复制）**。在对其进行修改操作时，复制一个新的数组，在新数组上进行修改，最后用新数组替换旧数组的引用。这样读操作始终在旧数组上进行，不会被写操作干扰。
+
+### 类图架构
+
+```mermaid
+classDiagram
+    class List~E~ {
+        <<interface>>
+        +add(E e) boolean
+        +get(int index) E
+        +remove(Object o) boolean
+    }
+    class RandomAccess {
+        <<marker interface>>
+    }
+    class Cloneable {
+        <<marker interface>>
+    }
+    class Serializable {
+        <<marker interface>>
+    }
+    class Collection~E~ {
+        <<interface>>
+    }
+    class CopyOnWriteArrayList~E~ {
+        -transient volatile Object[] array
+        -transient final ReentrantLock lock
+        +CopyOnWriteArrayList()
+        +CopyOnWriteArrayList(Collection)
+        +add(E e) boolean
+        +add(int index, E e) void
+        +get(int index) E
+        +remove(int index) E
+        +removeAll(Collection) boolean
+        +iterator() Iterator~E~
+        -getArray() Object[]
+        -setArray(Object[]) void
+    }
+    class COWIterator~E~ {
+        <<private static class>>
+        -final Object[] snapshot
+        -int cursor
+        +hasNext() boolean
+        +next() E
+        +remove() void
+    }
+
+    Collection <|-- List
+    List <|.. CopyOnWriteArrayList
+    CopyOnWriteArrayList ..|> RandomAccess
+    CopyOnWriteArrayList ..|> Cloneable
+    CopyOnWriteArrayList ..|> Serializable
+    CopyOnWriteArrayList o-- COWIterator
+```
 
 看一下 `CopyOnWriteArrayList` 内部有哪些数据结构组成：
 
@@ -40,7 +99,9 @@ public class CopyOnWriteArrayList<E>
 
 关于为什么不直接用 `ArrayList` 的 `Collections.synchronizedList()` 包装：`synchronizedList` 对所有操作（包括读）都加锁，而 `CopyOnWriteArrayList` 的读操作**完全不需要加锁**，因为读操作操作的是不可变的数组快照。这使得它在读多写少的场景下性能远优于全局加锁的方案。
 
-`CopyOnWriteArrayList` 的核心工作原理可以用下面的流程图概括：
+> **💡 核心提示**：ReentrantLock 使用的是**排它锁**（互斥锁），同一时间只有一个线程能持有锁执行写操作。为什么不使用 `synchronized`？因为 `ReentrantLock` 支持公平锁、可中断获取锁、超时获取锁等更灵活的特性，虽然在这里只用到了基本的互斥功能，但统一使用 `ReentrantLock` 是 Doug Lea（JUC 包作者）的编码风格。
+
+### 核心工作原理
 
 ```mermaid
 flowchart TD
@@ -65,6 +126,7 @@ flowchart TD
 ```
 
 ## 初始化
+
 当我们调用 `CopyOnWriteArrayList` 的构造方法时，底层逻辑是怎么实现的？
 
 ```java
@@ -146,6 +208,8 @@ public boolean add(E e) {
 5. 释放锁。
 
 `add()` 方法并没有在原数组上进行修改，而是创建新数组，修改完成后用新数组替换原数组。这有两个目的：一是利用 `volatile` 的可见性——只有重新对 `array` 赋值（而不是修改数组内容），其他线程才能感知到变化；二是保证读操作的快照语义——正在读的线程引用的仍然是旧数组，不受影响。
+
+> **💡 核心提示**：为什么要在 `finally` 块中释放锁？这是使用 `ReentrantLock` 的**最佳实践**。如果在 try 块中发生异常，没有 finally 块会导致锁永远不释放，其他等待该锁的线程将永久阻塞，形成**死锁**。Doug Lea 的源码严格遵守了这一规范。
 
 还有一个需要注意的点是，每次添加元素都会创建一个新数组，涉及完整的数组拷贝。当数组较大时，性能消耗较为明显。所以 `CopyOnWriteArrayList` 适用于**读多写少**的场景，如果存在较多的写操作，性能是需要重点考虑的因素。
 
@@ -369,6 +433,26 @@ static final class COWIterator<E> implements ListIterator<E> {
 
 可以看到，`COWIterator` 的 `remove()`、`set()`、`add()` 方法都直接抛出 `UnsupportedOperationException`。这是因为迭代器持有的是快照数组的引用，对快照的修改无法反映到原数组中。如果需要修改，应该直接调用 `CopyOnWriteArrayList` 自身的方法。
 
+## 生产环境避坑指南
+
+基于上述源码分析，以下是 CopyOnWriteArrayList 在生产环境中常见的陷阱：
+
+| 陷阱 | 现象 | 解决方案 |
+| :--- | :--- | :--- |
+| 大数组频繁写操作 | 每次写都要拷贝全数组，CPU 和内存双重消耗 | 改用 `Collections.synchronizedList()` 或 `ReentrantLock` + `ArrayList` |
+| 遍历不感知最新修改 | 迭代器拿到的是旧快照，看不到写入的最新元素 | 如果业务需要强一致遍历语义，不要用 COWAL |
+| 迭代器不支持修改 | `iterator.remove()` / `add()` / `set()` 直接抛异常 | 直接调用 `CopyOnWriteArrayList` 自身的方法 |
+| 内存峰值 + GC 压力 | 写操作创建大量临时数组，短时间内存翻倍 | 评估数组大小和写入频率，必要时改用其他方案 |
+| 误以为完全替代 ArrayList | COWAL 是特殊场景的专用工具，不是 ArrayList 的通用替代 | 非读多写少的线程安全场景不要用它 |
+
+## 线程安全方案对比
+
+| 方案 | 读操作 | 写操作 | 迭代器语义 | 适用场景 |
+| :--- | :--- | :--- | :--- | :--- |
+| `CopyOnWriteArrayList` | **无锁**，O(1) | O(n)，全量拷贝 | **fail-safe**（快照） | 读极多写极少（事件监听器、配置列表） |
+| `Collections.synchronizedList()` | 加锁，O(1) | 加锁，O(1) 平均 | **fail-fast** | 读写均衡的线程安全场景 |
+| `Vector` | 加锁，O(1) | 加锁，O(1) 平均 | **fail-fast** | **不推荐**，遗留类 |
+
 ## 总结
 
 现在可以回答文章开头提出的问题了：
@@ -391,14 +475,14 @@ static final class COWIterator<E> implements ListIterator<E> {
 ### 关键操作时间复杂度对比
 
 | 操作 | 方法 | 时间复杂度 | 说明 |
-| --- | --- | --- | --- |
-| 读取 | get | O(1) | 直接数组下标访问，无需加锁 |
-| 尾插 | add(e) | O(n) | 创建新数组 + 拷贝全部旧元素 |
-| 中间插入 | add(index, e) | O(n) | 创建新数组 + 分两段拷贝 |
-| 删除 | remove | O(n) | 创建新数组 + 拷贝剩余元素 |
-| 批量删除 | removeAll | O(n*m) | n 为原数组长度，m 为待删除集合大小 |
-| 遍历 | iterator/forEach | O(n) | 遍历快照数组，无锁 |
-| 查找 | contains/indexOf | O(n) | 线性遍历数组 |
+| :--- | :--- | :--- | :--- |
+| 读取 | `get(int index)` | O(1) | 直接数组下标访问，无需加锁 |
+| 尾插 | `add(E e)` | O(n) | 创建新数组 + 拷贝全部旧元素 |
+| 中间插入 | `add(int index, E e)` | O(n) | 创建新数组 + 分两段拷贝 |
+| 删除 | `remove(int index)` | O(n) | 创建新数组 + 拷贝剩余元素 |
+| 批量删除 | `removeAll(Collection)` | O(n*m) | n 为原数组长度，m 为待删除集合大小 |
+| 遍历 | `iterator()` / `forEach` | O(n) | 遍历快照数组，无锁 |
+| 查找 | `contains()` / `indexOf()` | O(n) | 线性遍历数组 |
 
 ### 使用建议
 
@@ -406,3 +490,12 @@ static final class COWIterator<E> implements ListIterator<E> {
 2. **遍历不感知最新修改**：迭代器持有创建时的数组快照，遍历时不会抛出 `ConcurrentModificationException`，但也看不到其他线程的最新修改。如果业务需要强一致的遍历语义，不适合使用 `CopyOnWriteArrayList`。
 3. **迭代器不支持修改操作**：`COWIterator` 的 `remove()`、`set()`、`add()` 都会抛出 `UnsupportedOperationException`。需要在遍历时删除元素的话，应该直接调用 `CopyOnWriteArrayList.remove()` 方法。
 4. **注意内存峰值**：每次写操作都会创建新数组，在写操作频繁的极端情况下，短时间内会产生大量临时数组对象，可能引发频繁的 GC。如果预估数组较大且有一定写入频率，需要考虑内存和 GC 的影响。
+
+### 行动清单
+
+1. **检查点**：确认项目中 `CopyOnWriteArrayList` 的使用场景确实是"读多写少"，如果写操作频繁，应替换为 `Collections.synchronizedList()`。
+2. **检查点**：确认遍历逻辑是否容忍弱一致性语义。如果遍历时需要看到最新数据，不要用 COWAL。
+3. **避坑**：不要在 COWAL 的迭代器上调用 `remove()`/`add()`/`set()`——直接抛 `UnsupportedOperationException`。
+4. **优化建议**：如果初始化时已知元素集合，使用 `new CopyOnWriteArrayList<>(collection)` 构造方法，避免后续逐个 add 导致的多次全量拷贝。
+5. **避坑**：大容量 + 高频写入场景会导致严重的内存抖动和 GC 压力，建议改用 `ReentrantLock` + `ArrayList` 的组合。
+6. **扩展阅读**：推荐阅读《Java Concurrency in Practice》第5章（并发集合）、第5.2.3节（CopyOnWriteArrayList 源码分析）。

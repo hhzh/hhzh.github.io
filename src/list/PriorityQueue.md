@@ -1,12 +1,27 @@
-欢迎学习《解读Java源码专栏》，在这个系列中，我将手把手带着大家剖析Java核心组件的源码，内容包含集合、线程、线程池、并发、队列等，深入了解其背后的设计思想和实现细节，轻松应对工作面试。
-这是解读Java源码系列的第12篇，将跟大家一起学习Java中的优先队列 —— PriorityQueue。
-
 ## 引言
-前面文章我们讲解了 `ArrayBlockingQueue` 和 `LinkedBlockingQueue` 源码。这篇文章开始讲解 `PriorityQueue` 源码。从名字上就能看到，`ArrayBlockingQueue` 是基于数组实现的阻塞队列，而 `LinkedBlockingQueue` 是基于链表实现的阻塞队列，而 `PriorityQueue` 是基于什么数据结构实现的？它实现了优先级的队列。
 
-由于 `PriorityQueue` 跟前几个阻塞队列不一样，**它并没有实现 `BlockingQueue` 接口**，只是一个普通的非阻塞队列，只实现了 `Queue` 接口。`Queue` 接口中定义了几组放数据和取数据的方法，来满足不同的场景。
+Top-K 问题，用 PriorityQueue 一行代码就能解决。
 
-![PriorityQueue类图](https://javabaguwen.com/img/PriorityQueue1.png)
+Top-K 问题，用 PriorityQueue 一行代码就能解决。
+
+找出最大的 K 个数、最小的 K 个数、第 K 大的元素——这些面试高频题，本质上都归结为同一个数据结构：二叉堆。`PriorityQueue` 就是 JDK 对二叉堆的实现。
+
+不同于普通的 FIFO 队列，`PriorityQueue` 每次 `poll()` 返回的都是优先级最高（最小或最大）的元素。插入和删除的时间复杂度都是 O(log n)，比排序数组的 O(n) 高效得多。更重要的是，它不仅是理论工具——在实际开发中，堆排序、事件驱动模拟、图算法（Dijkstra、Prim）都依赖它。
+
+本文将从源码级别深入剖析 PriorityQueue 的核心实现，带你理解：
+
+1. 二叉堆的数组映射规则（siftUp 上浮与 siftDown 下滤）
+2. 分阶段扩容策略（<64 时 2 倍，>=64 时 1.5 倍）的设计原因
+3. 删除任意元素的双重调整策略（先下滤、再上浮）
+4. 为什么 PriorityQueue 不实现 BlockingQueue 接口？
+
+由于 `PriorityQueue` 跟前几个阻塞队列不一样，**它并没有实现 `BlockingQueue` 接口**，只是一个普通的非阻塞队列，只实现了 `Queue` 接口。
+
+> **💡 核心提示**：为什么 PriorityQueue 不实现 BlockingQueue 接口？
+>
+> `BlockingQueue` 的核心语义是"当队列满时阻塞等待空间、当队列空时阻塞等待元素"。但 `PriorityQueue` 是**无界队列**（底层数组可无限扩容），永远不会满，所以不需要"满时阻塞"的语义。同时，优先队列的设计目标是**按优先级消费**而非**按到达顺序消费**，与阻塞队列的"生产者-消费者"协作模型在场景上正交。因此 JDK 的设计者有意将 `PriorityQueue` 定位为"非阻塞的优先级队列"，如果需要阻塞的优先级队列，应该使用 `DelayQueue` 或 `PriorityBlockingQueue`。
+
+`Queue` 接口中定义了几组放数据和取数据的方法，来满足不同的场景。
 
 | 操作 | 抛出异常 | 返回特定值 |
 | --- | --- | --- |
@@ -21,28 +36,8 @@
 
 不过 `PriorityQueue` 是**无界队列**，底层数组会自动扩容，所以实际上不会出现队列满的情况，`add()` 和 `offer()` 的行为完全相同。
 
-`PriorityQueue` 的核心工作原理可以用下面的流程图概括：
-
-```mermaid
-flowchart TD
-    Start["初始化: queue=new Object[11], size=0, comparator=null"] --> Offer["offer(e): 判空(e==null抛异常)\nmodCount++"]
-    Offer --> CheckFull{"size >= queue.length?"}
-    CheckFull -->|是| Grow["grow(): 容量<64 时 grow(i+1)\n新容量 = old + (old+2) ≈ 2倍\n容量>=64 时 新容量 = old + (old>>1) ≈ 1.5倍\n超过 MAX_ARRAY_SIZE 时 hugeCapacity()"]
-    CheckFull -->|否| Insert
-    Grow --> Insert["size++\n如果 size==1: queue[0]=e\n否则: siftUp(size-1, e)"]
-    Insert --> SiftUp{"有自定义 comparator?"}
-    SiftUp -->|是| SiftUpComp["siftUpUsingComparator(k, x)\nwhile k>0: parent=(k-1)>>>1\n如果 x >= parent: break\n否则 queue[k]=parent, k=parent\n最后 queue[k]=x"]
-    SiftUp -->|否| SiftUpDefault["siftUpComparable(k, x)\n同上，使用 Comparable.compareTo"]
-    SiftUpComp --> Done["返回true"]
-    SiftUpDefault --> Done
-    Poll["poll(): size==0 返回null\nsize--, modCount++\nresult=queue[0], x=queue[size]\nqueue[size]=null"] --> CheckEmpty{"size != 0?"}
-    CheckEmpty -->|是| SiftDown["siftDown(0, x): 下滤调整堆\n找到左右子节点中较小的\n如果 x <= 较小子节点: 停止\n否则用较小子节点上移"]
-    CheckEmpty -->|否| ReturnNull
-    SiftDown --> ReturnResult["返回 result(原堆顶元素)"]
-    ReturnNull --> ReturnResult
-```
-
 ## 类结构
+
 先看一下 `PriorityQueue` 类里面有哪些属性：
 
 ```java
@@ -75,12 +70,110 @@ public class PriorityQueue<E>
 
 可以看出 `PriorityQueue` 底层是基于数组实现的，使用 `Object[]` 数组以**二叉堆**的方式存储元素，并且定义了比较器 `comparator`，用于排序元素的优先级。
 
+### PriorityQueue 继承关系图
+
+```mermaid
+classDiagram
+    class Queue {
+        <<interface>>
+        +boolean add(E e)
+        +boolean offer(E e)
+        +E remove()
+        +E poll()
+        +E element()
+        +E peek()
+    }
+    class Collection {
+        <<interface>>
+        +int size()
+        +boolean isEmpty()
+        +boolean contains(Object o)
+        +Iterator~E~ iterator()
+        +Object[] toArray()
+    }
+    class Iterable {
+        <<interface>>
+        +Iterator~E~ iterator()
+    }
+    class AbstractQueue {
+        #AbstractQueue()
+        +boolean add(E e)
+        +boolean addAll(Collection~? extends E~ c)
+        +boolean remove(Object o)
+        +void clear()
+        +boolean retainAll(Collection~?~ c)
+    }
+    class Serializable {
+        <<interface>>
+    }
+    class PriorityQueue {
+        -int DEFAULT_INITIAL_CAPACITY
+        -transient Object[] queue
+        -int size
+        -Comparator~? super E~ comparator
+        +boolean offer(E e)
+        +E poll()
+        +E peek()
+        -void siftUp(int k, E x)
+        -void siftDown(int k, E x)
+    }
+
+    Iterable --> Collection
+    Collection --> Queue
+    Queue <|-- AbstractQueue
+    AbstractQueue <|-- PriorityQueue
+    PriorityQueue ..|> Serializable
+```
+
+### 二叉堆在数组中的映射
+
 二叉堆在数组中的映射规则：
 - 节点 `i` 的左子节点下标为 `2*i + 1`
 - 节点 `i` 的右子节点下标为 `2*i + 2`
 - 节点 `i` 的父节点下标为 `(i - 1) >>> 1`
 
+### 最小堆结构示意图
+
+```mermaid
+flowchart TD
+    subgraph Heap["最小堆结构（数组索引映射）"]
+        direction TB
+        N0["queue[0] = 1\n（堆顶 / 根节点）"]
+        N1["queue[1] = 2\n（左子节点）"]
+        N2["queue[2] = 3\n（右子节点）"]
+        N3["queue[3] = 4\n（1 的左子）"]
+        N4["queue[4] = 5\n（1 的右子）"]
+        N5["queue[5] = 6\n（2 的左子）"]
+
+        N0 --> N1
+        N0 --> N2
+        N1 --> N3
+        N1 --> N4
+        N2 --> N5
+    end
+
+    subgraph Rule["父子索引规则"]
+        R1["父节点 i → 左子 2i+1"]
+        R2["父节点 i → 右子 2i+2"]
+        R3["子节点 i → 父 (i-1)>>>1"]
+    end
+
+    subgraph HeapProperty["最小堆性质"]
+        P1["每个节点 ≤ 所有子节点"]
+        P2["堆顶 queue[0] 始终是最小值"]
+        P3["同一层元素之间无大小关系"]
+    end
+
+    Heap --> Rule
+    Rule --> HeapProperty
+```
+
+> **💡 核心提示**：为什么不允许 null 元素？
+>
+> `PriorityQueue` 在 `offer()` 入口处就做了 `e == null` 判空并抛出 `NullPointerException`。根本原因是**堆调整过程中需要调用 `compareTo()` 或 `Comparator.compare()`**，如果允许 null 进入队列，在 `siftUp` / `siftDown` 时一旦与 null 比较就会触发 NPE。与其在复杂的堆调整逻辑中处处防御，不如在入口处统一拦截——这是典型的 fail-fast 设计。
+
 ## 初始化
+
 `PriorityQueue` 常用的初始化方法有 4 个：
 
 1. 无参构造方法
@@ -215,15 +308,48 @@ private void grow(int minCapacity) {
 }
 ```
 
+> **💡 核心提示**：为什么扩容阈值是 64？为什么小容量 2x、大容量 1.5x？
+>
+> 这是一个经过实践验证的平衡点：
+> - **小容量阶段（< 64）**：队列刚创建时元素少，频繁扩容的成本高于"多分配一点空间"的浪费。2 倍增长可以让小队列快速到达合理容量，减少早期扩容次数。
+> - **大容量阶段（≥ 64）**：当数组已经较大时，每次扩容分配的绝对内存量已经很大（64 → 96 增加了 32，512 → 768 增加了 256）。如果继续用 2 倍增长，一次性分配过多内存，在内存紧张的场景下容易触发 OOM 或频繁的 GC。1.5 倍增长是一个经过验证的折中值——既不会增长过慢导致频繁 `Arrays.copyOf`，也不会一次分配过多。
+> - **64 这个阈值**：恰好是二叉堆深度约为 log₂(64) = 6 层，此时堆操作 O(log n) 的性能已经比较可观，不再需要激进扩容。
+
 扩容策略的设计比较务实：容量较小时（< 64）采用近似 2 倍扩容，减少扩容次数；容量较大时采用 1.5 倍扩容，避免一次性分配过多空间。超过 `MAX_ARRAY_SIZE`（`Integer.MAX_VALUE - 8`）时，调用 `hugeCapacity` 处理边界情况。
 
 `PriorityQueue` 为了快速插入和删除，采用了**最小堆**（min-heap）结构，而不是直接使用有序数组。最小堆的定义是：**每个节点的值都小于等于其子节点的值**（根节点是最小值）。这样既能保证插入和删除的时间复杂度都是 O(log n)，又能避免移动过多元素。
 
-下面就是一个简单的最小堆和映射数组：
+### 最小堆工作原理图
 
-![最小堆示例](https://javabaguwen.com/img/PriorityQueue2.png)
+```mermaid
+flowchart TD
+    Start["新元素入队 offer(e)"] --> NullCheck{"e == null ?"}
+    NullCheck -->|是| ThrowNPE["抛出 NullPointerException"]
+    NullCheck -->|否| ModCount["modCount++"]
+    ModCount --> FullCheck{"size >= queue.length ?"}
+    FullCheck -->|是| Grow["grow()\n容量 < 64: new = old + old + 2 ≈ 2x\n容量 ≥ 64: new = old + old/2 ≈ 1.5x"]
+    FullCheck -->|否| FirstInsert
+    Grow --> FirstInsert{"size == 0 ?"}
+    FirstInsert -->|是| PlaceRoot["queue[0] = e\n直接放堆顶"]
+    FirstInsert -->|否| SiftUp["size++\nsiftUp(size-1, e)"]
 
-再看一下 `siftUp()` 方法源码，是怎么保证插入元素后堆仍然是有序的？
+    SiftUp --> SiftUpLoop{"k > 0 ?"}
+    SiftUpLoop -->|否| InsertFinal["queue[k] = x\n插入最终位置"]
+    SiftUpLoop -->|是| CalcParent["parent = (k-1) >>> 1"]
+    CalcParent --> Compare{"compare(x, queue[parent]) >= 0 ?"}
+    Compare -->|是, 已满足堆性质| InsertFinal
+    Compare -->|否, x 更小需上浮| ParentDown["queue[k] = queue[parent]\nk = parent"]
+    ParentDown --> SiftUpLoop
+
+    InsertFinal --> Done["返回 true"]
+    PlaceRoot --> Done
+    ThrowNPE --> End
+    Done --> End["offer 完成, 最小堆性质保持"]
+```
+
+### siftUp 上浮操作源码
+
+下面看一下 `siftUp()` 方法源码，是怎么保证插入元素后堆仍然是有序的？
 
 核心思路就是：新元素从当前位置不断与父节点比较，如果比父节点小就上移，直到不比父节点小为止，找到合适的位置插入。
 
@@ -278,7 +404,15 @@ private void siftUpComparable(int k, E x) {
 }
 ```
 
-两种方式逻辑完全一致，只是比较的方式不同。注意代码中并没有做元素交换，而是采用"父节点下移 + 最终位置赋值"的方式，减少了赋值次数。
+两种方式逻辑完全一致，只是比较的方式不同。
+
+> **💡 核心提示**：为什么采用"父节点下移 + 最终位置插入"而不是直接 swap？
+>
+> 传统的堆调整思路是"交换"（swap）当前元素与父/子节点，每次 swap 需要 3 次赋值操作（temp = a; a = b; b = temp）。而 JDK 的做法是：
+> 1. 循环中只将父节点**下移覆盖**到子节点位置：`queue[k] = queue[parent]`（1 次赋值）
+> 2. 循环结束时才将目标元素插入最终位置：`queue[k] = x`（1 次赋值）
+>
+> 假设上浮路径长度为 h（二叉堆高度 h ≈ log₂n），传统 swap 需要 3h 次赋值，而 JDK 的"下移 + 最终插入"只需 **h + 1 次赋值**。当 n 较大时，这几乎减少了一半的写操作，对缓存友好度更高。
 
 ### add 方法源码
 
@@ -337,6 +471,8 @@ public E poll() {
 `poll()` 的逻辑：保存堆顶元素 → 将堆尾元素移到堆顶 → 堆尾置 `null`（GC 友好） → 调用 `siftDown` 将新的堆顶元素下滤到合适位置，恢复最小堆性质。
 
 `poll()` 中使用的 `siftDown` 方法与 `offer()` 中的 `siftUp` 对称：新元素从堆顶不断与**较小的子节点**比较，如果比子节点大就下移，直到不比子节点大为止。
+
+### siftDown 下滤操作源码
 
 ```java
 // 把元素下滤到合适的位置
@@ -491,6 +627,111 @@ public E element() {
 }
 ```
 
+> **💡 核心提示**：为什么 iterator() 不保证按优先级顺序遍历？
+>
+> `PriorityQueue.iterator()` 返回的是底层 `Object[] queue` 数组的直接迭代器。二叉堆只保证**父子节点的偏序关系**（父 ≤ 子），**不保证同一层元素之间的大小关系**，更不保证整个数组的有序性。
+>
+> 例如堆 `[1, 2, 3, 4, 5, 6]` 对应的树结构是合法的堆，但数组本身不是有序的。如果需要按优先级顺序遍历，应该不断调用 `poll()` 逐个弹出元素，或者先 `new ArrayList<>(queue)` 然后 `Collections.sort()`。
+
+## 生产环境避坑指南
+
+在使用 `PriorityQueue` 时，以下 8 个陷阱是生产环境中最容易踩的坑：
+
+### 坑 1：插入 null 元素直接 NPE
+
+```java
+PriorityQueue<String> pq = new PriorityQueue<>();
+pq.offer(null); // 直接抛出 NullPointerException
+```
+
+**原因**：如前所述，堆调整时需要调用 `compareTo` 或 `compare`，null 会导致 NPE。JDK 选择在入口处统一拦截。
+**建议**：业务层做好 null 过滤，或者用 Optional 包装。
+
+### 坑 2：误以为 iterator() 有序，遍历结果"乱序"
+
+```java
+PriorityQueue<Integer> pq = new PriorityQueue<>();
+pq.addAll(Arrays.asList(3, 1, 4, 1, 5, 9, 2, 6));
+for (Integer e : pq) {
+    System.out.print(e + " "); // 输出不是 1 1 2 3 4 5 6 9！
+}
+```
+
+**原因**：`iterator()` 遍历的是底层数组，数组只满足堆的偏序性质，不保证全局有序。
+**建议**：需要有序遍历时，使用 `while (!pq.isEmpty()) pq.poll()`。
+
+### 坑 3：多线程环境下 ConcurrentModificationException 或数据错乱
+
+```java
+PriorityQueue<Integer> pq = new PriorityQueue<>();
+// 线程 A: pq.offer(1);
+// 线程 B: pq.poll();
+// 可能导致数据丢失、数组越界或 CME
+```
+
+**原因**：`PriorityQueue` 没有任何内部同步机制，`size++`、`queue[k] = x` 等操作都不是原子操作。
+**建议**：多线程场景使用 `PriorityBlockingQueue`，或外部加锁。
+
+### 坑 4：未实现 Comparable 的元素插入时 ClassCastException
+
+```java
+class Task { int id; } // 没有实现 Comparable
+PriorityQueue<Task> pq = new PriorityQueue<>();
+pq.add(new Task()); // ClassCastException: Task cannot be cast to Comparable
+```
+
+**原因**：没有指定 Comparator 时，`siftUpComparable` 会将元素强转为 `Comparable`。
+**建议**：自定义类要么实现 `Comparable`，要么构造时传入 `Comparator`。
+
+### 坑 5：元素入队后修改字段值，破坏堆性质
+
+```java
+PriorityQueue<Task> pq = new PriorityQueue<>(Comparator.comparingInt(t -> t.priority));
+Task t = new Task(1, 5);
+pq.add(t);
+t.priority = 0; // 入队后修改优先级！堆性质被破坏
+pq.poll(); // 取出的可能不是真正的最小元素
+```
+
+**原因**：`PriorityQueue` 只在插入/删除时维护堆性质，不会监听元素内部变化。
+**建议**：使用不可变对象作为队列元素；或者需要"更新优先级"时先 remove 再 offer。
+
+### 坑 6：remove(Object) 的 O(n) 性能陷阱
+
+```java
+// 循环内反复调用 remove
+for (int i = 0; i < 100000; i++) {
+    pq.remove(target); // 每次都是 O(n) 线性查找 + O(log n) 调整
+}
+```
+
+**原因**：`remove(Object)` 需要线性扫描整个数组找目标位置，时间复杂度 O(n)。
+**建议**：如果频繁删除任意元素，考虑使用 `TreeSet`（O(log n)）或维护额外的索引结构。
+
+### 坑 7：序列化时 comparator 可能丢失
+
+```java
+PriorityQueue<Task> pq = new PriorityQueue<>(Comparator.comparingInt(t -> t.id));
+// 序列化后再反序列化
+ObjectOutputStream oos = new ObjectOutputStream(...);
+oos.writeObject(pq);
+// 如果 comparator 不是序列化安全的，反序列化后比较器可能为 null
+```
+
+**原因**：`comparator` 字段是 `transient` 的，不会参与默认序列化。JDK 通过 `writeObject`/`readObject` 特殊处理来保存比较器信息，但如果比较器本身不可序列化，就会丢失。
+**建议**：确保自定义 `Comparator` 实现 `Serializable`。
+
+### 坑 8：误用 PriorityQueue 做"最近 N 个元素"的场景
+
+```java
+// 想用 PriorityQueue 维护 top-K 最大元素
+PriorityQueue<Integer> pq = new PriorityQueue<>(); // 默认最小堆
+// 需要的是最大堆！但 PriorityQueue 没有内置的 max-heap 构造方式
+```
+
+**原因**：`PriorityQueue` 默认是最小堆，如果需要最大堆，必须传入 `(a, b) -> b.compareTo(a)`。
+**建议**：维护 top-K 最大元素时，构造为 `PriorityQueue<>(k, Collections.reverseOrder())`。
+
 ## 总结
 
 这篇文章讲解了 `PriorityQueue` 优先队列的核心源码，了解到 `PriorityQueue` 具有以下特点：
@@ -511,9 +752,37 @@ public E element() {
 | 删除任意元素 | remove(Object) | O(n) | 需线性查找 + siftDown/siftUp 调整 |
 | 建堆 | heapify（有参构造传入集合） | O(n) | 批量构建堆 |
 
+### PriorityQueue vs DelayQueue vs TreeSet 对比
+
+| 特性 | PriorityQueue | DelayQueue | TreeSet |
+| --- | --- | --- | --- |
+| **底层数据结构** | 数组 + 二叉堆（最小堆） | 数组 + 二叉堆（内部委托 PriorityQueue） | 红黑树（平衡二叉搜索树） |
+| **排序方式** | 自然排序或自定义 Comparator | 元素的 `getDelay()` 返回值 | 自然排序或自定义 Comparator |
+| **是否有序遍历** | 否（iterator 无序） | 否（iterator 无序） | 是（in-order 有序遍历） |
+| **是否阻塞** | 否（非阻塞） | 是（take() 等待元素到期） | 否（非阻塞） |
+| **线程安全** | 否 | 是（内部使用 ReentrantLock） | 否（可用 `Collections.synchronizedSortedSet` 包装） |
+| **是否允许 null** | 否 | 否 | 否 |
+| **插入时间复杂度** | O(log n) | O(log n) | O(log n) |
+| **获取最小元素** | O(1)（peek） | O(1)（peek），O(log n)（take，含到期等待） | O(log n)（first） |
+| **删除任意元素** | O(n) | O(n) | O(log n) |
+| **是否支持范围查询** | 否 | 否 | 是（`subSet`, `headSet`, `tailSet`） |
+| **典型使用场景** | Top-K 问题、Dijkstra 最短路径、任务调度按优先级排序 | 定时任务调度、延迟消息队列、缓存过期清理 | 需要有序遍历和范围查询的排序集合 |
+
 ### 使用建议
 
 1. **不支持 null 元素**：`PriorityQueue` 不允许插入 `null`，会抛出 `NullPointerException`。如果元素可能为空，需要在插入前做判空处理。
 2. **无序迭代**：`PriorityQueue` 的 `iterator()` 方法不保证按优先级顺序遍历，因为它返回的是底层数组的迭代器。如果需要按优先级顺序消费元素，应使用 `poll()` 而不是 `iterator()`。
-3. **非线程安全**：`PriorityQueue` 没有做任何同步处理，在多线程环境下使用需要外部加锁，或者改用线程安全的优先队列实现。
+3. **非线程安全**：`PriorityQueue` 没有做任何同步处理，在多线程环境下使用需要外部加锁，或者改用线程安全的 `PriorityBlockingQueue`。
 4. **正确使用比较器**：使用自然排序时，元素类型必须实现 `Comparable` 接口，否则插入时会抛出 `ClassCastException`。如果元素不实现 `Comparable`，必须在构造时传入自定义 `Comparator`。
+5. **元素入队后不要修改影响比较的字段**：这会破坏堆的偏序性质，导致 `poll()` 取出的不是真正的最小/最大元素。
+
+### 行动清单
+
+1. **检查生产代码**：搜索项目中使用 `PriorityQueue` 的地方，确认没有遗漏 null 检查、没有在不恰当的并发场景直接使用。
+2. **替换无序遍历**：如果代码中有 `for (E e : priorityQueue)` 的用法，确认是否真的不关心顺序。如果需要有序消费，改为 `while (!pq.isEmpty()) pq.poll()`。
+3. **自定义类入队前**：确保元素类实现了 `Comparable` 或在构造 `PriorityQueue` 时传入了 `Comparator`，避免运行时的 `ClassCastException`。
+4. **线程安全升级**：如果当前在多线程环境下使用 `PriorityQueue`，替换为 `PriorityBlockingQueue` 或在外层加锁。
+5. **性能评估**：如果需要频繁删除任意元素（而非只删堆顶），评估是否应改用 `TreeSet`（O(log n) 删除）或其他数据结构。
+6. **Top-K 场景**：使用 `PriorityQueue` 做 Top-K 时，记住：求最大 K 个元素用最小堆（丢弃比堆顶更小的），求最小 K 个元素用最大堆（丢弃比堆顶更大的）。
+7. **Comparator 序列化**：如果 `PriorityQueue` 需要序列化传输，确保自定义的 `Comparator` 实现了 `Serializable` 接口。
+8. **扩展阅读**：推荐阅读《算法（第 4 版）》第 2.4 节"优先队列"，深入理解二叉堆的理论基础；推荐阅读 JDK 中 `PriorityBlockingQueue` 源码，了解阻塞优先级队列的锁机制。
