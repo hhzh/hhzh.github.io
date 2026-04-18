@@ -1,142 +1,224 @@
+## 引言
 
-## 探秘Spring架构：设计理念与核心原理深度解析
+Spring 为什么能统治 Java 企业级开发 20 年？
 
-在Java企业级应用开发领域，Spring框架无疑是生态系统的主导者。从传统的SSH（Struts + Spring + Hibernate）到Spring Boot、Spring Cloud，Spring的身影无处不在。我们享受着Spring带来的便利和高效，但它为什么能够如此成功并经久不衰？仅仅是因为功能全面吗？
+从 2004 年 Rod Johnson 发布《Expert One-on-One J2EE Development without EJB》到如今 Spring Boot、Spring Cloud、Spring AI 的全面繁荣，Spring 几乎成为了 Java 后端开发的代名词。无论大小公司，无论新老项目，Spring 的身影无处不在。
 
-答案远不止于此。Spring的卓越之处，在于其底层**卓越的架构设计和核心设计理念**。正是这些理念，使得Spring能够灵活应对各种复杂的应用场景，降低开发门槛，提升系统可维护性和可测试性。对于中高级Java工程师而言，深入理解Spring的架构原理，不仅能帮助我们更高效地利用框架解决问题，进行系统设计优化，更是应对高阶技术面试的关键。
+但 Spring 的成功并非偶然。它不是靠营销，也不是靠"大而全"的功能堆砌——而是靠**卓越的架构设计和核心设计理念**。正是这些理念，让 Spring 能够灵活应对各种复杂场景，降低开发门槛，提升系统可维护性和可测试性。
 
-本文将带你深入Spring的内部，解构其最核心的几个支柱，探寻Spring架构的非凡之美。
+对于中高级 Java 工程师而言，深入理解 Spring 的架构原理，不仅能帮助我们更高效地利用框架，更是应对高阶技术面试的关键。
 
-### 一、 引言： Spring的成功与架构之美
+💡 **核心提示** Spring 的强大不在于功能多，而在于设计好。IoC/DI 实现了对象解耦，AOP 实现了关注点分离，非侵入性让业务代码保持纯粹，模块化保证了灵活扩展。这些设计原则相互协同，共同构成了 Spring 的"架构之美"。
 
-Spring框架诞生于EJB 2.x 时代背景下，旨在简化Java企业级应用开发。它的成功并非偶然，而是源于对企业级应用痛点的深刻理解和一系列前瞻性的设计原则。这些原则贯穿Spring的整个体系，是其强大的生命力之源。
+```mermaid
+classDiagram
+    class CoreContainer {
+        <<Spring Core Modules>>
+    }
+    class Core {
+        IoC 核心
+        资源管理
+        类型转换
+    }
+    class Beans {
+        BeanFactory
+        BeanDefinition
+        依赖注入
+    }
+    class Context {
+        ApplicationContext
+        国际化
+        事件传播
+        环境抽象
+    }
+    class SpEL {
+        表达式语言
+        运行时求值
+    }
+    class AOP {
+        切面编程
+        代理机制
+        织入逻辑
+    }
+    class Aspects {
+        AspectJ 集成
+    }
+    class DataAccess {
+        JdbcTemplate
+        事务抽象
+        DAO 支持
+    }
+    class ORM {
+        Hibernate 集成
+        JPA 支持
+        MyBatis 集成
+    }
+    class OXM {
+        XML 绑定
+    }
+    class JDBC {
+        数据源管理
+    }
+    class Web {
+        Spring MVC
+        WebSocket
+        REST
+    }
+    class Servlet {
+        DispatcherServlet
+        HandlerMapping
+    }
+    class Portlet {
+        Portlet MVC
+    }
+    class Test {
+        单元测试
+        集成测试
+        Mock 框架
+    }
 
-Spring 架构的核心支柱，可以概括为：**控制反转 (IoC) / 依赖注入 (DI)**、**面向切面编程 (AOP)**、**抽象与非侵入性**、以及**模块化与开放性**。下面我们将逐一深入解析。
+    CoreContainer --> Core : 基础
+    CoreContainer --> Beans : 构建于 Core
+    CoreContainer --> Context : 构建于 Beans
+    CoreContainer --> SpEL : 构建于 Core
+    CoreContainer --> AOP : 切面支持
+    AOP --> Aspects : AspectJ 扩展
+    CoreContainer --> DataAccess : 数据访问
+    DataAccess --> ORM : ORM 框架
+    DataAccess --> OXM : XML 映射
+    DataAccess --> JDBC : JDBC 抽象
+    CoreContainer --> Web : Web 层
+    Web --> Servlet : Servlet 集成
+    Web --> Portlet : Portlet 集成
+    CoreContainer --> Test : 测试支持
+```
 
-### 二、 Spring 架构的核心支柱/设计原则深度解析
+### Spring Bean 生命周期概览
 
-#### 支柱一：控制反转 (IoC) 与依赖注入 (DI) - 框架的基石
+```mermaid
+flowchart TD
+    A[BeanDefinition\n读取配置元数据] --> B[Instantiation\n反射创建实例]
+    B --> C[DI 依赖注入\n属性填充]
+    C --> D[Aware 接口回调\n感知容器]
+    D --> E[BPP.before\n前置增强]
+    E --> F[@PostConstruct\n用户初始化]
+    F --> G[InitializingBean\n接口初始化]
+    G --> H[init-method\n配置初始化]
+    H --> I[BPP.after\n后置增强/AOP代理]
+    I --> J[Bean Ready\n存入缓存]
+    J --> K[应用使用]
+    K --> L{容器关闭?}
+    L -->|是| M[@PreDestroy → DisposableBean → destroy-method]
+    L -->|否| K
+    M --> N[Bean 销毁]
+```
+
+### Spring 架构的核心设计原则
+
+#### 控制反转 (IoC) 与依赖注入 (DI) — 框架的基石
 
 * **概念解释：**
-    * **控制反转 (IoC - Inversion of Control)：** 是一个思想，指将对象创建、依赖查找和生命周期管理的控制权从应用代码**反转**给框架。传统的开发中，对象自己创建依赖的对象，掌握控制权；IoC中，对象被动地接受框架为其创建并管理的依赖。
-    * **依赖注入 (DI - Dependency Injection)：** 是实现IoC的一种具体方式。指框架在创建对象时，将其依赖的对象通过构造器、Setter方法或字段等方式**注入**给它。
-    * **类比：** 传统方式像你自己去原材料市场采购、回家组装产品；IoC/DI 就像你向一个“工厂”下单，框架这个“工厂”负责采购（创建依赖对象）、生产（创建你需要的对象），并按照你提供的“图纸”将“零部件”组装好（注入依赖）后直接交给你使用。你不再关心零部件如何生产，只管使用成品。
+    * **控制反转 (IoC - Inversion of Control)：** 将对象创建、依赖查找和生命周期管理的控制权从应用代码**反转**给框架。传统开发中，对象自己创建依赖；IoC 中，对象被动接受框架为其创建并管理的依赖。
+    * **依赖注入 (DI - Dependency Injection)：** 实现 IoC 的具体方式。框架在创建对象时，将其依赖通过构造器、Setter 或字段注入。
+    * **类比：** 传统方式像自己采购原材料组装产品；IoC/DI 像向"工厂"下单，框架负责采购、生产、组装后直接交付。
 
 * **核心机制：**
-    * **IoC 容器：** Spring 的核心是 IoC 容器，负责管理应用中对象的生命周期和依赖关系。最基础的容器是 `BeanFactory`，提供基本的DI功能。更常用的是 `ApplicationContext`，它是 `BeanFactory` 的子接口，提供了更多企业级服务，如国际化、事件传播、资源加载等。
-    * **配置元数据：** 容器通过读取配置元数据来了解应用中有哪些对象（Bean）、它们如何创建、它们之间有什么依赖关系。配置元数据可以来自 XML 文件、注解（如 `@Component`, `@Autowired`）、或 Java 代码（JavaConfig）。
+    * **IoC 容器：** `BeanFactory` 提供基础 DI，`ApplicationContext` 是其增强版，提供国际化、事件传播、资源加载等企业级服务。
+    * **配置元数据：** XML、注解（`@Component`、`@Autowired`）或 JavaConfig（`@Configuration` + `@Bean`）。
 
-* **带来的价值 (为什么重要)：** **IoC/DI 是 Spring 架构的灵魂，其价值巨大：**
-    * **解耦：** 对象不再直接依赖于其依赖对象的具体创建过程或来源，降低了类之间的耦合度。你可以轻松替换依赖的实现而无需修改依赖它的类。
-    * **易于测试：** 解耦使得单元测试变得非常容易。你可以方便地 Mock 对象的依赖项，在隔离环境中测试核心业务逻辑。
-    * **提高代码可维护性：** 对象的依赖关系通过配置集中管理，清晰明了。修改依赖或对象的创建方式无需修改业务代码。
-    * **提高代码可配置性：** 可以轻松通过修改配置来切换不同的依赖实现，无需修改业务代码。
+* **价值：**
+    * **解耦：** 对象不直接依赖创建过程，轻松替换实现。
+    * **易测试：** 方便 Mock 依赖，隔离测试核心逻辑。
+    * **可维护：** 依赖关系集中管理，修改无需改动业务代码。
 
-* **面试关联点：** 这是 Spring 必问的送分题（如果你理解深刻），也是拉开差距的地方。面试官会问：IoC 和 DI 是什么？有什么关系？它们为啥重要？带来了啥好处？`BeanFactory` 和 `ApplicationContext` 的区别？DI 有哪些注入方式？
+#### 面向切面编程 (AOP) — 解决横切关注点
 
-#### 支柱二：面向切面编程 (AOP) - 解决横切关注点
-
-* **概念解释：**
-    * **横切关注点：** 在企业级应用中，有些功能（如日志记录、事务管理、安全权限检查、性能监控）会分散到众多模块或类的许多方法中，导致代码重复、业务逻辑与非业务逻辑混杂，难以维护。这些功能被称为横切关注点。
-    * **AOP (Aspect-Oriented Programming)：** 旨在将横切关注点从业务逻辑中分离出来，集中管理。通过AOP，你可以在不修改业务代码的情况下，为业务逻辑增加行为。
+* **概念：** 将日志、事务、安全等横切关注点从业务逻辑中分离，集中管理。
 
 * **核心机制：**
-    * **切面 (Aspect)：** 封装横切关注点的模块，通常是一个类，包含通知和切入点。
-    * **连接点 (Join Point)：** 应用执行过程中可以插入切面的点，例如方法调用、异常抛出等。Spring AOP 主要支持方法连接点。
-    * **切入点 (Pointcut)：** 定义连接点的集合，指定在哪些方法上应用通知。通常使用表达式来匹配方法。
-    * **通知 (Advice)：** 在连接点执行的具体动作，例如在方法执行前记录日志。Spring AOP 支持多种类型的通知：Before (方法执行前), After (方法执行后，无论是否异常), AfterReturning (方法正常返回后), AfterThrowing (方法抛出异常后), Around (环绕，包围方法执行)。
-* **Spring AOP 的实现：** Spring AOP 默认是基于**动态代理**实现的，它在运行时为目标对象生成代理对象，并在代理对象中插入切面逻辑。
-    * **JDK 动态代理：** 如果目标对象实现了接口，Spring 会使用 JDK 的 `java.lang.reflect.Proxy` 为接口创建代理实现类。
-    * **CGLIB 代理：** 如果目标对象没有实现接口，Spring 会使用 CGLIB 库通过继承目标对象来创建代理子类。
-    * Spring 根据目标对象是否实现接口自动选择代理方式（可以通过配置强制使用 CGLIB）。
-* **带来的价值 (为什么重要)：** **AOP 的核心价值在于实现关注点的模块化和代码的整洁：**
-    * **关注点分离：** 将非业务逻辑从业务代码中剥离，使业务代码更清晰、更专注于核心功能。
-    * **减少代码散布 (scattering) 和纠缠 (tangling)：** 避免将同一段日志代码、事务管理代码分散到各处，也避免了业务逻辑与非业务逻辑代码紧密混杂。
-    * **提高可维护性：** 横切关注点的修改只需在切面中进行，无需修改大量业务代码。
+    * **切面 (Aspect)：** 封装横切关注点的模块。
+    * **连接点 (Join Point)：** 可插入切面的执行点（Spring AOP 主要支持方法级别）。
+    * **切入点 (Pointcut)：** 定义在哪些方法上应用通知的表达式。
+    * **通知 (Advice)：** Before、AfterReturning、AfterThrowing、After、Around 五种类型。
 
-* **面试关联点：** AOP 是 Spring 的另一个“招牌”。面试官会问：什么是 AOP？为什么要用 AOP？核心概念？Spring AOP 和 AspectJ 的区别？Spring AOP 如何实现的（动态代理原理）？JDK 代理和 CGLIB 代理的区别和应用场景？AOP 的常见应用（事务、日志、安全）。
+* **Spring AOP 实现：** 基于**动态代理**。
+    * **JDK 动态代理：** 目标实现了接口时使用，代理接口方法。
+    * **CGLIB 代理：** 目标未实现接口时通过继承创建代理子类。
 
-#### 支柱三：抽象与非侵入性 - 解耦与简化测试
+💡 **核心提示** Spring AOP 的代理创建发生在 Bean 生命周期的 `BeanPostProcessor#postProcessAfterInitialization()` 阶段。代理对象**替换**了原始 Bean，所以后续其他 Bean 注入时获取到的是代理对象而非原始对象。
 
-* **概念解释：**
-    * **抽象：** Spring 为企业级开发中的各种技术（如数据库访问、缓存、消息队列、任务调度、日志）提供了高级别的抽象接口或模板类。开发者只需面向 Spring 的抽象编程，Spring 负责适配具体的底层技术实现。例如，Spring JDBC 提供了 `JdbcTemplate` 简化 JDBC 操作，Spring Data JPA 提供了统一的 Repository 接口。
-    * **非侵入性 (Non-invasiveness)：** Spring 的核心理念之一是尽可能让业务对象成为普通的 POJO (Plain Old Java Object)。**不强制**业务类继承 Spring 的特定基类或实现 Spring 的特定接口（除非是为了使用特定的 Spring 特性或回调）。业务逻辑代码应该独立于 Spring 框架本身。
+#### 抽象与非侵入性 — 解耦与简化测试
 
-* **带来的价值 (为什么重要)：**
-    * **解耦与技术切换成本降低：** 通过抽象，应用代码不直接依赖底层技术细节，可以轻松在不同的实现之间切换（例如，从 Hibernate 换成 MyBatis，从 EhCache 换成 Caffeine），而无需修改业务逻辑层代码。
-    * **提高可测试性：**
-        * **抽象：** 面向抽象编程使得 Mock 底层技术依赖变得容易，方便进行单元测试。
-        * **非侵入性：** 业务 POJO 不依赖于 Spring 容器，可以在 Spring 容器外部轻松进行单元测试，无需启动容器，测试速度快。
-    * **代码更干净：** 业务逻辑代码不被框架细节污染，更聚焦、更易读。
+* **抽象：** Spring 为数据库访问、缓存、消息队列等技术提供高级抽象（如 `JdbcTemplate`），开发者面向抽象编程，底层实现由 Spring 适配。
+* **非侵入性：** 业务对象保持为普通 POJO，不强制继承 Spring 特定基类或实现特定接口。
 
-* **面试关联点：** 面试官会问：Spring 的非侵入性体现在哪里？它有什么好处？Spring 在哪些方面提供了抽象？面向接口编程（或面向抽象编程）有什么好处？
+* **价值：**
+    * **技术切换成本低：** 从 Hibernate 换 MyBatis 无需修改业务逻辑。
+    * **容器外可测试：** 业务 POJO 不依赖 Spring 容器，单元测试快速独立。
 
-#### 支柱四：模块化与开放性 - 灵活与可扩展
+#### 模块化与开放性 — 灵活与可扩展
 
-* **概念解释：**
-    * **模块化：** Spring 框架不是一个巨大的单一 JAR 包，而是由许多相对独立的模块组成（如 spring-core, spring-beans, spring-context, spring-aop, spring-jdbc, spring-webmvc, spring-test 等）。每个模块提供特定的功能。
-    * **开放性/可扩展性：** Spring 提供了丰富的扩展点，允许开发者在框架的不同生命周期阶段插入自己的逻辑，定制框架行为。例如：
-        * `BeanPostProcessor`: 在 Bean 初始化前后对其进行增强处理（如 AOP 代理的创建）。
-        * `BeanFactoryPostProcessor`: 在 `BeanFactory` 标准初始化之后，修改 Bean 定义（BeanDefinition）。
-        * 各种 Import* 注解、自定义标签、自定义作用域等。
-        * SPI (Service Provider Interface) 机制：允许第三方库集成到 Spring 中。
+* **模块化：** Spring 由多个独立模块组成（spring-core、spring-beans、spring-context、spring-aop、spring-jdbc、spring-webmvc、spring-test 等），按需引入。
+* **开放性/可扩展性：** 提供丰富扩展点：
+    * `BeanPostProcessor`：Bean 初始化前后增强。
+    * `BeanFactoryPostProcessor`：修改 BeanDefinition 元数据。
+    * `ImportSelector`、`ImportBeanDefinitionRegistrar`：动态注册 Bean。
 
-* **带来的价值 (为什么重要)：** **这是 Spring 能够适应不断变化的 Java 生态并轻松集成各种技术的关键：**
-    * **依赖管理灵活：** 应用只需引入所需的模块依赖，减少了不必要的 JAR 包，降低了依赖冲突的可能性。
-    * **按需使用功能：** 只需为所需功能引入模块，避免框架的冗余功能。
-    * **高度可定制：** 开发者可以利用扩展点深入定制框架行为，满足特殊需求，甚至开发自己的 Spring 扩展。
-    * **强大的集成能力：** 开放性使得第三方库（如各种持久化框架、消息队列、缓存库）能够轻松地集成到 Spring 中，提供统一的编程模型和管理。
+💡 **核心提示** Spring 偏好组合而非继承。组合让框架保持低耦合，让开发者可以按需扩展，而不是被迫继承一个庞大基类。这也是 Spring 非侵入性的核心体现。
 
-* **面试关联点：** 面试官会问：Spring 的模块体系？Spring 的扩展机制有哪些？`BeanPostProcessor` 和 `BeanFactoryPostProcessor` 的区别和应用场景？（这是常考题，考察你对 Bean 生命周期和定义阶段的理解）
+### 配置演进：从 XML 到 JavaConfig
 
-### 三、 Spring 的配置演进与设计理念的体现
+Spring 配置方式的演进体现了对**简单、灵活、易用**的持续追求：
 
-Spring 的配置方式经历了从繁琐到简便的演进：
+| 配置方式 | 特点 | 适用场景 |
+|---------|------|---------|
+| XML 配置 | 清晰直观，配置量大，与代码分离 | 早期项目，配置需外部化 |
+| 注解配置 | 减少 XML，配置靠近代码 | 日常开发，组件标识 |
+| JavaConfig | 完全代码化，灵活，支持条件化配置 | 现代项目，Spring Boot 推荐 |
 
-* **XML 配置：** 早期主要方式，将 Bean 定义和依赖关系写在 XML 文件中。清晰直观，但配置量大，与 Java 代码分离。
-* **注解配置：** 引入注解（如 `@Component`, `@Autowired`, `@Service` 等），将 Bean 定义和依赖关系信息直接标注在 Java 类上。减少了 XML 配置量，使配置更靠近代码。
-* **JavaConfig 配置：** 使用 Java 类和方法（结合 `@Configuration`, `@Bean` 等注解）来定义 Bean 和配置依赖。将配置完全代码化，更加灵活，方便进行条件化配置等复杂场景。
+### 生产环境避坑指南
 
-这些演进体现了 Spring 不断追求**简单、灵活、易用**的设计理念，同时保持了**非侵入性**（注解和 JavaConfig 并没有强制业务类继承 Spring 特定类）。
+1. **循环依赖问题**：构造器注入的循环依赖 Spring 无法解决（构造器阶段尚未完成实例化，无法放入三级缓存），会抛出 `BeanCurrentlyInCreationException`。**解决**：改用 Setter/字段注入，或在依赖上使用 `@Lazy`，或从设计上消除循环依赖。
 
-### 四、 Spring 如何整合其他技术栈
+2. **代理自调用绕过 (Self-Invocation Bypass)**：在同一个类中通过 `this` 调用带有 `@Transactional` 或 `@Cacheable` 的方法时，代理逻辑不会生效，因为 `this` 指向原始对象而非代理。**解决**：将方法拆分到不同类，或通过 `AopContext.currentProxy()` 获取代理对象调用。
 
-Spring 强大的集成能力是其成功的另一个重要因素。它通过其核心原理（IoC/DI 实现对象管理和依赖注入，AOP 解决技术细节中的横切问题如连接管理/事务管理，抽象提供统一编程接口）来无缝整合各种企业级技术：
+3. **BeanPostProcessor 顺序陷阱**：多个 BeanPostProcessor 的执行顺序未定义，除非实现 `Ordered` 或 `PriorityOrdered` 接口。如果后置处理器之间存在依赖关系，顺序错误可能导致不可预期的行为。**解决**：显式实现排序接口。
 
-* **数据访问：** JDBC, JPA, Hibernate, MyBatis 等。Spring 提供了模板类和 DAO 支持，统一异常处理，集成事务管理。
-* **Web：** Spring MVC 提供了一套基于 MVC 模式的 Web 框架。
-* **消息队列：** JMS, AMQP (RabbitMQ), Kafka 等。Spring 提供了 JmsTemplate 等简化操作。
-* **其他：** Security (Spring Security), Cache (Spring Cache), Batch (Spring Batch) 等。
+4. **单例 Bean 线程安全**：Spring 默认单例 Bean 是全局共享的。如果 Bean 持有可变状态（成员变量），并发访问会导致线程安全问题。**解决**：Bean 设计为无状态，或使用 `ThreadLocal`、加锁等线程安全策略。
 
-### 五、 Spring 对测试的支持
+5. **@Autowired 注入歧义**：当容器中存在多个同类型 Bean 时，`@Autowired` 按类型匹配失败。**解决**：使用 `@Qualifier` 指定 Bean 名称，或使用 `@Primary` 标注首选 Bean。
 
-Spring 的设计天然有利于测试：
+6. **原型 Bean 注入单例 Bean**：单例 Bean 只创建一次，注入的原型 Bean 也会固定为首次创建的那个实例，后续不会重新创建。**解决**：使用 `ObjectFactory<T>`、`@Lookup` 方法或 `ApplicationContext.getBean()` 按需获取原型 Bean。
 
-* **IoC/DI：** 方便 Mock 对象的依赖项进行单元测试。
-* **非侵入性/POJO：** 业务逻辑类可以在 Spring 容器外部轻松进行单元测试。
-* **Spring Test Context Framework：** 提供了 `@ContextConfiguration` 加载配置、`@Autowired` 在测试类中注入 Bean、`@MockBean` 方便 Mock Spring 容器中的 Bean 等便利功能，简化了 Spring 环境下的集成测试。
+### IoC vs DI 与 JDK 代理 vs CGLIB 对比
 
-### 六、 将这些支柱整合：Spring 的整体价值
+| 对比维度 | 对比项 A | 对比项 B | 核心区别 |
+|---------|---------|---------|---------|
+| IoC vs DI | 思想/原则 | 实现方式 | IoC 是"控制反转"的思想，DI 是实现 IoC 的具体手段 |
+| JDK 代理 | 需要目标实现接口 | 代理接口方法 | 标准 JDK API，无法代理类方法 |
+| CGLIB 代理 | 通过继承目标类 | 代理非 final 方法 | 第三方库，性能略高，可代理无接口类 |
+| BeanFactory vs ApplicationContext | 基础容器，延迟加载 | 增强容器，预加载单例 | ApplicationContext 提供更多企业级功能 |
 
-IoC/DI 解耦并管理对象，AOP 分离横切关注点，抽象和非侵入性让业务代码更干净易测且不被技术绑定，模块化和开放性保证了框架的灵活性和集成能力。这些核心支柱协同工作，共同构筑了 Spring 作为一个强大、灵活、可测试、易维护、易于集成的企业级应用开发平台。它极大地提升了开发效率和应用质量。
+### Spring vs Jakarta EE (EJB)
 
-### 七、 面试官视角：Spring架构设计的考察点
+| 维度 | Spring | Jakarta EE (EJB) |
+|------|--------|------------------|
+| 侵入性 | 低（POJO） | 高（需继承/实现 EJB 接口） |
+| 容器依赖 | 可在容器外测试 | 必须运行在 EJB 容器中 |
+| 配置复杂度 | 低（注解 + JavaConfig） | 高（XML + 部署描述符） |
+| 学习曲线 | 平缓 | 陡峭 |
+| 社区生态 | 活跃，第三方集成丰富 | 相对封闭 |
 
-面试官为何如此重视 Spring 架构设计？这是考察你对框架底层原理的理解深度、对软件设计模式的掌握、分析问题和解决问题的思路，以及对 Spring 最佳实践的认知。
+### 总结
 
-常见问题会围绕以下几个核心支柱展开：
+Spring 框架的巨大成功源于其卓越的架构设计：
 
-* “什么是 Spring 的核心？解释一下 IoC 和 DI。”
-* “IoC 和 DI 带来了哪些好处？”
-* “Spring 是如何实现 IoC 的？`BeanFactory` 和 `ApplicationContext` 有什么区别？”
-* “什么是 AOP？你为什么要用 AOP？Spring AOP 是如何实现的？JDK 动态代理和 CGLIB 的区别？”
-* “Spring 的非侵入性体现在哪里？它有什么好处？”
-* “Spring 提供了哪些抽象？这些抽象的好处是什么？”
-* “Spring 的模块体系是怎样的？如何扩展 Spring？`BeanPostProcessor` 和 `BeanFactoryPostProcessor` 有什么区别和应用场景？”（高频考点）
-* “Spring 是如何管理 Bean 的生命周期的？”（通常会关联 IoC 容器和 `BeanPostProcessor` 的作用）。
+| 设计原则 | 核心价值 |
+|---------|---------|
+| IoC/DI | 对象解耦，依赖管理，提升可测试性 |
+| AOP | 横切关注点分离，代码整洁 |
+| 非侵入性 | POJO 编程，容器外可测试 |
+| 模块化 | 按需引入，降低依赖冲突 |
+| 开放性 | 丰富扩展点，高度可定制 |
 
-### 八、 总结
-
-Spring 框架的巨大成功，源于其卓越的架构设计和一系列核心理念：**控制反转 (IoC) / 依赖注入 (DI)** 实现了对象的解耦和管理；**面向切面编程 (AOP)** 有效分离了横切关注点；**抽象与非侵入性** 使得业务代码干净、易测且不被底层技术绑定；**模块化与开放性** 保证了框架的灵活性、可扩展性和强大的集成能力。
-
----
+掌握 Spring 的架构原理，不仅能在日常开发中更高效地使用框架，更能在面试中展现对框架底层原理的深度理解。理解这些设计原则的协同工作机制，是成为中高级 Java 工程师的必经之路。

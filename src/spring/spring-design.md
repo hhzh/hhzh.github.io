@@ -1,152 +1,276 @@
-## 深度解析 Spring 框架中的设计模式
+## 引言
 
-### 引言：设计模式与Spring框架的珠联璧合
+Spring 源码里藏着多少种设计模式？掌握这些，你的代码也能如此优雅
 
-Spring框架是Java企业级应用开发的事实标准。它提供了一站式的解决方案，涵盖了依赖注入、AOP、事务管理、MVC、数据访问等众多领域。然而，Spring的伟大不仅仅在于其功能的全面，更在于其底层设计的精巧与匠心。这种精巧的设计使得Spring极具扩展性和可维护性，能够适应各种复杂的应用场景。
+Spring 框架是 Java 企业级应用开发的事实标准。它提供了一站式的解决方案，涵盖了依赖注入、AOP、事务管理、MVC、数据访问等众多领域。然而，Spring 的伟大不仅仅在于功能的全面，更在于底层设计的精巧与匠心。
 
-而实现这种设计目标的关键，正是对各种经典设计模式的融会贯合与灵活运用。Spring框架本身就是一个设计模式的集大成者。
+而这种精巧设计的核心密码，正是对经典设计模式的融会贯通与灵活运用。Spring 框架本身就是一个设计模式的集大成者——IoC 容器运用了工厂模式，AOP 运用了代理模式，事务管理运用了策略模式，JdbcTemplate 运用了模板方法模式……
 
-理解Spring如何使用设计模式，对我们开发者而言价值巨大：
+理解 Spring 如何使用设计模式，价值巨大：
 
-* **深入理解Spring核心原理：** 设计模式是Spring骨骼和脉络。理解模式的应用，才能真正看懂Spring的“魔术”背后是如何工作的，比如AOP的实现、事务的传播行为、Bean的生命周期管理等。
-* **更好地利用Spring扩展点：** Spring提供了丰富的扩展机制（如各种Processor、Aware接口、Factory等）。这些扩展点很多都围绕设计模式构建，理解模式能帮助我们更高效、更符合框架哲学地进行高级定制。
-* **编写更“Spring化”的代码：** 学习框架如何运用模式，也能指导我们在自己的业务代码中应用类似的设计思想，写出更解耦、更灵活、更易测试的代码，即所谓“Idiomatic Spring”。
-* **提高代码质量：** 设计模式是经过实践检验的解决方案，Spring对模式的应用使得其内部结构清晰，逻辑内聚，易于理解和维护。
-* **从容应对高阶面试：** 面试官常常通过考察你对Spring内部设计模式的理解，来判断你对框架核心原理的掌握深度。能结合设计模式阐述Spring特性，往往能展现出更强的技术功底。
+* **深入理解 Spring 核心原理：** 设计模式是 Spring 的骨骼和脉络。看懂模式，才能真正看懂 Spring 的"魔术"。
+* **更好地利用 Spring 扩展点：** 扩展机制围绕设计模式构建，理解模式能更高效地进行高级定制。
+* **编写更"Spring 化"的代码：** 学习框架如何运用模式，指导我们在业务代码中应用类似的设计思想。
+* **从容应对高阶面试：** 结合设计模式阐述 Spring 特性，展现更强的技术功底。
 
-在接下来的内容中，我们将重点聚焦于Spring中最具代表性、对理解框架核心至关重要的几种设计模式，并深入探讨它们在Spring中的具体应用。
+💡 **核心提示** 设计模式不是 Spring 的"附加功能"，而是它的"DNA"。理解这些模式如何协同工作，比单纯记住每个模式的定义更有价值——你会发现 Spring 的各个模块是如何通过这些模式有机结合在一起的。
 
-### 核心设计模式在Spring中的应用深度解析
+```mermaid
+classDiagram
+    class PatternsInSpring {
+        <<Spring 中的设计模式>>
+    }
+    class TemplateMethod {
+        模板方法模式
+        JdbcTemplate
+        RestTemplate
+        TransactionTemplate
+        RedisTemplate
+        固定流程 + 可变步骤
+    }
+    class Factory {
+        工厂模式
+        BeanFactory
+        ApplicationContext
+        FactoryBean
+        隐藏创建细节
+    }
+    class Proxy {
+        代理模式
+        JDK 动态代理
+        CGLIB 代理
+        AOP 核心实现
+    }
+    class Observer {
+        观察者模式
+        ApplicationEvent
+        ApplicationListener
+        @EventListener
+        解耦通信
+    }
+    class Strategy {
+        策略模式
+        PlatformTransactionManager
+        ResourceLoader
+        TaskExecutor
+        MessageConverter
+        可插拔算法
+    }
+    class Singleton {
+        单例模式
+        Bean 默认作用域
+        容器管理而非类管理
+        区别于 GoF 单例
+    }
+    class Adapter {
+        适配器模式
+        HandlerAdapter
+        统一处理不同 Controller
+    }
+    class Decorator {
+        装饰器模式
+        BeanWrapper
+        动态增强 Bean 属性访问
+    }
 
-#### 2.1 控制反转 (IoC) / 依赖注入 (DI) - Spring的基石原则
+    PatternsInSpring --> TemplateMethod
+    PatternsInSpring --> Factory
+    PatternsInSpring --> Proxy
+    PatternsInSpring --> Observer
+    PatternsInSpring --> Strategy
+    PatternsInSpring --> Singleton
+    PatternsInSpring --> Adapter
+    PatternsInSpring --> Decorator
+```
 
-尽管 IoC/DI 通常被视为一种**原则**或**思想**，而不是一个经典的GoF（Gang of Four，即《设计模式》一书的四位作者）设计模式，但它是Spring框架最核心的理念，也是其他模式得以应用的基础。IoC（Inversion of Control）意味着应用程序中对象的创建和依赖关系的维护不再由对象本身负责，而是交给外部容器来控制。DI（Dependency Injection）是实现 IoC 的一种具体方式，即容器在创建对象时，将其依赖的其他对象注入进去。
+### 核心设计模式在 Spring 中的应用
 
-* **在Spring中的应用：** Spring IoC容器（`BeanFactory` 或 `ApplicationContext`）负责根据配置（XML, 注解, JavaConfig）创建Bean实例，并自动处理Bean之间的依赖关系，将依赖的Bean注入到需要它们的Bean中。
-* **为何这样用 (带来的好处)：**
-    * **极致解耦：** 对象不再需要自己查找或创建依赖，而是被动接受注入。这使得对象之间只通过接口耦合，极大地降低了类之间的耦合度。
-    * **提高可测试性：** 单元测试时，可以轻松地用Mock对象或Stub对象替换掉真实的依赖，便于独立测试某个组件。
-    * **简化配置和管理：** 对象的生命周期和依赖关系由容器统一管理，避免了大量的 `new` 操作和对象之间的相互引用。
-* **与模式的关联：** IoC/DI 的实现高度依赖于**工厂模式**（容器作为创建Bean的工厂）和**策略模式**（不同的依赖注入方式如构造器注入、Setter注入、字段注入，以及后面提到的各种策略接口）。
-* **面试关联：** IoC/DI 是Spring面试的开场白。面试官会问“什么是IoC/DI？”，你可以从“控制权的转移”（对象自己控制依赖 -> 容器控制依赖）和“实现方式”（依赖查找 vs 依赖注入）来回答，并强调其带来的解耦和测试性好处。进一步可以结合工厂模式来解释容器如何“生产”Bean。
+#### 模板方法模式 (Template Method)
 
-#### 2.2 工厂模式 (Factory Method / Abstract Factory)
+模板方法模式在方法中定义算法骨架，将具体步骤延迟到子类或回调中。
 
-工厂模式是创建型模式，它提供了创建对象的最佳方法，将对象的创建与使用代码分离。
+Spring 大量使用 "Template" 后缀类处理固定流程 + 可变步骤的场景：
 
-* **在Spring中的应用：** Spring的 IoC 容器本身就是典型的工厂。`org.springframework.beans.factory.BeanFactory` 和 `org.springframework.context.ApplicationContext` 是Spring Bean Factory的核心接口。它们负责根据 `BeanDefinition` 创建、配置和管理 Bean 实例。
-    * **`BeanFactory`:** 最基本的工厂，提供最简单的容器功能，主要负责 Bean 的按需延迟加载。
-    * **`ApplicationContext`:** `BeanFactory` 的子接口，提供了更多企业级特性，如事件发布、国际化支持、统一资源加载等。它通常会在容器启动时预加载所有单例 Bean。
-* **如何体现工厂模式思想：**
-    * 它们隐藏了 Bean 创建的复杂细节（实例化、属性填充、初始化等）。
-    * 客户端通过 `getBean()` 方法从工厂获取 Bean 实例，无需关心 Bean 的具体实现类或创建过程。
-    * Spring 支持多种 Bean 的创建方式（构造器、静态工厂方法、实例工厂方法），这些都是工厂方法的体现。
-    * Spring 提供了多种 `ApplicationContext` 实现类（如 `ClassPathXmlApplicationContext`, `FileSystemXmlApplicationContext`, `AnnotationConfigApplicationContext`, `WebApplicationContext` 等），每种实现类对应不同的配置加载方式和环境，这体现了 **抽象工厂模式** 的思想——提供一个创建一系列相关或相互依赖对象的接口，而无需指定它们具体的类。
-* **为何这样用 (带来的好处)：** 将 Bean 的创建和配置过程与使用代码彻底解耦，增强了系统的灵活性和可插拔性。你可以轻松切换Bean的实现类、调整 Bean 的配置方式，而不会影响到使用该 Bean 的客户端代码。
-* **面试关联：** “BeanFactory 和 ApplicationContext 有什么区别？”是一个经典面试题。从工厂模式的角度回答，可以强调 ApplicationContext 在基本工厂功能之上增加了更多企业级特性，是更常用的应用上下文。提及它们如何体现工厂模式，能展现你对容器核心机制的理解。
+| Template 类 | 固定流程 | 可变步骤（回调） |
+|-------------|---------|-----------------|
+| `JdbcTemplate` | 获取连接 → 创建 Statement → 执行 SQL → 关闭资源 | SQL 创建、参数设置、结果集映射 (`RowMapper`) |
+| `RestTemplate` | 构建请求 → 发送 HTTP → 解析响应 | 请求回调、响应提取器 |
+| `TransactionTemplate` | 开启事务 → 执行回调 → 提交/回滚 | 业务逻辑 (`TransactionCallback`) |
+| `RedisTemplate` | 获取连接 → 执行命令 → 释放连接 | 具体 Redis 操作 |
 
-#### 2.3 代理模式 (Proxy)
+```java
+// JdbcTemplate 示例：开发者只需关注 SQL 和结果映射
+jdbcTemplate.query(
+    "SELECT * FROM users WHERE id = ?",
+    new Object[]{userId},
+    (rs, rowNum) -> new User(rs.getLong("id"), rs.getString("name")) // RowMapper 回调
+);
+```
 
-代理模式是结构型模式，它为另一个对象提供一个替身或占位符，以控制对这个对象的访问。
+💡 **核心提示** 模板方法模式通过"钩子方法"（回调接口）让开发者在不改变流程骨架的前提下自定义步骤。好处是减少样板代码、保证流程一致性（如资源关闭总是执行）、提供简洁 API。
 
-* **在Spring中的应用：** Spring AOP（Aspect-Oriented Programming，面向切面编程）的核心实现机制就是代理模式。AOP 允许你在不修改目标对象源代码的情况下，为对象的方法增加额外的行为（如事务、安全检查、日志记录）。
-* **如何实现：** Spring AOP 默认使用动态代理来为目标 Bean 创建代理对象。
-    * 如果目标 Bean 实现了接口，Spring 默认使用 **JDK 动态代理**。JDK 代理要求目标对象实现至少一个接口，它代理的是接口的方法。
-    * 如果目标 Bean 没有实现接口，或者配置强制使用 CGLIB，Spring 会使用 **CGLIB 代理**。CGLIB 是一个第三方库，它通过继承目标类创建子类来实现代理，因此目标类及其方法不能是 final 的。
-* **工作原理简述：** 客户端调用的是代理对象的方法。在代理对象内部，会在调用目标对象的原始方法之前或之后插入额外的逻辑（即 AOP 通知 Aspect）。
-* **为何这样用 (带来的好处)：** 将横切关注点（如事务、日志、安全）从业务逻辑中分离出来，集中管理，降低了业务代码的复杂度，提高了代码的可维护性和复用性。它实现了功能增强的无侵入性。
-* **与Bean生命周期的关联：** Spring AOP 代理对象的创建通常发生在 Bean 生命周期中的 **`BeanPostProcessor#postProcessAfterInitialization()`** 阶段。在这个阶段，容器会检查 Bean 是否需要被代理。如果需要，`AbstractAutoProxyCreator`（一个 BeanPostProcessor 实现）会为该 Bean 创建一个代理对象，并返回这个代理对象。后续其他 Bean 依赖注入时，获取到的就是这个代理对象，而不是原始的 Bean 实例。
-* **面试关联：** “Spring AOP 的实现原理是什么？”是高频面试题。清晰解释代理模式（JDK/CGLIB 的选择）以及它如何在 `BeanPostProcessor` 阶段生效，是回答这个问题的关键。理解代理模式也能解释为什么通过 `this` 关键字在 Bean 内部调用方法时 AOP 可能失效（因为 `this` 指向原始对象而非代理对象）。
+#### 工厂模式 (Factory Method / Abstract Factory)
 
-#### 2.4 模板方法模式 (Template Method)
+Spring 的 IoC 容器本身就是典型工厂：
 
-模板方法模式是行为型模式，它在一个方法中定义一个算法的骨架，而将一些具体步骤延迟到子类中。模板方法使得子类可以在不改变算法结构的情况下重定义该算法的特定步骤。
+* **`BeanFactory`：** 最基础工厂，提供按需延迟加载。
+* **`ApplicationContext`：** 增强工厂，增加事件发布、国际化、统一资源加载等。启动时预加载所有单例 Bean。
+* **多种 ApplicationContext 实现**（`ClassPathXmlApplicationContext`、`AnnotationConfigApplicationContext`、`WebApplicationContext` 等）体现了**抽象工厂模式**——为不同配置方式提供一系列相关工厂。
 
-* **在Spring中的应用：** Spring 大量使用“Template”后缀的类来处理那些包含固定流程但又允许自定义操作的场景，以减少开发者编写重复的样板代码。例如：
-    * `JdbcTemplate`: 封装了 JDBC 访问数据库的标准流程（获取连接、创建Statement、执行SQL、处理结果集、关闭资源、处理异常），开发者只需要通过回调接口实现 SQL 语句的创建、参数设置、结果集的映射等可变步骤（如 `PreparedStatementCreator`, `RowMapper`）。
-    * `RestTemplate` (或新的 `WebClient`)：封装了 HTTP 请求的发送和响应处理流程。
-    * `JmsTemplate`, `MongoTemplate`, `RedisTemplate` 等也遵循相同的模式。
-    * Spring 事务管理中的 `TransactionTemplate` 也类似，定义了事务管理的标准流程。
-* **如何体现：** "Template" 类中的核心方法（如 `JdbcTemplate.query()`, `RestTemplate.getForObject()`）就是模板方法，它们定义了操作的整体流程。开发者提供的回调接口（如 `RowMapper`, `RequestCallback`）就是由“子类”（在这里是通过匿名类或 Lambda 表达式提供的具体实现）来实现的那些可变步骤。
-* **为何这样用 (带来的好处)：**
-    * **减少样板代码 (Boilerplate Code)：** 将重复性的资源获取/释放、异常处理等逻辑封装在模板类中，开发者只需关注核心业务逻辑。
-    * **保证流程一致性：** 确保了标准操作流程（如资源关闭）总是会被正确执行，避免了资源泄露等问题。
-    * **易于使用：** 提供了更简洁的 API 来执行复杂操作。
-* **面试关联：** 面试官可能会问“Spring 的 JdbcTemplate 是如何减少样板代码的？”或者“Spring 的事务管理中，TransactionTemplate 用到了什么设计模式？” 解释模板方法模式以及回调接口的应用，能体现你对这些工具类设计原理的理解。
+#### 代理模式 (Proxy)
 
-#### 2.5 观察者模式 (Observer)
+Spring AOP 的核心实现机制：
 
-观察者模式是行为型模式，它定义了对象之间一对多的依赖关系，当一个对象（主题 Subject）的状态发生改变时，所有依赖于它的对象（观察者 Observer）都会收到通知并自动更新。
+| 代理类型 | 条件 | 实现方式 | 限制 |
+|---------|------|---------|------|
+| JDK 动态代理 | 目标实现了接口 | 代理接口方法 | 只能代理接口方法 |
+| CGLIB 代理 | 目标未实现接口 | 继承目标类创建子类 | 目标类/方法不能是 final |
 
-* **在Spring中的应用：** Spring 的 **Application Event** / **Listener** 机制是观察者模式的经典应用。
-    * `ApplicationEventPublisher` (通常是 `ApplicationContext` 实现该接口) 扮演 **主题 (Subject)** 的角色，负责发布事件。
-    * `ApplicationEvent` 是 **事件 (Event)** 本身，表示系统中发生的某个状态变化。
-    * `ApplicationListener` 接口的实现类扮演 **观察者 (Observer)** 的角色，它们订阅特定类型的事件，并在事件发生时执行相应的处理逻辑。
-* **如何体现：** 当 `ApplicationEventPublisher` 发布一个 `ApplicationEvent` 时，所有对该类型事件感兴趣的 `ApplicationListener` 都会被通知并触发其 `onApplicationEvent()` 方法。
-* **为何这样用 (带来的好处)：**
-    * **实现解耦通信：** 发布者和订阅者之间通过事件进行交互，互相不知道对方具体是谁，只依赖于事件本身。这极大地降低了组件之间的耦合度。
-    * **增强系统灵活性：** 可以轻松地增加或移除事件监听器，而无需修改事件发布者的代码。
-    * **实现异步处理：** Spring 支持异步事件处理，进一步提高系统的响应性和吞吐量。
-* **面试关联：** “Spring 的事件机制是基于什么模式实现的？” 这是一个考察 Spring 内部通信机制的问题。回答观察者模式，并解释发布者、事件、监听者这三个核心组成部分，能展现你对 Spring 事件模型的掌握。
+**与 Bean 生命周期的关联：** 代理对象在 `BeanPostProcessor#postProcessAfterInitialization()` 阶段创建。`AbstractAutoProxyCreator` 检查 Bean 是否需要代理，如果需要就创建代理对象并返回。后续其他 Bean 注入时获取到的是代理对象而非原始 Bean。
 
-#### 2.6 策略模式 (Strategy)
+💡 **核心提示** 理解代理模式能解释为什么通过 `this` 在 Bean 内部调用方法时 AOP 会失效——因为 `this` 指向原始对象，而非代理对象。
 
-策略模式是行为型模式，它定义了一系列算法，将每个算法封装起来，并使它们可以相互替换。策略模式让算法可以独立于使用它的客户端而变化。
+#### 观察者模式 (Observer)
 
-* **在Spring中的应用：** Spring 在很多场景下都通过接口定义“策略”，然后提供多种实现类，客户端代码只需要依赖接口，运行时根据配置或环境选择具体的实现。这种模式使得 Spring 框架具有极高的灵活性和可插拔性。例子不胜枚举：
-    * **事务管理：** `PlatformTransactionManager` 是事务管理的策略接口，Spring 提供了 `DataSourceTransactionManager` (用于 JDBC/MyBatis), `HibernateTransactionManager` (用于 Hibernate) 等多种实现，开发者只需配置使用哪种策略。
-    * **AOP 通知类型：** `MethodBeforeAdvice`, `AfterReturningAdvice`, `ThrowsAdvice`, `MethodInterceptor` 等定义了不同的 AOP 通知策略。
-    * **Bean 实例化策略：** `InstantiationStrategy` 接口定义了 Bean 的实例化策略，有不同的实现处理构造器注入、工厂方法等。
-    * **资源加载策略：** `ResourceLoader` 接口定义了加载资源的策略，有不同的实现支持加载 classpath、文件系统、URL 等位置的资源。
-    * 还有 `TaskExecutor` (任务执行策略), `MessageConverter` (消息转换策略)等等。
-* **如何体现：** 客户端代码（Spring内部或开发者代码）依赖的是策略接口（如 `PlatformTransactionManager`）。实际执行时，Spring IoC 容器会根据配置注入具体的策略实现类（如 `DataSourceTransactionManager`）。
-* **为何这样用 (带来的好处)：**
-    * **高灵活性和可插拔性：** 可以轻松切换底层技术实现（如从 JDBC 切换到 Hibernate 进行事务管理），而无需修改业务代码。
-    * **代码结构清晰：** 将不同的算法实现封装在独立的类中。
-    * **易于扩展：** 添加新的策略实现不会影响现有的代码。
-* **面试关联：** “Spring 的事务管理是如何支持多种数据访问技术的？”或者“Spring 的资源加载器是如何工作的？”回答策略模式，并以 `PlatformTransactionManager` 或 `ResourceLoader` 为例，说明接口定义策略、实现类提供具体算法，客户端依赖接口的模式，能有力证明你对 Spring 核心组件设计原理的理解。
+Spring 的 ApplicationEvent/Listener 机制：
 
-#### 2.7 单例模式 (Singleton)
+* **`ApplicationEventPublisher`**（通常是 `ApplicationContext`）：主题 (Subject)，发布事件。
+* **`ApplicationEvent`**：事件本身。
+* **`ApplicationListener`** / `@EventListener`：观察者，接收并处理事件。
 
-单例模式是创建型模式，它保证一个类只有一个实例，并提供一个全局访问点。
+```java
+// 发布事件
+applicationEventPublisher.publishEvent(new OrderCreatedEvent(this, orderId));
 
-* **在Spring中的应用：** Spring Bean 的默认作用域 (Scope) 就是 `singleton`。这意味着在整个 Spring IoC 容器的生命周期中，对于一个给定的 Bean 定义，容器只会创建一个共享的 Bean 实例。
-* **Spring 的单例与经典 GoF 单例的区别：**
-    * **经典 GoF 单例：** 由类自身控制实例的创建（通常通过私有构造器和静态工厂方法/静态变量），并提供静态的全局访问点（`getInstance()`）。
-    * **Spring 的单例：** 由 **Spring IoC 容器**控制 Bean 实例的创建和生命周期。容器保证针对同一个 Bean 定义只创建一个实例，并将这个实例存储在缓存中。客户端通过 `getBean()` 方法从容器获取 Bean，而不是直接调用类的静态方法。
-* **为何这样用 (带来的好处)：**
-    * **资源复用：** 大多数业务组件是无状态的（Stateless），或者它们的状态可以被安全地共享。使用单例可以避免重复创建对象，节省内存和创建对象的开销。
-    * **性能优化：** 获取单例 Bean 的成本很低，通常是直接从缓存中查找。
-    * **易于管理：** 容器统一管理单例 Bean 的生命周期，包括初始化和销毁。
-* **面试关联：** “Spring Bean 的默认作用域是什么？为什么？”回答单例，并解释 Spring 单例与 GoF 单例的区别（容器管理 vs 类自身管理），以及单例带来的资源复用和性能优势。面试官可能还会问“Spring 如何处理单例 Bean 的并发问题？”，这需要结合 Bean 的无状态设计原则或使用线程安全的方式来回答，但不属于设计模式本身的范畴。
+// 监听事件（Spring 4.2+）
+@EventListener
+public void handleOrderCreated(OrderCreatedEvent event) {
+    // 发送通知、更新缓存等
+}
+```
 
-### 为什么Spring偏爱这些模式带来的好处
+💡 **核心提示** Spring 事件机制默认是**同步**的。`@EventListener` 方法在主线程中执行，如果耗时操作会阻塞主流程。需要异步时，在监听方法上加 `@Async` 注解（需先开启异步支持 `@EnableAsync`）。
 
-通过对上述模式的分析，我们可以看到，Spring 对这些设计模式的偏爱并非偶然，它们共同赋予了Spring框架以下核心优势：
+#### 策略模式 (Strategy)
 
-* **高内聚，低耦合：** 各个模块和组件职责单一（高内聚），通过接口和依赖注入相互协作，减少了硬编码的依赖（低耦合）。
-* **极高的灵活性和可扩展性：** 策略模式、工厂模式的应用使得Spring的各个组件易于替换和扩展。IoC/DI 使得添加新功能或修改现有功能对系统的影响最小。
-* **出色的可测试性：** 解耦的设计结合依赖注入，使得单元测试变得异常简单，可以方便地模拟依赖。
-* **减少重复的样板代码：** 模板方法模式的应用极大地减少了开发者需要手动处理的繁琐流程代码。
-* **提供一致的编程模型：** 无论使用何种底层技术（JDBC、Hibernate、JMS等），Spring通常都能提供一套基于模板或回调的、风格一致的API，降低学习成本。
+Spring 通过接口定义策略，提供多种实现，运行时根据配置选择：
 
-设计模式的应用，使得Spring成为一个优雅、健壮、易于维护和扩展的企业级应用开发平台。
+| 策略接口 | 实现类举例 | 选择依据 |
+|---------|-----------|---------|
+| `PlatformTransactionManager` | `DataSourceTransactionManager`、`JpaTransactionManager` | 配置的数据访问技术 |
+| `ResourceLoader` | `ClassPathResourceLoader`、`FileSystemResourceLoader` | 资源路径类型 |
+| `TaskExecutor` | `SimpleAsyncTaskExecutor`、`ThreadPoolTaskExecutor` | 并发需求 |
+| `MessageConverter` | `MappingJackson2HttpMessageConverter`、`StringHttpMessageConverter` | 请求/响应 Content-Type |
 
-### 理解设计模式如何助你理解Spring和应对面试
+#### 单例模式 (Singleton)
 
-掌握了上述设计模式在Spring中的应用，你将不再只是一个Spring的使用者，更能成为一个理解者。你可以：
+Spring Bean 的默认作用域是 `singleton`，但与经典 GoF 单例有本质区别：
 
-1.  **看懂源码：** 阅读Spring源码时，能够识别出 IoC 容器如何使用工厂创建 Bean，AOP 模块如何运用代理，事务管理器如何应用策略模式等，从而快速理解代码意图。
-2.  **优化代码设计：** 在你的业务代码中，如果遇到类似 Spring 使用模式的场景（如多种算法选择、固定流程+可变步骤、对象创建管理），你也能借鉴 Spring 的设计思想，写出更符合最佳实践的代码。
-3.  **秒杀面试难题：** 许多看似复杂的 Spring 面试题，其底层原理都与设计模式有关。当你被问到：
-    * “Spring AOP 的实现原理是什么？” → 回答：代理模式。
-    * “Spring 如何管理事务？” → 回答：策略模式 (`PlatformTransactionManager`) 和模板方法模式 (`TransactionTemplate`)。
-    * “BeanFactory 和 ApplicationContext 有什么区别？” → 回答：都是工厂模式的体现，ApplicationContext 是更高级的工厂。
-    * “Spring 如何解耦组件？” → 回答：IoC/DI，基于工厂和策略模式实现。
-    * “Spring 的事件机制是怎么回事？” → 回答：观察者模式。
+| 维度 | GoF 单例模式 | Spring 单例 |
+|------|-------------|------------|
+| 实例控制者 | 类自身（私有构造器 + 静态方法） | Spring IoC 容器 |
+| 获取方式 | `ClassName.getInstance()` | `context.getBean("beanName")` |
+| 类加载耦合 | 客户端直接依赖类 | 客户端只依赖接口 |
+| 灵活性 | 低（硬编码） | 高（配置驱动） |
 
-能够结合设计模式来解释这些问题，会让你的回答更具深度和条理，给面试官留下深刻印象。
+#### 适配器模式 (Adapter)
+
+Spring MVC 的 `HandlerAdapter` 是典型的适配器模式：
+
+```mermaid
+classDiagram
+    class DispatcherServlet {
+        +handle(request, response)
+        前端控制器
+    }
+    class HandlerAdapter {
+        <<接口>>
+        +supports(handler)
+        +handle(request, response, handler)
+    }
+    class RequestMappingHandlerAdapter {
+        适配 @Controller
+    }
+    class HttpRequestHandlerAdapter {
+        适配 HttpRequestHandler
+    }
+    class SimpleControllerHandlerAdapter {
+        适配 Controller 接口
+    }
+    class Controller {
+        @Controller
+    }
+    class HttpRequestHandler {
+        实现 HttpRequestHandler
+    }
+
+    DispatcherServlet --> HandlerAdapter : 遍历
+    HandlerAdapter --> RequestMappingHandlerAdapter
+    HandlerAdapter --> HttpRequestHandlerAdapter
+    HandlerAdapter --> SimpleControllerHandlerAdapter
+    RequestMappingHandlerAdapter --> Controller : 适配
+    HttpRequestHandlerAdapter --> HttpRequestHandler : 适配
+    SimpleControllerHandlerAdapter --> Controller : 适配
+```
+
+### 为什么 Spring 偏爱这些模式？
+
+* **高内聚低耦合：** 各模块职责单一，通过接口和 DI 协作。
+* **极高灵活性和可扩展性：** 策略模式、工厂模式让组件易于替换。
+* **出色可测试性：** 解耦设计 + DI，方便 Mock 依赖。
+* **减少样板代码：** 模板方法模式封装繁琐流程。
+* **一致的编程模型：** 无论底层技术如何，API 风格统一。
+
+### 生产环境避坑指南
+
+1. **@EventListener 阻塞主线程**：默认同步执行，如果监听方法中有耗时操作（如 HTTP 调用、邮件发送），会阻塞事件发布者的主流程。**解决**：在监听方法上加 `@Async`，并确保已开启 `@EnableAsync`。
+
+2. **FactoryBean 的 getObject() 返回 null**：`FactoryBean` 用于创建复杂对象，如果 `getObject()` 返回 null，Spring 不会抛出异常，但后续注入时会报 `NullPointerException`。**解决**：确保 `getObject()` 始终返回非 null 实例。
+
+3. **模板方法子类破坏不变量**：继承 Template 类并重写钩子方法时，如果违反了父类定义的前置/后置条件（如未正确关闭资源），会导致资源泄漏。**解决**：仔细阅读 Template 类的 Javadoc，理解哪些步骤是框架管理的、哪些需要开发者负责。
+
+4. **Resource 路径混淆**：`classpath:` vs `file:` vs URL 路径搞混，导致资源加载失败。classpath 查找类路径下，file 查找文件系统，URL 查找网络资源。**解决**：明确资源位置，使用正确的 Resource 前缀。
+
+5. **HandlerAdapter 匹配顺序**：`DispatcherServlet` 遍历 HandlerAdapter 列表，使用第一个 `supports(handler)` 返回 true 的适配器。如果自定义的 HandlerAdapter 顺序不对，可能导致请求被错误处理。**解决**：通过 `@Order` 或 `Ordered` 接口控制适配器顺序。
+
+6. **策略模式的选择歧义**：当容器中存在多个同一策略接口的实现时（如多个 `MessageConverter`），Spring 的选择策略可能不符合预期。**解决**：显式配置策略选择器，或通过 `@Primary`、`@Qualifier` 指定首选实现。
+
+### 工厂模式深度对比：FactoryBean vs BeanFactory
+
+这是面试高频混淆点：
+
+| 维度 | BeanFactory | FactoryBean |
+|------|------------|-------------|
+| 角色 | **容器本身**（Bean 工厂） | **特殊 Bean**（工厂 Bean） |
+| 作用 | 创建和管理所有 Bean | 创建一个特定类型的 Bean |
+| 获取方式 | `context.getBean("beanName")` | `context.getBean("&beanName")` 获取工厂本身 |
+| 典型应用 | `ApplicationContext` | `SqlSessionFactoryBean` |
+| 比喻 | 整个工厂 | 工厂里的一台机器 |
+
+💡 **核心提示** 记住：`FactoryBean` 是一个**特殊的 Bean**，它本身也是由 `BeanFactory` 管理的。当你通过 `getBean("xxx")` 获取一个 FactoryBean 时，Spring 返回的是它 `getObject()` 方法创建的对象。要获取 FactoryBean 本身，需要加 `&` 前缀：`getBean("&xxx")`。
+
+### 模板方法 vs 策略模式
+
+| 维度 | 模板方法模式 | 策略模式 |
+|------|-------------|---------|
+| 核心思想 | 固定流程，可变步骤 | 不同算法，自由替换 |
+| 结构 | 继承（抽象类定义骨架） | 组合（接口 + 多个实现） |
+| 运行时可变 | 否（编译时确定） | 是（运行时切换） |
+| Spring 示例 | `JdbcTemplate` | `PlatformTransactionManager` |
+| 适用场景 | 流程固定，部分步骤需定制 | 多种算法/实现，需动态选择 |
 
 ### 总结
 
-Spring框架之所以能成为 Java 世界的翘楚，与其卓越的设计密不可分。对控制反转/依赖注入、工厂模式、代理模式、模板方法模式、观察者模式、策略模式、单例模式等经典设计模式的巧妙运用，构成了 Spring 优雅、灵活、可扩展的基石。
+Spring 框架之所以成为 Java 世界的翘楚，与其对经典设计模式的巧妙运用密不可分：
+
+| 设计模式 | Spring 中的典型应用 | 解决的问题 |
+|---------|-------------------|-----------|
+| 模板方法 | `JdbcTemplate`、`RestTemplate` | 减少样板代码，保证流程一致性 |
+| 工厂模式 | `BeanFactory`、`FactoryBean` | 隐藏创建细节，解耦创建与使用 |
+| 代理模式 | Spring AOP | 无侵入增强，横切关注点分离 |
+| 观察者模式 | `ApplicationEvent` / `@EventListener` | 组件间解耦通信 |
+| 策略模式 | `PlatformTransactionManager` | 底层技术可插拔 |
+| 单例模式 | Bean 默认作用域 | 资源复用，性能优化 |
+| 适配器模式 | `HandlerAdapter` | 统一处理不同类型的处理器 |
+
+理解这些模式在 Spring 中的应用，让你不再只是 Spring 的使用者，而是理解者。当被问到 "Spring AOP 原理是什么？" 你能回答 "代理模式"；被问到 "事务管理如何支持多种技术？" 你能回答 "策略模式"——这种结合设计模式的深度回答，是面试中的加分利器。
