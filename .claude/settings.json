@@ -1,0 +1,39 @@
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(pnpm run *)",
+      "Read(~/.zshrc)",
+      "Edit(./ai/**/*)",
+      "Bash(echo *)",
+      "Bash(ls *)",
+      "Bash(cd *)",
+      "Bash(sed *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(awk *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "Bash(cat *)",
+      "Bash(pbcopy *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(wc *)",
+      "Bash(for *)",
+      "Bash(curl *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(playwright-cli *)",
+      "Bash(git diff *)",
+      "Bash(git checkout *)",
+      "Bash(git commit *)",
+      "Bash(git * main)"
+    ]
+  }
+}
