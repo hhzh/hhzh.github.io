@@ -357,7 +357,7 @@ public E poll() {
 
 ### remove 方法源码
 
-再看一下 `remove()` 方法源码。`remove()` 先调用 `poll()` 尝试取元素，如果取到（元素已到期）直接返回；如果没取到（队列为空或元素未到期），`poll()` 返回 `null`，`remove()` 会抛出 `NoSuchElementException` 异常。
+`remove()` 方法源码：先调用 `poll()` 尝试取元素，如果取到（元素已到期）直接返回；如果没取到（队列为空或元素未到期），`poll()` 返回 `null`，`remove()` 会抛出 `NoSuchElementException` 异常。
 
 ```java
 public E remove() {
@@ -372,7 +372,7 @@ public E remove() {
 
 ### take 方法源码
 
-再看一下 `take()` 方法源码，如果没有到期元素，`take()` 方法会一直阻塞，直到被唤醒。
+`take()` 方法源码，如果没有到期元素，`take()` 方法会一直阻塞，直到被唤醒。
 
 ```java
 /**
@@ -439,7 +439,7 @@ public E take() throws InterruptedException {
 
 ### poll(time, unit) 源码
 
-再看一下 `poll(time, unit)` 方法源码。当队列为空或元素未到期时，`poll(time, unit)` 方法会阻塞指定时间，然后返回 `null`。
+`poll(time, unit)` 方法源码如下。当队列为空或元素未到期时，`poll(time, unit)` 方法会阻塞指定时间，然后返回 `null`。
 
 ```java
 /**
@@ -507,7 +507,7 @@ public E poll(long timeout, TimeUnit unit) throws InterruptedException {
 
 ## 查看数据源码
 
-再看一下查看数据的源码，只查看，不删除。
+查看数据的源码，只查看，不删除。
 
 | 操作 | 抛出异常 | 返回特定值 | 阻塞 | 阻塞一段时间 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -534,7 +534,7 @@ public E peek() {
 
 ### element 方法源码
 
-再看一下 `element()` 方法源码，如果队列为空，则抛出异常，底层直接调用 `peek()` 方法。
+`element()` 方法源码：如果队列为空，则抛出异常，底层直接调用 `peek()` 方法。
 
 ```java
 /**

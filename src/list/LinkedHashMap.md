@@ -2,8 +2,6 @@
 
 HashMap 遍历时为什么不是插入顺序？如果需要一个有序的 Map，你会怎么做？
 
-HashMap 遍历时为什么不是插入顺序？如果需要一个有序的 Map，你会怎么做？
-
 `HashMap` 的底层设计决定了它是无序的——元素通过哈希值分散到数组的不同桶中。但在实际开发中，我们经常需要按照插入顺序遍历，甚至实现一个 LRU 缓存。`LinkedHashMap` 正是为了解决这个问题而生：它在 `HashMap` 的基础上增加了一条双向链表，以极小的额外开销实现了有序迭代。
 
 更强大的是，`LinkedHashMap` 只需重写一个方法 `removeEldestEntry`，就能实现一个完整的 LRU 缓存。本文将带你深入源码，理解：
@@ -11,13 +9,6 @@ HashMap 遍历时为什么不是插入顺序？如果需要一个有序的 Map�
 1. LinkedHashMap 如何在 HashMap 之上维护插入顺序（双向链表的结构）
 2. 访问顺序（Access-Order）模式的实现原理与 LRU 缓存
 3. 模板方法模式在 removeEldestEntry 中的精妙应用
-
-在这篇文章中，你将学到以下内容：
-
-1. `LinkedHashMap` 与 `HashMap` 的区别？
-2. `LinkedHashMap` 的特点有哪些？
-3. `LinkedHashMap` 底层实现原理？
-4. 怎么使用 `LinkedHashMap` 实现 LRU 缓存？
 
 ## 简介
 

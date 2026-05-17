@@ -2,8 +2,6 @@
 
 HashSet 去重的底层原理，90% 的人说不清楚。
 
-HashSet 去重的底层原理，90% 的人说不清楚。
-
 当你调用 `set.add(element)` 时，JDK 内部究竟发生了什么？为什么自定义对象不重写 `hashCode` 和 `equals` 就会导致去重失效？三个 Set 实现（HashSet、LinkedHashSet、TreeSet）底层分别依赖什么数据结构？
 
 本文将从源码级别剖析 Set 集合的核心机制，带你理解：

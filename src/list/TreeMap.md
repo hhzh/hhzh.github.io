@@ -1,7 +1,6 @@
 ## 引言
 
 如果需要一个天然有序的 Map，你会选什么？
-如果需要一个天然有序的 Map，你会选什么？
 
 `HashMap` 查询快但无序，`LinkedHashMap` 能保证插入顺序但无法按 key 排序。当你需要按键的自然顺序或自定义排序时，`TreeMap` 是唯一的选择。它底层基于红黑树实现，每次插入、删除、查询都能稳定保证 O(log n) 的时间复杂度——不像 `HashMap` 在极端情况下会退化为 O(n)。
 
@@ -311,7 +310,7 @@ Map<Integer, Integer> map2 = new TreeMap<>(new Comparator<Integer>() {
 Map<Integer, Integer> map3 = new TreeMap<>(new HashMap<>());
 ```
 
-再看一下对应的源码实现：
+对应的源码实现：
 
 ```java
 /**
@@ -441,7 +440,7 @@ floorEntry: 70=支付宝崩了
 
 ## put 源码
 
-再看一下 `TreeMap` 的 put 源码：
+`TreeMap` 的 put 源码：
 
 ```java
 /**
@@ -539,7 +538,7 @@ put 源码逻辑：
 
 ## get 源码
 
-再看一下 get 源码：
+get 源码：
 
 ```java
 /**
@@ -610,7 +609,7 @@ get 方法与 put 方法逻辑类似，都是从根节点开始，利用红黑�
 
 ## remove 源码
 
-再看一下 remove 方法的源码实现：
+remove 方法的源码实现：
 
 ```java
 /**

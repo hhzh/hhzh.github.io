@@ -162,7 +162,7 @@ BlockingQueue<Integer> queue1 = new SynchronousQueue<>();
 BlockingQueue<Integer> queue2 = new SynchronousQueue<>(true);
 ```
 
-再看一下对应的源码实现：
+对应的源码实现：
 
 ```java
 /**
@@ -344,7 +344,7 @@ E transfer(E e, boolean timed, long nanos) {
 
 不用关心细枝末节，把握住代码核心逻辑即可。
 
-再看一下第 4 步挂起线程的代码逻辑：
+第 4 步挂起线程的代码逻辑：
 
 核心逻辑就两条：
 - 计算自旋次数，先自旋等待（避免立即挂起线程的开销）
@@ -396,7 +396,7 @@ SNode awaitFulfill(SNode s, boolean timed, long nanos) {
 }
 ```
 
-再看一下匹配节点的 `tryMatch()` 方法逻辑：
+匹配节点的 `tryMatch()` 方法逻辑：
 作用就是唤醒栈顶节点，并把当前节点传递给栈顶节点。
 
 ```java

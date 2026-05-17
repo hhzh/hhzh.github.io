@@ -4,7 +4,7 @@
 
 作为 Java 开发者，每天都在用的 ArrayList，你真的了解它的底层设计吗？为什么扩容因子选 1.5 倍而不是 2 倍？并发修改为什么会抛出 ConcurrentModificationException？如何安全高效地删除元素？
 
-本文将从源码级别剖析 ArrayList 的核心机制，看完以下内容，你将轻松解答这些问题：
+本文将从源码级别剖析 ArrayList 的核心机制，带你理解：
 
 1. ArrayList 的初始容量是多少？（90% 的人都会答错）
 2. ArrayList 的扩容机制与 1.5 倍设计原理
@@ -112,7 +112,7 @@ List<Integer> list1 = new ArrayList<>();
 List<Integer> list2 = new ArrayList<>(10);
 ```
 
-看一下底层源码实现：
+来看底层源码实现：
 
 ```java
 // 默认容量大小
@@ -148,7 +148,7 @@ public ArrayList(int initialCapacity) {
 }
 ```
 
-可以看到当我们调用ArrayList的无参构造方法 `new ArrayList<>()` 的时候，只是初始化了一个空对象，并没有指定数组大小，所以初始容量是零。至于什么时候指定数组大小，接着往下看。
+调用ArrayList的无参构造方法 `new ArrayList<>()` 时，只是初始化了一个空对象，并没有指定数组大小，所以初始容量是零。至于什么时候指定数组大小，接着往下看。
 
 **为什么要有两个空数组常量？**
 
@@ -163,7 +163,7 @@ public ArrayList(int initialCapacity) {
 
 ## 添加元素
 
-再看一下往ArrayList中添加元素时，调用的 `add()` 方法源码：
+往ArrayList中添加元素时，`add()` 方法源码如下：
 
 ```java
 // 添加元素
@@ -198,7 +198,7 @@ private void ensureExplicitCapacity(int minCapacity) {
 }
 ```
 
-看一下扩容逻辑：
+来看扩容逻辑：
 
 ```java
 // 扩容，就是把旧数据拷贝到新数组里面
@@ -223,7 +223,7 @@ private void grow(int minCapacity) {
 private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 ```
 
-可以看到：
+要点如下：
 
 - 扩容的触发条件是数组全部被占满
 - 扩容是以旧容量的1.5倍扩容，并不是2倍扩容
@@ -260,7 +260,7 @@ private static int hugeCapacity(int minCapacity) {
 
 ### 数组拷贝的底层实现
 
-再看一下数组拷贝的逻辑，这里都是Arrays类里面的方法了：
+数组拷贝的逻辑，这里都是Arrays类里面的方法：
 
 ```java
 /**
@@ -303,7 +303,7 @@ public static native void arraycopy(Object src,  int  srcPos,
 > 2. JVM会对它做内联优化
 > 3. 底层可能使用SIMD指令进行批量拷贝
 
-总结一下ArrayList的 `add()` 方法的逻辑：
+ArrayList的 `add()` 方法逻辑总结：
 
 1. 检查容量是否够用，如果够用，直接在下一个位置赋值结束。
 2. 如果是第一次添加元素（无参构造），则设置容量默认大小为10。
@@ -337,7 +337,7 @@ E elementData(int index) {
 
 ## 删除单个元素
 
-再看一下删除元素的方法 `remove()` 的源码：
+删除元素的方法 `remove()` 源码如下：
 
 ```java
 public boolean remove(Object o) {
@@ -386,7 +386,7 @@ private void fastRemove(int index) {
 
 > **💡 核心提示**：这种"过期引用置为null"的做法在Java集合框架中非常普遍。GC判断对象是否存活的标准是**可达性分析**（从GC Roots出发，能到达的对象就是存活的）。如果数组持有不再需要的对象引用，这些对象就无法被回收。类似的场景还有 `ThreadLocal` 的弱引用设计、缓存Map的清理等。
 
-可以看到遍历数组的时候，找到相等的元素，删除就结束了。如果ArrayList中存在重复元素，也只会删除其中一个元素。`remove(Object o)` 方法的时间复杂度是 **O(n)**，因为需要遍历查找 + 数组移动。
+遍历数组时，找到相等的元素，删除就结束了。如果ArrayList中存在重复元素，也只会删除其中一个元素。`remove(Object o)` 方法的时间复杂度是 **O(n)**，因为需要遍历查找 + 数组移动。
 
 ### 按索引删除 `remove(int index)`
 
@@ -409,7 +409,7 @@ public E remove(int index) {
 
 ## 批量删除
 
-再看一下批量删除元素方法 `removeAll()` 的源码：
+批量删除元素方法 `removeAll()` 的源码如下：
 
 ```java
 // 批量删除ArrayList和集合c都存在的元素

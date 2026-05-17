@@ -113,7 +113,7 @@ classDiagram
     Deque <|.. LinkedList
 ```
 
-LinkedList 实现了 `List` 接口，提供了集合操作的常用方法，当然也包含随机访问的方法，只不过没有像 `ArrayList` 那样实现 `RandomAccess` 接口，LinkedList 提供的随机访问方法时间复杂度不是常量级别的。
+LinkedList 实现了 `List` 接口，提供了集合操作的常用方法，也包含随机访问的方法，只不过没有像 `ArrayList` 那样实现 `RandomAccess` 接口，LinkedList 提供的随机访问方法时间复杂度不是常量级别的。
 
 LinkedList 还实现了 `Deque` 接口，Deque 是 `double ended queue` 的缩写，读音是 `/dek/`，读错就尴尬了。
 Deque 是双端队列，可以在头尾进行插入和删除操作，兼具栈和队列的性质。
@@ -339,7 +339,7 @@ public E getLast() {
 
 头尾查询都是 O(1) 时间复杂度，因为直接访问 `first` 和 `last` 指针。
 
-再看一个查询任意位置的方法 `get(index)` 的底层实现：
+查询任意位置的方法 `get(index)` 的底层实现：
 
 ```java
 // 查询下标是index位置的元素
@@ -399,8 +399,6 @@ private boolean isElementIndex(int index) {
     return index >= 0 && index < size;
 }
 ```
-
-可见 LinkedList 也支持随机访问，只不过时间复杂度是 O(n)。
 
 除了按索引查询，LinkedList 还提供了按值查找的方法 `indexOf(Object o)`：
 
@@ -477,7 +475,7 @@ private E unlinkFirst(Node<E> f) {
 
 `unlinkFirst` 的删除逻辑：备份元素值 → 将待删除节点的 `item` 和 `next` 置为 `null`（帮助 GC 回收） → 更新 `first` 指针 → 如果链表变为空则同时置 `last` 为 `null` → 否则将新头节点的 `prev` 置为 `null`。
 
-再看一个从最后一个节点开始删除的方法 `removeLast()` 的底层实现：
+从最后一个节点开始删除的方法 `removeLast()` 的底层实现：
 
 ```java
 // 删除最后一个元素
@@ -509,7 +507,7 @@ private E unlinkLast(Node<E> l) {
 }
 ```
 
-再看一个从任意位置删除的方法 `remove(index)` 的底层实现：
+从任意位置删除的方法 `remove(index)` 的底层实现：
 
 ```java
 // 删除下标是index位置的元素

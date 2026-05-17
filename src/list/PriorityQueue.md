@@ -2,8 +2,6 @@
 
 Top-K 问题，用 PriorityQueue 一行代码就能解决。
 
-Top-K 问题，用 PriorityQueue 一行代码就能解决。
-
 找出最大的 K 个数、最小的 K 个数、第 K 大的元素——这些面试高频题，本质上都归结为同一个数据结构：二叉堆。`PriorityQueue` 就是 JDK 对二叉堆的实现。
 
 不同于普通的 FIFO 队列，`PriorityQueue` 每次 `poll()` 返回的都是优先级最高（最小或最大）的元素。插入和删除的时间复杂度都是 O(log n)，比排序数组的 O(n) 高效得多。更重要的是，它不仅是理论工具——在实际开发中，堆排序、事件驱动模拟、图算法（Dijkstra、Prim）都依赖它。
@@ -38,7 +36,7 @@ Top-K 问题，用 PriorityQueue 一行代码就能解决。
 
 ## 类结构
 
-先看一下 `PriorityQueue` 类里面有哪些属性：
+`PriorityQueue` 类里面有哪些属性：
 
 ```java
 public class PriorityQueue<E>
@@ -68,7 +66,7 @@ public class PriorityQueue<E>
 }
 ```
 
-可以看出 `PriorityQueue` 底层是基于数组实现的，使用 `Object[]` 数组以**二叉堆**的方式存储元素，并且定义了比较器 `comparator`，用于排序元素的优先级。
+`PriorityQueue` 底层基于数组实现，使用 `Object[]` 数组以**二叉堆**的方式存储元素，并定义了比较器 `comparator` 用于排序元素的优先级。
 
 ### PriorityQueue 继承关系图
 
@@ -203,7 +201,7 @@ PriorityQueue<Integer> queue3 = new PriorityQueue<>(Integer::compareTo);
 PriorityQueue<Integer> queue4 = new PriorityQueue<>(10, Integer::compare);
 ```
 
-再看一下对应的源码实现：
+对应的源码实现：
 
 ```java
 /**
@@ -240,7 +238,7 @@ public PriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
 }
 ```
 
-可以看出 `PriorityQueue` 的无参构造方法使用默认容量 11，直接初始化数组，并且没有指定比较器（使用元素的自然排序）。所有构造方法最终都会委托给四参数的构造方法完成初始化。
+`PriorityQueue` 的无参构造方法使用默认容量 11，直接初始化数组，且没有指定比较器（使用元素的自然排序）。所有构造方法最终都会委托给四参数的构造方法完成初始化。
 
 ## 放数据源码
 
@@ -252,7 +250,7 @@ public PriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
 
 ### offer 方法源码
 
-先看一下 `offer()` 方法源码，其他放数据方法逻辑也是大同小异。
+`offer()` 方法源码，其他放数据方法逻辑也是大同小异。
 由于 `PriorityQueue` 是无界队列，`offer()` 方法始终返回 `true`（永远不会返回 `false`）。
 
 ```java
@@ -287,7 +285,7 @@ public boolean offer(E e) {
 
 `offer()` 方法逻辑：判空 → 记录 `modCount` → 检查是否需要扩容 → 插入元素。如果是第一个元素，直接放在数组下标 0（堆顶）；否则调用 `siftUp` 将新元素上浮到合适位置，保持最小堆的性质。
 
-再看一下扩容的源码：
+扩容的源码：
 
 ```java
 /**
@@ -440,7 +438,7 @@ public boolean add(E e) {
 
 ### poll 方法源码
 
-看一下 `poll()` 方法源码，其他取数据方法逻辑大同小异，都是从堆顶（数组头部）弹出元素。
+`poll()` 方法源码，其他取数据方法逻辑大同小异，都是从堆顶（数组头部）弹出元素。
 `poll()` 方法在取元素的时候，如果队列为空，直接返回 `null`，表示取元素失败。
 
 ```java
@@ -511,7 +509,7 @@ private void siftDownUsingComparator(int k, E x) {
 
 ### remove 方法源码
 
-再看一下 `remove()` 方法源码。`remove()` 先调用 `poll()` 尝试取堆顶元素，如果取到直接返回；如果没取到（队列为空），`poll()` 返回 `null`，`remove()` 会抛出 `NoSuchElementException` 异常。
+`remove()` 方法源码。`remove()` 先调用 `poll()` 尝试取堆顶元素，如果取到直接返回；如果没取到（队列为空），`poll()` 返回 `null`，`remove()` 会抛出 `NoSuchElementException` 异常。
 
 ```java
 /**

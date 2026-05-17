@@ -172,7 +172,7 @@ public CopyOnWriteArrayList(Collection<? extends E> c) {
 
 ## 添加元素
 
-再看一下往 `CopyOnWriteArrayList` 添加元素时，调用的 `add()` 方法源码实现：
+往 `CopyOnWriteArrayList` 添加元素时，`add()` 方法源码实现：
 
 ```java
 // 添加元素
@@ -248,7 +248,7 @@ public void add(int index, E element) {
 
 ## 删除元素
 
-再看一下删除元素的方法 `remove()` 的源码：
+删除元素的方法 `remove()` 源码：
 
 ```java
 // 按下标删除元素
@@ -297,7 +297,7 @@ public E remove(int index) {
 
 ## 批量删除
 
-再看一下批量删除元素方法 `removeAll()` 的源码：
+批量删除元素方法 `removeAll()` 源码：
 
 ```java
 // 批量删除元素
