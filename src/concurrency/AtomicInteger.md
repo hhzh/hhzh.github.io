@@ -1,3 +1,5 @@
+# AtomicInteger
+
 ## 引言
 
 `AtomicInteger` 的 `getAndIncrement()` 为什么不用 `synchronized`？答案藏在 CPU 的一条 `cmpxchg` 指令里 —— 它利用硬件级的 CAS 操作实现了 **无锁并发**，性能是 synchronized 的数倍。

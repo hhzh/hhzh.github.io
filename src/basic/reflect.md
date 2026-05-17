@@ -1,3 +1,5 @@
+# Java反射
+
 ## 引言
 
 为什么 `Method.invoke()` 调用 15 次后突然变快了？这个反直觉现象背后，隐藏着 JVM 反射优化的核心机制——**MethodAccessor 膨胀（Inflation）**。

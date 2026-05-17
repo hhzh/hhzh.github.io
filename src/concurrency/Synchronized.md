@@ -1,3 +1,5 @@
+# Synchronized
+
 ## 引言
 
 谁告诉你 `synchronized` 是重量级锁的？Java 6 之后它的性能已经大幅优化，在无竞争场景下甚至比 `ReentrantLock` 还快。但现实中，大量开发者依然在盲目追求 `ReentrantLock` 而忽视了 JVM 内置锁的进化。

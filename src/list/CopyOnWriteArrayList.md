@@ -1,3 +1,5 @@
+# CopyOnWriteArrayList
+
 ## 引言
 
 一个读多写少的 List，用 synchronized 加锁就完了？

@@ -1,3 +1,5 @@
+# Disruptor架构设计
+
 ## 引言
 
 在金融交易系统中，一个单线程的队列如何做到每秒处理 600 万笔订单？当传统的 `ArrayBlockingQueue` 在高并发下因锁竞争导致 TPS 腰斩时，是什么设计让 LMAX Disruptor 的延迟降低到纳秒级别？

@@ -1,3 +1,5 @@
+# RabbitMQ架构设计
+
 ## 引言
 
 你的 RabbitMQ 集群突然出现了消息路由异常：生产者明确指定了 Routing Key，消息却"消失"了。排查后发现——Exchange 没有绑定任何 Queue，而 `mandatory` 参数是 `false`，消息被静默丢弃了。RabbitMQ 看似简单，但 Exchange 类型选错、Binding 规则配错、Consumer Ack 时机不当，都会导致线上消息丢失或重复。本文将从架构设计到消息投递的完整链路，深度剖析 RabbitMQ 的核心机制：四种 Exchange 的路由规则、Channel 与 Connection 的复用原理、Publisher Confirms 和 Consumer Ack 的可靠性保障。读完本文，你将掌握 RabbitMQ 灵活路由的设计精髓，从容应对与 Kafka、RocketMQ 的对比面试题。

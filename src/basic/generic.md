@@ -1,3 +1,5 @@
+# Java泛型
+
 ## 引言
 
 为什么 `new ArrayList<String>().getClass()` 返回的不是 String 类型？为什么 `new T[]` 在 Java 中是非法的？如果你曾被这些问题困扰，说明你触碰到了 Java 泛型最核心的设计抉择——**类型擦除**。

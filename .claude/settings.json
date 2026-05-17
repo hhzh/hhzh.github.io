@@ -33,7 +33,9 @@
       "Bash(git diff *)",
       "Bash(git checkout *)",
       "Bash(git commit *)",
-      "Bash(git * main)"
+      "Bash(git * main)",
+      "Bash(git mv *)",
+      "Bash(git * master)"
     ]
   }
 }

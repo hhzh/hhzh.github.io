@@ -1,3 +1,5 @@
+# JVM内存模型
+
 生产环境凌晨三点的告警短信，十有八九和内存有关：`OutOfMemoryError: Java heap space`、`OutOfMemoryError: Metaspace`、`StackOverflowError`……这些错误不会提前通知你，它们会在流量高峰期、在大促活动期间、在 CEO 盯着监控看的时候，精准地让你的服务全线崩溃。
 
 为什么 Java 明明有自动垃圾回收，还是会 OOM？为什么同样的代码，在测试环境跑得好好的，上了生产就内存溢出？理解 JVM 运行时数据区的划分，就是理解这些问题的答案。

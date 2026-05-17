@@ -1,3 +1,5 @@
+# LinkedHashMap
+
 ## 引言
 
 HashMap 遍历时为什么不是插入顺序？如果需要一个有序的 Map，你会怎么做？

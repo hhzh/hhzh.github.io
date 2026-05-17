@@ -1,3 +1,5 @@
+# LinkedBlockingQueue
+
 ## 引言
 
 为什么 `Executors.newFixedThreadPool()` 和 `newSingleThreadExecutor()` 都默认选择 `LinkedBlockingQueue`？

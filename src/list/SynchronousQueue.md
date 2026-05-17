@@ -1,3 +1,5 @@
+# SynchronousQueue
+
 ## 引言
 
 一个容量为 0 的队列，能用来做什么？

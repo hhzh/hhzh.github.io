@@ -1,3 +1,5 @@
+# SpringBoot starter是什么
+
 ## 引言
 
 一个 `@SpringBootApplication` 注解，为什么能自动配置几百个组件？

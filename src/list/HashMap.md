@@ -1,3 +1,5 @@
+# HashMap
+
 ## 引言
 
 为什么 HashMap 是 Java 中最常用、最重要的数据结构？

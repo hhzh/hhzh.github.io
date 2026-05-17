@@ -1,3 +1,5 @@
+# Java异常体系
+
 ## 引言
 
 生产环境 90% 的异常处理，都在浪费代码。try-catch 层层嵌套、catch 块里只写一句 `e.printStackTrace()`、用 `catch(Exception e)` 一锅端——这些写法不仅拖慢性能，更让排查问题变成大海捞针。
