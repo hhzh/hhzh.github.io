@@ -183,6 +183,8 @@ public final class ImmutableConfig {
 }
 ```
 
+掌握了循环引用和不可变对象的应对策略后，下一个问题是——不同拷贝方案的性能差距有多大？
+
 ## 性能调优：从理论到实践
 
 ### JMH 基准测试数据
@@ -224,6 +226,8 @@ public class CopyBenchmark {
 <bean id="protoBean" class="com.example.PrototypeBean" scope="prototype"/>
 ```
 
+Spring 的 Prototype 作用域在每次 getBean 时都会创建新实例，但嵌套的可变属性仍然是浅拷贝。如果需要完全隔离，需要在 Bean 的初始化方法中手动深拷贝可变字段。
+
 ### 分布式系统的安全隔离
 
 DTO 在 RPC 传输时必须深拷贝，防止服务端修改影响客户端：
@@ -244,6 +248,7 @@ public class OrderDTO {
 - **共享可变状态**：两个线程操作同一浅拷贝对象导致 ConcurrentModificationException
 - **缓存污染**：缓存层未做深拷贝，业务代码修改缓存引用
 - **Record 类的陷阱**：JDK 17 Record 默认 clone 为浅拷贝
+- **Collections.unmodifiableList 的假深拷贝**：`new ArrayList<>(Collections.unmodifiableList(source))` 只复制了外层 List，内部元素仍是引用。如果元素是可变对象，修改任一副本中的元素会影响另一个。真正的深拷贝需要递归处理每一层。
 
 ```java
 record UserRecord(String name, Address address) implements Cloneable {}
@@ -282,6 +287,8 @@ UserRecord u2 = u1.clone(); // address 字段仍是浅拷贝！
 5. **大对象使用 Kryo**：对于需要高性能深拷贝的场景（如缓存、消息传递），引入 Kryo 替代原生序列化。
 6. **不可变对象防御性拷贝**：在构造函数中对传入的可变参数做防御性拷贝，防止外部修改。
 7. **推荐阅读**：《Effective Java》第 13 条（谨慎重写 clone）和第 17 条（最小化可变性），以及 Joshua Bloch 关于 Cloneable 的设计演讲。
+
+从 Object.clone 的浅拷贝陷阱到序列化的性能代价，从 Cloneable 的设计缺陷到拷贝构造函数的工程优势，对象拷贝的本质问题是——你需要多深的隔离？理解每种方案的内存模型与性能特征，才能在业务场景中做出正确的选择：简单场景用拷贝构造函数，复杂对象图用序列化框架，高频路径用 Unsafe 或对象池。
 
 ---
 

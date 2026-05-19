@@ -2,7 +2,7 @@
 
 ## 引言
 
-生产环境 90% 的异常处理，都在浪费代码。try-catch 层层嵌套、catch 块里只写一句 `e.printStackTrace()`、用 `catch(Exception e)` 一锅端——这些写法不仅拖慢性能，更让排查问题变成大海捞针。
+生产环境中，大量异常处理代码并未发挥应有的价值。try-catch 层层嵌套、catch 块里只写一句 `e.printStackTrace()`、用 `catch(Exception e)` 一锅端——这些写法不仅拖慢性能，更让排查问题变成大海捞针。
 
 读完本文你将彻底掌握：
 - **JVM 异常对象的创建与栈追踪生成机制**：为什么抛出异常的代价是普通对象的 100 倍
@@ -252,6 +252,8 @@ Dubbo 的异常传播机制：
 
 RPC 框架通过异常码映射实现跨语言异常传递，例如 Dubbo 的 `RpcException` 封装了错误码和原始异常信息。
 
+从线程池到分布式系统，异常在不同架构层级有着不同的传播策略。理解了这些实战场景后，我们来直面面试中的经典问题。
+
 ## 面试官的"灵魂拷问"
 
 ### final、finally、finalize 的"三胞胎之谜"
@@ -263,6 +265,10 @@ RPC 框架通过异常码映射实现跨语言异常传递，例如 Dubbo 的 `R
 ### Error 的"死亡证明"
 
 `StackOverflowError` 不可恢复的本质原因：JVM 的线程栈空间耗尽，无法创建新的栈帧。可通过 `-XX:ThreadStackSize=256k` 调整栈大小，但治标不治本。
+
+### finally 块的"绝不失约"
+
+`finally` 块真的一定会执行吗？几乎所有面试者都回答"是"，但有一个例外：如果 JVM 在 try 块中调用了 `System.exit()`，finally 块不会执行。此外，如果执行 finally 块的线程被杀死或计算机断电，finally 自然也不会执行。但这些属于极端情况，在日常编码中可以认为 finally 块总是执行的。
 
 ## 生产环境避坑指南
 
@@ -302,6 +308,8 @@ RPC 框架通过异常码映射实现跨语言异常传递，例如 Dubbo 的 `R
 5. **线程池异常监控**：为线程池配置 `UncaughtExceptionHandler`，避免 `submit()` 吞掉异常。
 6. **JVM 参数配置**：添加 `-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/logs/` 确保 OOM 时自动 dump。
 7. **推荐阅读**：《Effective Java》第 69-77 条（异常章节），以及 Spring 的 `DefaultListableBeanFactory` 中的异常处理策略。
+
+从 Throwable 的双螺旋结构到 try-with-resources 的 suppressed exception，从 Checked Exception 的设计哲学之争到线程池的异常吞没陷阱，Java 异常体系的设计始终在安全性与简洁性之间寻找平衡。掌握这些原理，你的异常处理代码将不再是 try-catch 的堆砌，而是精准、高效且可维护的防护网。
 
 ---
 

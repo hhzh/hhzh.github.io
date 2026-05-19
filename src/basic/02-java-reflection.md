@@ -216,6 +216,8 @@ mv.visitInsn(RETURN);
 
 ## 模块化系统的反射限制（Java 9+）
 
+动态代理和反射在 JDK 8 及之前运行无阻，但 Java 9 的模块系统为反射加了一道锁。
+
 Java 9 引入模块化后，反射访问非导出包会抛出 `InaccessibleObjectException`。
 
 ### 解决方案
@@ -227,6 +229,8 @@ Java 9 引入模块化后，反射访问非导出包会抛出 `InaccessibleObjec
 | Unsafe API | `Unsafe.defineClass()` 绕过检查 | 框架底层 | 高（依赖内部 API） |
 
 > **💡 核心提示**：`--add-opens` 是 Java 9+ 反射框架（如 Spring、Hibernate）能正常工作的关键参数。如果升级 JDK 后发现反射调用失败，99% 的原因是模块封装导致的。
+
+反射的威力不仅体现在方法调用上，配合自定义 ClassLoader，它还是构建插件化架构的基石。
 
 ## 热卸载插件系统原型
 
@@ -263,6 +267,8 @@ public class PluginManager {
 1. **类加载隔离**：每个插件使用独立的 `ClassLoader`，避免类冲突。
 2. **资源释放**：调用 `close()` 释放 JAR 文件句柄，触发类卸载。
 3. **生命周期管理**：通过弱引用监控插件实例，防止内存泄漏。
+
+从实践回到设计，Java 的反射实现并非唯一选择。与 C# 的对比能帮助我们理解 Java 反射的取舍。
 
 ## Java 与 C# 反射对比
 
@@ -366,3 +372,5 @@ JIT 编译器无法内联通过 `Method.invoke()` 调用的方法，这意味着
 6. **监控 Metaspace**：配置 `-XX:MaxMetaspaceSize` 和 `-XX:+HeapDumpOnOutOfMemoryError`，防止动态代理类泄漏。
 7. **最小化 setAccessible 使用范围**：将 `setAccessible(true)` 限制在框架初始化阶段，而非每次方法调用时重复调用。
 8. **扩展阅读**：推荐阅读 OpenJDK 源码中的 `NativeMethodAccessorImpl` 和 `ReflectionFactory` 类，以及《深入理解 Java 虚拟机》第 8 章。
+
+从 MethodAccessor 的膨胀机制到模块化反射限制，Java 反射的性能与安全始终在博弈。理解这些底层细节，你才能在框架选型和性能调优时做出正确的判断——知道何时用反射，何时该避开它。

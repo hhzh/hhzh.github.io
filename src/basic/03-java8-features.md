@@ -227,6 +227,8 @@ public class AsyncOrchestrator {
 | `allOf` | 所有 Future 完成后触发 | 批量任务等待 |
 | `exceptionally` | 异常时执行补偿 | 容错降级 |
 
+Java 8 对集合框架也做了重要改进。其中最容易被忽视却影响深远的，是 HashMap 引入红黑树来防御哈希碰撞攻击。
+
 ## HashMap 红黑树：哈希碰撞攻击防护
 
 Java 8 引入红黑树的核心目标是防御哈希碰撞攻击。
@@ -243,6 +245,8 @@ Java 8 引入红黑树的核心目标是防御哈希碰撞攻击。
 - **恶意数据**：构造 10,000 个哈希值相同的键。
 - **Java 7 HashMap**：插入耗时 1200ms，查询单键 500ms。
 - **Java 8 HashMap**：插入耗时 150ms（触发树化），查询单键 0.01ms。
+
+除了语言特性和集合框架的改进，Java 8 在 JVM 内存管理上也有一个重大变更——永久代的终结。
 
 ## 元空间与容器化：内存管理的革命
 
@@ -345,3 +349,5 @@ list.stream().map(s -> {
 6. **异步超时配置**：所有 `CompletableFuture` 调用都应设置超时，避免资源泄漏。
 7. **Lambda 异常处理规范化**：创建统一的 CheckedFunction 工具类处理受检异常。
 8. **扩展阅读**：推荐阅读 Brian Goetz 的《State of Lambda》论文和《Java 8 in Action》第 5-7 章。
+
+从 invokedynamic 到 ForkJoinPool，从 CompletableFuture 到元空间，Java 8 的每一项新特性都不是孤立存在——它们共同构成了现代 Java 开发的基石。理解这些特性的底层原理，才能在工程实践中扬长避短，而非盲目追新。

@@ -252,6 +252,8 @@ DemoService proxy = reference.get(); // 动态代理对象
 
 通过动态代理封装网络通信细节，客户端像调用本地方法一样使用远程服务。
 
+框架的代理选型看似完美，但实际使用中仍有不少暗坑。以下两个问题在生产环境中尤为常见。
+
 ## 陷阱与优化
 
 ### JDK 17+ 的模块化限制
@@ -262,6 +264,8 @@ DemoService proxy = reference.get(); // 动态代理对象
 ```
 
 Java 9+ 的模块系统限制了反射访问，需要手动开放权限包。
+
+模块化限制影响的是代理能否创建，而另一个陷阱则关乎代理创建后的内存健康。
 
 ### 内存泄漏案例
 
@@ -302,8 +306,8 @@ MyInterface proxy = (MyInterface) Proxy.newProxyInstance(
 
 ## 设计模式辨析
 
-- **代理 vs 装饰器**：前者控制访问，后者增强功能
-- **代理 vs 适配器**：前者保持接口一致，后者转换接口
+- **代理 vs 装饰器**：两者结构相似，意图不同。代理模式控制访问（如权限校验、延迟加载），装饰器模式增强功能（如 BufferedInputStream 包装 FileInputStream）。Spring AOP 使用的是代理，Java I/O 使用的是装饰器。
+- **代理 vs 适配器**：代理保持接口一致，客户端无感知；适配器转换接口，让不兼容的类协同工作。
 
 ## 行动清单
 
@@ -314,6 +318,8 @@ MyInterface proxy = (MyInterface) Proxy.newProxyInstance(
 5. **性能压测**：对核心热路径进行 JMH 基准测试，对比 JDK 代理和 CGLIB 的实际性能差异。
 6. **切面层数控制**：审计项目中 AOP 切面数量，确保代理链不超过 3 层。
 7. **推荐阅读**：《Spring 源码深度解析》AOP 章节，以及 JDK 源码 `java.lang.reflect.Proxy` 和 `sun.misc.ProxyGenerator`。
+
+从静态代理的定制西装到动态代理的万能裁缝，从 JDK 的反射调用到 CGLIB 的 FastClass 优化，代理模式在 Java 生态中的演化始终围绕一个核心矛盾——灵活性与性能的权衡。理解每种代理的实现原理与边界条件，才能在框架选型和问题排查时做出正确的判断。
 
 ---
 

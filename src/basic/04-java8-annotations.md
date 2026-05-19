@@ -148,6 +148,8 @@ Spring 通过 `Proxy.newProxyInstance` 创建同时实现原注解接口和 `Syn
 
 > **💡 核心提示**：`@AliasFor` 的代理合成是有代价的——每次获取注解都会创建动态代理实例。Spring 通过缓存 `AnnotationAttributeCache` 来缓解性能开销，但高并发场景仍需要注意。
 
+Spring 的合成注解解决了运行时别名解析问题，但如果你需要在编译后动态修改注解值呢？ASM 字节码框架提供了这种能力。
+
 ## ASM 动态修改注解值实战
 
 通过字节码工具 ASM 可以在编译后修改注解值，实现动态配置：
@@ -178,6 +180,8 @@ byte[] newClass = cw.toByteArray();
 ```
 
 该技术可用于实现动态配置切换，但需注意修改后的类需重新加载以避免 Metaspace 内存泄漏。
+
+理解了注解的存储与合成机制后，让我们看一个完整的工程案例——如何基于注解驱动设计一个分布式锁框架。
 
 ## 声明式分布式锁框架设计
 
@@ -237,6 +241,8 @@ public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment 
 ```
 
 这种机制使得 Lombok 能在保持代码简洁性的同时兼容 IDE 的代码提示。
+
+从运行时反射到编译期 AST 转换，Java 注解的处理方式已经覆盖了整个生命周期。作为横向参考，我们来看看 C# 的 Attribute 设计有何不同。
 
 ## Java 注解 vs C# Attribute
 
@@ -356,3 +362,5 @@ java.lang.OutOfMemoryError: Metaspace
 6. **理解 @Inherited 局限**：不要依赖 `@Inherited` 继承方法/字段注解，手动实现遍历查找。
 7. **注解安全性加固**：对包含敏感信息的注解使用 `SOURCE` 级别 Retention，防止运行时反射读取。
 8. **扩展阅读**：推荐阅读 JSR 269（Pluggable Annotation Processing API）规范和 Spring Framework 中 `SynthesizedMergedAnnotationInvocationHandler` 的源码。
+
+从 Class 文件中的二进制存储到 Spring 的动态代理合成，从 ASM 字节码修改到 APT 编译期处理，注解的运行机制贯穿了 Java 开发的全生命周期。理解这些底层原理，你才能在框架设计和问题排查时游刃有余。
