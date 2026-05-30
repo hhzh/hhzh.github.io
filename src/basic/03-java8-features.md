@@ -4,7 +4,7 @@
 
 Lambda 表达式不是匿名内部类——这是 Java 8 最重要的底层秘密。如果有人说"Lambda 就是语法糖生成的匿名内部类"，请用 `invokedynamic` 指令反驳他。
 
-读完本文你将掌握：`invokedynamic` 指令的工作原理、LambdaMetafactory 的动态类生成机制、ForkJoinPool 工作窃取算法、CompletableFuture 的超时熔断模式，以及并行流在生产环境中的致命陷阱。
+读完本文你将掌握：`invokedynamic` 指令的工作原理、`LambdaMetafactory` 的运行时链接机制、ForkJoinPool 工作窃取算法、CompletableFuture 的超时降级模式，以及并行流在生产环境中的常见陷阱。
 
 ```mermaid
 classDiagram
@@ -193,7 +193,7 @@ stream.count(); // 只有调用终端操作，整个流水线才执行
 
 ## CompletableFuture：异步编排与容错设计
 
-### 超时熔断模式
+### 超时降级模式
 
 ```java
 public class AsyncOrchestrator {
@@ -215,7 +215,7 @@ public class AsyncOrchestrator {
 }
 ```
 
-通过 `applyToEither` 实现超时熔断，结合 `exceptionally` 进行异常补偿。适用于微服务调用链。
+通过 `applyToEither` 实现超时保护，结合 `exceptionally` 进行异常补偿。它更接近“超时降级”而不是完整熔断：真正的熔断还需要失败计数、半开探测和恢复策略。
 
 ### 常见组合操作
 
@@ -258,7 +258,7 @@ Java 8 以元空间（Metaspace）取代永久代，直接使用本地内存存�
 2. **冷启动优化**：结合 GraalVM Native Image 预初始化类，减少启动延迟。
 3. **资源配额**：设置 `-XX:MaxMetaspaceSize=256m` 防止内存泄漏。
 
-> **💡 核心提示**：Lambda 表达式通过 ASM 动态生成类会增加 Metaspace 压力。大量使用 Lambda 的应用需要适当增大 Metaspace 上限。
+> **💡 核心提示**：Lambda 的实现会在运行时建立调用点并生成或隐藏实现类，具体策略会随 JDK 版本变化。通常业务代码不需要因为普通 Lambda 单独调大 Metaspace；更需要关注的是动态代理、字节码增强框架和频繁创建 ClassLoader 的场景。
 
 ## 生产环境避坑指南
 

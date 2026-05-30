@@ -4,7 +4,7 @@
 
 `user2.getAddress().setCity("上海")` 为什么影响了 `user1`？这个看似诡异的现象，是 Java 开发者在拷贝对象时最常踩的坑——你以为做了深拷贝，实际上只是复制了引用地址。
 
-读完本文你将彻底掌握：
+读完本文你将掌握：
 - **浅拷贝与深拷贝的内存模型差异**：为什么 `Object.clone()` 默认是浅拷贝
 - **Cloneable 接口的先天缺陷**：为什么 Josh Bloch 说 Cloneable 是"一个有缺陷的设计"
 - **四种深拷贝方案的优劣对比**：Cloneable、序列化、拷贝构造函数、序列化框架
@@ -24,7 +24,7 @@ user2.getAddress().setCity("上海"); // user1 地址也被修改！
 
 **深拷贝**则通过递归复制所有引用链上的对象，在堆中创建全新内存块。从对象头到实例数据均独立存在。
 
-**浅拷贝 vs 深拷贝的内存布局对比**：
+为了更直观看清差异，可以把对象图理解为两层：外层 `User` 对象和内层 `Address` 对象。浅拷贝只复制外层，深拷贝会继续复制内层。
 
 ```mermaid
 flowchart TD
@@ -247,14 +247,14 @@ public class OrderDTO {
 
 - **共享可变状态**：两个线程操作同一浅拷贝对象导致 ConcurrentModificationException
 - **缓存污染**：缓存层未做深拷贝，业务代码修改缓存引用
-- **Record 类的陷阱**：JDK 17 Record 默认 clone 为浅拷贝
+- **Record 类的陷阱**：Record 只是浅不可变，字段引用的对象如果可变，仍可能被外部修改
 - **Collections.unmodifiableList 的假深拷贝**：`new ArrayList<>(Collections.unmodifiableList(source))` 只复制了外层 List，内部元素仍是引用。如果元素是可变对象，修改任一副本中的元素会影响另一个。真正的深拷贝需要递归处理每一层。
 
 ```java
-record UserRecord(String name, Address address) implements Cloneable {}
+record UserRecord(String name, Address address) {}
 
 UserRecord u1 = new UserRecord("Tom", new Address("北京"));
-UserRecord u2 = u1.clone(); // address 字段仍是浅拷贝！
+UserRecord u2 = new UserRecord(u1.name(), u1.address()); // address 字段仍是同一个引用！
 ```
 
 ## 生产环境避坑指南
@@ -288,7 +288,7 @@ UserRecord u2 = u1.clone(); // address 字段仍是浅拷贝！
 6. **不可变对象防御性拷贝**：在构造函数中对传入的可变参数做防御性拷贝，防止外部修改。
 7. **推荐阅读**：《Effective Java》第 13 条（谨慎重写 clone）和第 17 条（最小化可变性），以及 Joshua Bloch 关于 Cloneable 的设计演讲。
 
-从 Object.clone 的浅拷贝陷阱到序列化的性能代价，从 Cloneable 的设计缺陷到拷贝构造函数的工程优势，对象拷贝的本质问题是——你需要多深的隔离？理解每种方案的内存模型与性能特征，才能在业务场景中做出正确的选择：简单场景用拷贝构造函数，复杂对象图用序列化框架，高频路径用 Unsafe 或对象池。
+从 Object.clone 的浅拷贝陷阱到序列化的性能代价，从 Cloneable 的设计缺陷到拷贝构造函数的工程优势，对象拷贝的本质问题是——你需要多深的隔离？理解每种方案的内存模型与性能特征，才能在业务场景中做出正确的选择：简单场景优先用拷贝构造函数，复杂对象图考虑序列化框架，高频路径则应通过压测选择手动拷贝、对象池或更少拷贝的设计。
 
 ---
 

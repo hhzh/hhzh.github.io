@@ -4,7 +4,7 @@
 
 Spring 的 `@AliasFor` 是怎么做到代理合成的？一个注解的属性别名，在运行时是如何被动态解析的？这背后是 JDK 动态代理 + 缓存 + 递归注解合成的精密协作。
 
-读完本文你将掌握：注解在 Class 文件中的二进制存储格式、三种 Retention 策略的运行时影响、Spring SynthesizedAnnotation 的代理机制，以及注解处理器（APT）的完整工作原理。这是理解 Spring、MyBatis、JPA 等主流框架注解驱动开发的核心基础。
+读完本文你将掌握：注解在 Class 文件中的二进制存储格式、三种 Retention 策略的运行时影响、Spring 合成注解的代理机制，以及注解处理器（APT）的核心工作流程。这是理解 Spring、MyBatis、JPA 等主流框架注解驱动开发的基础。
 
 ```mermaid
 classDiagram
@@ -68,7 +68,7 @@ classDiagram
 | 键值对数量 | 2 字节 | 注解成员值的数量 |
 | 键值对数组 | 变长 | 每个成员由 `u2` 名称索引和 `element_value` 值构成 |
 
-例如，`@DistributedLock(timeout=5000)` 对应的字节码中，`timeout` 作为名称索引指向常量池，值以 `CONSTANT_Integer_info` 形式存储。这种紧凑的二进制结构使得 JVM 能在加载类时快速解析注解。
+例如，`@DistributedLock(timeout=5000)` 对应的字节码中，`timeout` 作为名称索引指向常量池，值以整型常量的形式记录在注解属性里。这种紧凑的二进制结构使得 JVM 能在加载类时快速解析注解。
 
 ### 三种 Retention 策略的对比
 
@@ -146,7 +146,7 @@ public Object invoke(Object proxy, Method method, Object[] args) {
 
 Spring 通过 `Proxy.newProxyInstance` 创建同时实现原注解接口和 `SynthesizedAnnotation` 标记接口的代理对象，实现属性别名的运行时解析。
 
-> **💡 核心提示**：`@AliasFor` 的代理合成是有代价的——每次获取注解都会创建动态代理实例。Spring 通过缓存 `AnnotationAttributeCache` 来缓解性能开销，但高并发场景仍需要注意。
+> **💡 核心提示**：`@AliasFor` 的代理合成是有代价的。Spring 会缓存合成注解和属性映射结果，避免每次都从头解析；但在高频路径中仍应避免重复反射读取注解，最好在初始化阶段完成解析并缓存业务所需的结果。
 
 Spring 的合成注解解决了运行时别名解析问题，但如果你需要在编译后动态修改注解值呢？ASM 字节码框架提供了这种能力。
 
@@ -280,7 +280,7 @@ public @interface MyConfig {
 // 编译后，@NonNull 注解不保留在类型参数上
 List<@NonNull String> list;
 
-// 反射无法获取泛型参数上的注解
+// 如果没有使用合适的反射 API，就拿不到类型使用位置上的注解
 ```
 
 **对策**：使用 Java 8 的 TYPE_USE 目标类型注解，并通过 `getAnnotatedType()` API 访问。

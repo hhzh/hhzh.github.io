@@ -10,15 +10,15 @@
 - **try-with-resources 的底层实现**：AutoCloseable 和 suppressed exceptions 如何拯救资源泄漏
 - **生产级异常处理最佳实践**：从吞没异常到优雅降级
 
-理解这些原理，让你的异常处理代码既能快速定位问题，又不会成为性能瓶颈。
+理解这些原理，可以让异常处理既能帮助定位问题，又不会变成性能瓶颈或日志噪音。
 
 ## 异常体系的"基因密码"
 
-### Throwable 家族的双螺旋结构
+### Throwable 家族结构
 
-在 JVM 眼中，所有异常都是 Throwable 的子孙。**Error 是系统级的"绝症"**，比如 `OutOfMemoryError` 发生时，JVM 的堆内存就像被撑爆的气球，连对象头都塞不下新对象了。这类异常的特点是：**无法通过代码挽救，只能调整 JVM 参数或修复程序逻辑**。
+在 JVM 眼中，所有异常都是 Throwable 的子类。**Error 通常表示系统级或虚拟机级问题**，比如 `OutOfMemoryError`、`StackOverflowError`。这类问题一般不适合在业务代码里捕获后继续运行，更合理的方式是记录、告警、释放必要资源，并从容量、参数或程序逻辑上修复根因。
 
-**Exception 则是程序员能处理的"慢性病"**。比如 `NullPointerException` 发生时，引用指针在栈帧中指向了无效的堆内存地址。这类异常的内存结构特点决定了它们可被捕获处理。
+**Exception 表示程序层面的异常情况**。其中 checked exception 适合表达外部资源失败，RuntimeException 更常用于编程错误或业务规则失败。它们都能被捕获，但是否应该捕获，取决于当前层是否有能力恢复或补充上下文。
 
 ```mermaid
 classDiagram
@@ -85,7 +85,7 @@ try {
 
 Unchecked 异常（如 `IllegalArgumentException`）则是信任开发者的产物。编译器不做强制检查，但运行时一旦触发就会导致程序崩溃，适合表示编程错误。
 
-> **💡 核心提示**：Java 是主流语言中唯一采用 checked exception 的设计。但现代框架（Spring、Hibernate）几乎全部将异常转为 RuntimeException——因为 checked exception 破坏了开闭原则：一旦底层方法签名增加了新的 checked 异常，所有调用链都必须修改。这也是为什么 Kotlin、Scala 等 JVM 语言完全放弃了 checked exception。
+> **💡 核心提示**：Java 是少数在语言层面强制 checked exception 的主流语言之一。现代框架（Spring、Hibernate）大量使用 RuntimeException，是因为 checked exception 会把底层异常签名传递到调用链上：一旦底层方法新增 checked 异常，上层接口和实现都可能被迫修改。这也是 Kotlin、Scala 等 JVM 语言不强制 checked exception 的重要原因。
 
 ### 自定义异常的黄金法则
 
@@ -309,7 +309,7 @@ RPC 框架通过异常码映射实现跨语言异常传递，例如 Dubbo 的 `R
 6. **JVM 参数配置**：添加 `-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/logs/` 确保 OOM 时自动 dump。
 7. **推荐阅读**：《Effective Java》第 69-77 条（异常章节），以及 Spring 的 `DefaultListableBeanFactory` 中的异常处理策略。
 
-从 Throwable 的双螺旋结构到 try-with-resources 的 suppressed exception，从 Checked Exception 的设计哲学之争到线程池的异常吞没陷阱，Java 异常体系的设计始终在安全性与简洁性之间寻找平衡。掌握这些原理，你的异常处理代码将不再是 try-catch 的堆砌，而是精准、高效且可维护的防护网。
+从 Throwable 家族结构到 try-with-resources 的 suppressed exception，从 Checked Exception 的设计取舍到线程池的异常吞没陷阱，Java 异常体系的设计始终在安全性与简洁性之间寻找平衡。掌握这些原理，你的异常处理代码将不再是 try-catch 的堆砌，而是精准、高效且可维护的防护网。
 
 ---
 

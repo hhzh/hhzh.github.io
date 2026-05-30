@@ -4,7 +4,7 @@
 
 为什么 `new ArrayList<String>().getClass()` 返回的不是 String 类型？为什么 `new T[]` 在 Java 中是非法的？如果你曾被这些问题困扰，说明你触碰到了 Java 泛型最核心的设计抉择——**类型擦除**。
 
-读完本文你将掌握：类型擦除的底层原理与 JVM 兼容性考量、PECS 原则的类型论基础、桥方法的生成机制，以及生产环境中 90% 开发者都会踩中的泛型陷阱。面试中大多数人连 `? extends T` 和 `? super T` 的区别都说不清，而本文将从源码级别帮你彻底搞懂。
+读完本文你将掌握：类型擦除的底层原理与 JVM 兼容性考量、PECS 原则的类型论基础、桥方法的生成机制，以及生产环境中常见的泛型陷阱。看完之后，你不仅能解释 `? extends T` 和 `? super T` 的区别，也能知道它们分别适合放在什么方法签名里。
 
 ```mermaid
 classDiagram
@@ -179,16 +179,16 @@ String s = (String) list.get(0); // 编译器自动插入强转
 
 > **💡 核心提示**：`list.getClass()` 返回的是 `ArrayList.class`，泛型类型参数 `<String>` 在运行时完全不存在。这就是为什么 `new ArrayList<String>().getClass() == new ArrayList<Integer>().getClass()` 返回 `true`。
 
-### 为什么不能用原始类型和 new T()？
+### 为什么不能用基本类型和 new T()？
 
 > **💡 核心提示**：以下代码无法编译：
 > ```java
 > T obj = new T();        // 编译错误：运行时 T 已被擦除，不知道 new 哪个类
 > T[] arr = new T[10];    // 编译错误：数组需要运行时类型信息
 > if (obj instanceof T)   // 编译错误：无法在运行时检查 T
-> List<int> list;         // 编译错误：泛型不能使用原始类型（int/double等）
+> List<int> list;         // 编译错误：泛型不能使用基本类型（int/double等）
 > ```
-> 原因统一归结于**类型擦除**：运行时 `T` 被替换为 `Object`，JVM 不知道该分配多大的内存。
+> 前三个问题都来自**类型擦除**：运行时 `T` 被替换为边界类型或 `Object`，JVM 无法知道具体类型。`List<int>` 不能编译则是因为 Java 泛型要求类型参数是引用类型，基本类型需要使用 `Integer`、`Double` 等包装类。
 
 ### 桥方法的生成机制
 
@@ -345,7 +345,7 @@ var emptyList = Collections.emptyList();  // 推断为 List<Object>，不是期�
 | 声明点型变 | 不支持 | 支持（`+T`/`-T`） | 部分支持（`out T`/`in T`） |
 | 使用点型变 | 通配符 `?` | 支持 | 不支持 |
 | 泛型数组 | 不允许 | 通过 Manifest 支持 | 支持 |
-| 原始类型 | 不允许 | 不支持 | 支持 |
+| 基本类型作为类型参数 | 不允许 | 不支持 | 支持 |
 | 向后兼容 | 完全兼容 | 完全兼容 | 需要 .NET 2.0+ |
 
 ## 生产环境避坑指南
@@ -392,7 +392,7 @@ static <T> void unsafeMethod(T... args) {
 
 ```java
 // 不推荐：通配符嵌套过深，可读性极差
-Map<? extends String, ? super List<? extends ? extends Number>> map;
+Map<String, ? super List<? extends Number>> map;
 
 // 推荐：使用类型别名或辅助类
 class NumberListConsumer {
